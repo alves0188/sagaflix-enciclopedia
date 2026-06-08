@@ -49,6 +49,14 @@ const getAgeRatingBadge = (rating) => {
 };
 
 export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelectBook, onSelectBookUniverse }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [activeTab, setActiveTab] = useState('vitrine'); // 'vitrine', 'favoritos', 'lendo', 'lidos'
   const [searchText, setSearchText] = useState('');
   const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
@@ -301,19 +309,19 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
       <div className="reader-banner" style={{ 
         position: 'relative', 
         width: '100%', 
-        height: '280px', 
-        borderRadius: '0 0 16px 16px', // Rounded corners at bottom only to merge with top of section
+        height: isMobile ? '380px' : '280px', 
+        borderRadius: isMobile ? '12px' : '0 0 16px 16px', // Rounded corners at bottom only to merge with top of section
         overflow: 'hidden', 
         border: '1px solid var(--border-color)',
-        borderTop: 'none',
+        borderTop: isMobile ? '1px solid var(--border-color)' : 'none',
         boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
         background: '#1a1c20',
-        padding: '2rem 3rem',
+        padding: isMobile ? '1.5rem' : '2rem 3rem',
         boxSizing: 'border-box',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '3rem',
+        gap: isMobile ? '0' : '3rem',
         marginBottom: '1.5rem',
         flexShrink: 0
       }}>
@@ -342,7 +350,9 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           left: 0, 
           right: 0, 
           bottom: 0, 
-          background: 'linear-gradient(to right, rgba(13, 14, 18, 0.95) 0%, rgba(13, 14, 18, 0.8) 50%, rgba(13, 14, 18, 0.3) 100%)',
+          background: isMobile 
+            ? 'linear-gradient(to top, rgba(13, 14, 18, 0.95) 0%, rgba(13, 14, 18, 0.6) 60%, rgba(13, 14, 18, 0.2) 100%)'
+            : 'linear-gradient(to right, rgba(13, 14, 18, 0.95) 0%, rgba(13, 14, 18, 0.8) 50%, rgba(13, 14, 18, 0.3) 100%)',
           zIndex: 1
         }}></div>
 
@@ -351,19 +361,23 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           position: 'relative', 
           zIndex: 2, 
           display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
           width: '100%',
           height: '100%',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '2rem'
+          alignItems: isMobile ? 'center' : 'center',
+          justifyContent: isMobile ? 'flex-end' : 'space-between',
+          gap: isMobile ? '1rem' : '2rem'
         }}>
           {/* Coluna 1: Recomendado & Info */}
           <div style={{ 
-            flex: '1.2', 
+            flex: isMobile ? 'none' : '1.2', 
             display: 'flex', 
             flexDirection: 'column', 
-            justifyContent: 'center',
-            height: '100%'
+            justifyContent: isMobile ? 'flex-end' : 'center',
+            alignItems: isMobile ? 'center' : 'flex-start',
+            textAlign: isMobile ? 'center' : 'left',
+            width: '100%',
+            height: isMobile ? 'auto' : '100%'
           }}>
             <span style={{ 
               color: 'var(--accent-gold)', 
@@ -378,7 +392,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             </span>
             <h1 style={{ 
               fontFamily: "'Playfair Display', serif", 
-              fontSize: '2.2rem', 
+              fontSize: isMobile ? '1.8rem' : '2.2rem', 
               color: '#fff', 
               margin: '0 0 0.2rem 0', 
               lineHeight: '1.2',
@@ -389,13 +403,33 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             </h1>
             <p style={{ 
               color: 'var(--accent-gold)', 
-              fontSize: '0.95rem', 
-              margin: '0 0 1.5rem 0',
+              fontSize: '0.9rem', 
+              margin: '0 0 0.8rem 0',
               textShadow: '0 1px 2px rgba(0,0,0,0.5)',
               animation: 'slideIn 0.7s ease-out'
             }}>
               Por {authorName}
             </p>
+            
+            {isMobile && (
+              <p style={{ 
+                color: 'rgba(255,255,255,0.85)', 
+                fontSize: '0.8rem', 
+                lineHeight: '1.4',
+                margin: '0 0 1.2rem 0',
+                maxWidth: '90%',
+                maxHeight: '40px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+              }}>
+                {currentBanner.description}
+              </p>
+            )}
+
             <div>
               <button 
                 onClick={() => handleBannerAction(currentBanner)} 
@@ -405,7 +439,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                   fontSize: '0.9rem', 
                   fontWeight: 'bold',
                   boxShadow: '0 4px 12px rgba(212,175,55,0.2)',
-                  animation: 'slideIn 0.8s ease-out'
+                  animation: 'slideIn 0.8s ease-out',
+                  margin: isMobile ? '0 auto' : '0'
                 }}
               >
                 {currentBanner.actionText || 'Começar a Ler'}
@@ -413,31 +448,33 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             </div>
           </div>
 
-          {/* Coluna 2: Sinopse Card */}
-          <div style={{ 
-            flex: '0.6', 
-            background: 'rgba(27, 29, 34, 0.85)', 
-            backdropFilter: 'blur(8px)',
-            borderRadius: '12px', 
-            padding: '1.5rem', 
-            height: '100%', 
-            display: 'flex', 
-            alignItems: 'center',
-            boxSizing: 'border-box',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            overflowY: 'auto'
-          }}>
-            <p style={{ 
-              color: 'rgba(255,255,255,0.85)', 
-              fontSize: '0.95rem', 
-              lineHeight: '1.6',
-              margin: 0,
-              textAlign: 'left',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+          {/* Coluna 2: Sinopse Card (Escondido no celular) */}
+          {!isMobile && (
+            <div style={{ 
+              flex: '0.6', 
+              background: 'rgba(27, 29, 34, 0.85)', 
+              backdropFilter: 'blur(8px)',
+              borderRadius: '12px', 
+              padding: '1.5rem', 
+              height: '100%', 
+              display: 'flex', 
+              alignItems: 'center',
+              boxSizing: 'border-box',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              overflowY: 'auto'
             }}>
-              {currentBanner.description}
-            </p>
-          </div>
+              <p style={{ 
+                color: 'rgba(255,255,255,0.85)', 
+                fontSize: '0.95rem', 
+                lineHeight: '1.6',
+                margin: 0,
+                textAlign: 'left',
+                textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+              }}>
+                {currentBanner.description}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Carousel Navigation Dots */}
@@ -474,50 +511,122 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   };
 
   return (
-    <div className="reader-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+    <div className="reader-dashboard-container" style={{ 
+      display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row',
+      height: isMobile ? 'auto' : 'calc(100vh - 120px)', 
+      background: 'var(--bg-color)', 
+      border: isMobile ? 'none' : '1px solid var(--border-color)', 
+      borderRadius: isMobile ? '0' : '12px', 
+      overflow: isMobile ? 'visible' : 'hidden',
+      paddingBottom: isMobile ? '80px' : '0'
+    }}>
       
-      {/* Sidebar do Leitor */}
-      <div className="reader-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
-        
-        {/* Perfil Header */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem', marginBottom: '2.5rem', padding: '0 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '2rem' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
-            {currentUser.avatar ? (
-              <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <User size={40} color="var(--accent-gold)" />
-            )}
+      {/* Sidebar do Leitor (Escondida no Mobile) */}
+      {!isMobile && (
+        <div className="reader-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
+          {/* Perfil Header */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem', marginBottom: '2.5rem', padding: '0 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '2rem' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
+              {currentUser.avatar ? (
+                <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <User size={40} color="var(--accent-gold)" />
+              )}
+            </div>
+            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{currentUser.name}</h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.15)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontWeight: 'bold' }}>Leitor Especial</span>
           </div>
-          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{currentUser.name}</h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.15)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontWeight: 'bold' }}>Leitor Especial</span>
-        </div>
 
-        {/* Links Menu */}
-        <button onClick={() => { setActiveTab('vitrine'); setSelectedBook(null); }} style={navItemStyle('vitrine')}><BookOpen size={18}/> Vitrine de Obras</button>
-        <button onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} style={navItemStyle('favoritos')}><Star size={18}/> Minha Lista</button>
-        <button onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} style={navItemStyle('lendo')}><Bookmark size={18}/> Lendo</button>
-        <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
-      </div>
+          {/* Links Menu */}
+          <button onClick={() => { setActiveTab('vitrine'); setSelectedBook(null); }} style={navItemStyle('vitrine')}><BookOpen size={18}/> Vitrine de Obras</button>
+          <button onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} style={navItemStyle('favoritos')}><Star size={18}/> Minha Lista</button>
+          <button onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} style={navItemStyle('lendo')}><Bookmark size={18}/> Lendo</button>
+          <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
+        </div>
+      )}
+
+      {/* Barra de Navegação Inferior para Mobile (Estilo Netflix) */}
+      {isMobile && (
+        <div style={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          background: 'rgba(26, 28, 32, 0.96)', 
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid var(--border-color)', 
+          display: 'flex', 
+          justifyContent: 'space-around', 
+          alignItems: 'center', 
+          height: '65px', 
+          zIndex: 2000,
+          padding: '0.2rem 0.5rem 0.6rem 0.5rem'
+        }}>
+          <button 
+            onClick={() => { setActiveTab('vitrine'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'vitrine' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'vitrine' ? '600' : '400'
+            }}
+          >
+            <BookOpen size={20} />
+            <span>Vitrine</span>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'favoritos' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'favoritos' ? '600' : '400'
+            }}
+          >
+            <Star size={20} />
+            <span>Minha Lista</span>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'lendo' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'lendo' ? '600' : '400'
+            }}
+          >
+            <Bookmark size={20} />
+            <span>Lendo</span>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'lidos' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'lidos' ? '600' : '400'
+            }}
+          >
+            <CheckCircle size={20} />
+            <span>Lidos</span>
+          </button>
+        </div>
+      )}
 
       {/* Conteúdo Principal */}
       <div className="reader-main-content" style={{ 
         flex: 1, 
-        overflowY: 'auto', 
-        padding: activeTab === 'vitrine' ? '0 3rem 3rem 3rem' : '3rem', // No top padding for vitrine to align banner perfectly at the top of right section
+        overflowY: isMobile ? 'visible' : 'auto', 
+        padding: isMobile 
+          ? (activeTab === 'vitrine' ? '0 1rem 1rem 1rem' : '1rem')
+          : (activeTab === 'vitrine' ? '0 3rem 3rem 3rem' : '3rem'),
         background: 'var(--bg-main)', 
         display: 'flex', 
         flexDirection: 'column', 
-        gap: '2rem' 
+        gap: isMobile ? '1.2rem' : '2rem' 
       }}>
         
         {/* Top Header para abas que não sejam a Vitrine */}
         {activeTab !== 'vitrine' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize', fontSize: isMobile ? '1.5rem' : '2rem' }}>
               {activeTab === 'favoritos' ? 'Minha Lista (Favoritos)' : activeTab === 'lendo' ? 'Livros Sendo Lidos' : 'Livros Concluídos'}
             </h2>
             
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.4rem 0.8rem', minWidth: '260px' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.4rem 0.8rem', minWidth: isMobile ? '100%' : '260px' }}>
               <Search size={18} color="var(--text-muted)" />
               <input 
                 type="text" 
@@ -549,23 +658,35 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         {activeTab === 'vitrine' && (
           <div className="reader-filters-bar" style={{ 
             display: 'flex', 
+            flexDirection: isMobile ? 'column' : 'row',
             justifyContent: 'space-between', 
-            alignItems: 'center', 
+            alignItems: isMobile ? 'stretch' : 'center', 
             background: 'rgba(255,255,255,0.02)', 
-            padding: '0.8rem 1.2rem', 
+            padding: isMobile ? '0.8rem' : '0.8rem 1.2rem', 
             borderRadius: '8px', 
             border: '1px solid var(--border-color)',
             gap: '1rem',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Filtros:</span>
+            <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.8rem', alignItems: 'center', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: isMobile ? 'block' : 'inline', width: isMobile ? '100%' : 'auto' }}>Filtros:</span>
               
               {/* Gênero */}
               <select 
                 value={selectedGenre} 
                 onChange={e => setSelectedGenre(e.target.value)}
-                style={{ padding: '0.4rem 0.8rem', background: '#1b1d22', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                style={{ 
+                  padding: '0.4rem 0.8rem', 
+                  background: '#1b1d22', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  color: 'var(--text-muted)', 
+                  borderRadius: '4px', 
+                  fontSize: '0.8rem', 
+                  cursor: 'pointer', 
+                  outline: 'none',
+                  flex: isMobile ? '1 1 calc(50% - 0.5rem)' : 'none',
+                  minWidth: isMobile ? '110px' : 'auto'
+                }}
               >
                 <option value="">Todos os Gêneros</option>
                 {getUniqueGenres().map(g => (
@@ -577,7 +698,18 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               <select 
                 value={selectedAgeRating} 
                 onChange={e => setSelectedAgeRating(e.target.value)}
-                style={{ padding: '0.4rem 0.8rem', background: '#1b1d22', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                style={{ 
+                  padding: '0.4rem 0.8rem', 
+                  background: '#1b1d22', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  color: 'var(--text-muted)', 
+                  borderRadius: '4px', 
+                  fontSize: '0.8rem', 
+                  cursor: 'pointer', 
+                  outline: 'none',
+                  flex: isMobile ? '1 1 calc(50% - 0.5rem)' : 'none',
+                  minWidth: isMobile ? '110px' : 'auto'
+                }}
               >
                 <option value="">Qualquer Idade</option>
                 {getUniqueAgeRatings().map(r => (
@@ -589,7 +721,18 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               <select 
                 value={selectedAuthorFilter} 
                 onChange={e => setSelectedAuthorFilter(e.target.value)}
-                style={{ padding: '0.4rem 0.8rem', background: '#1b1d22', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                style={{ 
+                  padding: '0.4rem 0.8rem', 
+                  background: '#1b1d22', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  color: 'var(--text-muted)', 
+                  borderRadius: '4px', 
+                  fontSize: '0.8rem', 
+                  cursor: 'pointer', 
+                  outline: 'none',
+                  flex: isMobile ? '1 1 100%' : 'none',
+                  minWidth: isMobile ? '100%' : 'auto'
+                }}
               >
                 <option value="">Todos os Autores</option>
                 {getUniqueAuthors().map(a => (
@@ -601,7 +744,20 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               {(selectedGenre || selectedAgeRating || selectedAuthorFilter || letterFilter) && (
                 <button 
                   onClick={() => { setSelectedGenre(''); setSelectedAgeRating(''); setSelectedAuthorFilter(''); setLetterFilter(''); }}
-                  style={{ background: 'transparent', border: 'none', color: '#ff4444', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 'bold' }}
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: '#ff4444', 
+                    fontSize: '0.8rem', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.2rem', 
+                    fontWeight: 'bold',
+                    width: isMobile ? '100%' : 'auto',
+                    justifyContent: isMobile ? 'center' : 'flex-start',
+                    marginTop: isMobile ? '0.5rem' : '0'
+                  }}
                 >
                   <X size={12} /> Limpar
                 </button>
@@ -617,7 +773,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               border: '1px solid rgba(255,255,255,0.1)', 
               borderRadius: '6px', 
               padding: '0.3rem 0.8rem', 
-              width: '240px' 
+              width: isMobile ? '100%' : '240px'
             }}>
               <Search size={14} color="var(--text-muted)" />
               <input 
@@ -633,17 +789,22 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
         {/* Filtro por Letra A-Z */}
         {activeTab === 'vitrine' && (
-          <div style={{ 
+          <div className="reader-az-bar" style={{ 
             display: 'flex', 
-            flexWrap: 'wrap', 
+            flexWrap: isMobile ? 'nowrap' : 'wrap', 
+            overflowX: isMobile ? 'auto' : 'visible',
+            whiteSpace: 'nowrap',
             gap: '0.3rem', 
             background: 'rgba(255,255,255,0.02)', 
             padding: '0.6rem', 
             borderRadius: '8px', 
             border: '1px solid var(--border-color)',
-            alignItems: 'center'
+            alignItems: 'center',
+            width: '100%',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
           }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginRight: '0.5rem', marginLeft: '0.5rem' }}>A-Z:</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginRight: '0.5rem', marginLeft: '0.5rem', flexShrink: 0 }}>A-Z:</span>
             <button 
               onClick={() => setLetterFilter('')} 
               style={{ 
@@ -655,7 +816,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 borderRadius: '4px', 
                 cursor: 'pointer', 
                 fontWeight: 'bold',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                flexShrink: 0
               }}
             >
               Todos
@@ -675,7 +837,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                   fontWeight: 'bold',
                   minWidth: '24px',
                   textAlign: 'center',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  flexShrink: 0
                 }}
               >
                 {letter}
@@ -691,7 +854,11 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             <p style={{ margin: 0 }}>Nenhum livro nesta estante.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '2rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: isMobile ? '1rem' : '2rem' 
+          }}>
             {filteredBooks.map(book => {
               const author = db.users.find(u => u.id === book.authorId);
               const progress = getBookmarkProgress(book.id);

@@ -13,6 +13,13 @@ export default function App() {
   const [db, setDb] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [currentBookId, setCurrentBookId] = useState(null);
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showNewBook, setShowNewBook] = useState(false);
@@ -427,28 +434,38 @@ export default function App() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Header Global */}
-      <header style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)', padding: '1rem 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <BookOpen size={32} color="var(--accent-gold)" />
-          <h1 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: '1.5rem' }}>
-            Sagaflix {portalRole === 'curator' ? '- CURADORIA' : portalRole === 'author' ? '- ESTÚDIO' : ''}
+      <header style={{ 
+        background: 'var(--card-bg)', 
+        borderBottom: '1px solid var(--border-color)', 
+        padding: isMobile ? '0.8rem 1rem' : '1rem 3rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
+          <BookOpen size={isMobile ? 24 : 32} color="var(--accent-gold)" />
+          <h1 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
+            Sagaflix {isMobile ? '' : (portalRole === 'curator' ? '- CURADORIA' : portalRole === 'author' ? '- ESTÚDIO' : '')}
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '1rem' : '2rem' }}>
           
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowNotifications(!showNotifications)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', position: 'relative' }}>
-              <Bell size={24} />
+            <button onClick={() => setShowNotifications(!showNotifications)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Bell size={22} />
               {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#f44336', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 'bold' }}>
+                <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#f44336', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '10px', fontWeight: 'bold' }}>
                   {unreadCount}
                 </span>
               )}
             </button>
             
             {showNotifications && (
-              <div style={{ position: 'absolute', top: '40px', right: '-50px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', width: '300px', maxHeight: '400px', overflowY: 'auto', zIndex: 1000, boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+              <div style={{ position: 'absolute', top: '40px', right: isMobile ? '-100px' : '-50px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', width: '280px', maxHeight: '400px', overflowY: 'auto', zIndex: 1000, boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
                 <h4 style={{ margin: 0, padding: '1rem', borderBottom: '1px solid var(--border-color)', color: 'var(--text-main)' }}>Notificações</h4>
                 {userNotifications.length === 0 ? (
                   <p style={{ padding: '1rem', color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>Nenhuma notificação.</p>
@@ -477,22 +494,24 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }} onClick={handleOpenProfileModal}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--bg-main)', border: '1px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={handleOpenProfileModal}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-main)', border: '1px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {currentUser.avatar ? (
                 <img src={currentUser.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <User size={20} color="var(--accent-gold)" />
+                <User size={18} color="var(--accent-gold)" />
               )}
             </div>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              Olá, <strong style={{ color: 'var(--text-main)' }}>{currentUser.name}</strong>
-              <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
-            </span>
+            {!isMobile && (
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                Olá, <strong style={{ color: 'var(--text-main)' }}>{currentUser.name}</strong>
+                <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
+              </span>
+            )}
+            {isMobile && (
+              <Settings size={18} style={{ color: 'var(--accent-gold)' }} />
+            )}
           </div>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ff7777', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <LogOut size={16} /> Sair
-          </button>
         </div>
       </header>
 
@@ -694,9 +713,23 @@ export default function App() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowProfileModal(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Salvar Alterações</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', flexWrap: 'wrap' }}>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    handleLogout();
+                  }} 
+                  style={{ background: 'none', border: '1px solid #ff7777', color: '#ff7777', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '4px', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 119, 119, 0.1)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <LogOut size={16} /> Sair da Conta
+                </button>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button type="button" className="btn-secondary" onClick={() => setShowProfileModal(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary">Salvar Alterações</button>
+                </div>
               </div>
             </form>
           </div>
