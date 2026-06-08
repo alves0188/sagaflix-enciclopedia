@@ -37,10 +37,10 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         {
           subtheme: 'Capa Oficial',
           text: `
-            <div style="text-align: center; padding: 2rem 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-              <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--accent-gold); margin-bottom: 2rem;">${book?.title || 'Sem título'}</h1>
-              ${book?.cover ? `<img src="${book.cover}" alt="Capa" style="max-height: 380px; max-width: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 2rem; object-fit: contain;"/>` : '<div style="margin-bottom: 2rem; opacity: 0.1;"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10M6 10h10"></svg></div>'}
-              <p style="font-size: 1.2rem; font-style: italic; opacity: 0.8; margin-top: 1rem;">por ${bookAuthor ? bookAuthor.name : 'Autor Desconhecido'}</p>
+            <div class="reader-cover-page" style="text-align: center; padding: 1rem 0;">
+              <h1 class="reader-cover-title" style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--accent-gold); margin-bottom: 1.5rem;">${book?.title || 'Sem título'}</h1>
+              ${book?.cover ? `<img src="${book.cover}" alt="Capa" class="reader-cover-img" style="max-height: 260px; max-width: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 1.5rem; object-fit: contain;"/>` : '<div style="margin-bottom: 1.5rem; opacity: 0.1;"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10M6 10h10"></svg></div>'}
+              <p style="font-size: 1.1rem; font-style: italic; opacity: 0.8; margin-top: 0.5rem;">por ${bookAuthor ? bookAuthor.name : 'Autor Desconhecido'}</p>
             </div>
           `,
           image: book?.cover
@@ -55,19 +55,19 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         {
           subtheme: 'Sobre o Autor',
           text: `
-            <div style="padding: 1rem 0;">
-              <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
-                <div style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent-gold); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
-                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${bookAuthor.name}" style="width:100%; height:100%; object-fit:cover;"/>` : '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'}
+            <div class="reader-author-page" style="padding: 1rem 0;">
+              <div class="reader-author-header" style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
+                <div class="reader-author-avatar-wrapper" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-gold); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
+                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${bookAuthor.name}" style="width:100%; height:100%; object-fit:cover;"/>` : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'}
                 </div>
                 <div>
-                  <h2 style="font-family: 'Playfair Display', serif; margin: 0; color: var(--accent-gold); font-size: 1.8rem;">${bookAuthor?.name || 'Autor Desconhecido'}</h2>
-                  <p style="font-size: 0.9rem; opacity: 0.7; margin: 0.4rem 0 0 0;"><strong>Origem:</strong> ${bookAuthor?.location || 'Não informada'}</p>
-                  ${bookAuthor?.writingStyle ? `<p style="font-size: 0.9rem; opacity: 0.7; margin: 0.2rem 0 0 0;"><strong>Estilo:</strong> ${bookAuthor.writingStyle}</p>` : ''}
+                  <h2 class="reader-author-name" style="font-family: 'Playfair Display', serif; margin: 0; color: var(--accent-gold); font-size: 1.5rem;">${bookAuthor?.name || 'Autor Desconhecido'}</h2>
+                  <p style="font-size: 0.85rem; opacity: 0.7; margin: 0.3rem 0 0 0;"><strong>Origem:</strong> ${bookAuthor?.location || 'Não informada'}</p>
+                  ${bookAuthor?.writingStyle ? `<p style="font-size: 0.85rem; opacity: 0.7; margin: 0.15rem 0 0 0;"><strong>Estilo:</strong> ${bookAuthor.writingStyle}</p>` : ''}
                 </div>
               </div>
-              <h3 style="font-family: 'Playfair Display', serif; color: var(--accent-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-top: 1.5rem;">Biografia</h3>
-              <p style="line-height: 1.8; font-size: 1rem; white-space: pre-line;">${bookAuthor?.bio || 'O autor ainda não cadastrou sua biografia.'}</p>
+              <h3 style="font-family: 'Playfair Display', serif; color: var(--accent-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.4rem; margin-top: 1rem; font-size: 1.1rem;">Biografia</h3>
+              <p class="reader-author-bio" style="line-height: 1.7; font-size: 0.95rem; white-space: pre-line;">${bookAuthor?.bio || 'O autor ainda não cadastrou sua biografia.'}</p>
             </div>
           `,
           image: bookAuthor?.avatar
@@ -82,9 +82,9 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         {
           subtheme: 'Sinopse',
           text: `
-            <div style="padding: 1rem 0;">
-              <h2 style="font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Sinopse da Obra</h2>
-              <p style="line-height: 1.9; font-size: 1.1rem; font-style: italic; white-space: pre-line;">${book?.synopsis || 'Sem sinopse cadastrada.'}</p>
+            <div class="reader-synopsis-page" style="padding: 1rem 0;">
+              <h2 class="reader-synopsis-title" style="font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-size: 1.6rem;">Sinopse da Obra</h2>
+              <p class="reader-synopsis-text" style="line-height: 1.8; font-size: 1.05rem; font-style: italic; white-space: pre-line;">${book?.synopsis || 'Sem sinopse cadastrada.'}</p>
             </div>
           `,
           image: book?.cover
@@ -652,6 +652,47 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           .reader-sidebar.open { transform: translateX(0); }
           .mobile-only { display: flex !important; }
         }
+        
+        /* Responsive virtual pages styles */
+        .reader-cover-page, .reader-author-page, .reader-synopsis-page {
+          display: block;
+        }
+        
+        @media (max-width: 768px) {
+          .reader-cover-title {
+            font-size: 1.6rem !important;
+            margin-bottom: 1rem !important;
+          }
+          .reader-cover-img {
+            max-height: 180px !important;
+            margin-bottom: 1rem !important;
+          }
+          .reader-author-header {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 1rem !important;
+          }
+          .reader-author-avatar-wrapper {
+            width: 70px !important;
+            height: 70px !important;
+          }
+          .reader-author-name {
+            font-size: 1.3rem !important;
+          }
+          .reader-author-bio {
+            font-size: 0.9rem !important;
+            line-height: 1.6 !important;
+          }
+          .reader-synopsis-title {
+            font-size: 1.3rem !important;
+            margin-bottom: 1rem !important;
+          }
+          .reader-synopsis-text {
+            font-size: 0.9rem !important;
+            line-height: 1.6 !important;
+          }
+        }
+
         .reader-body p { margin-bottom: 1.5rem; }
         .reader-body p:last-child { margin-bottom: 0; }
         .reader-body blockquote {

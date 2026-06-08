@@ -170,11 +170,11 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
     <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <div className="sidebar-logo" onClick={onLeave} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+        <div className="sidebar-logo" onClick={onLeave}>
           <ArrowLeft size={24} color="var(--accent-gold)" />
           <span style={{ fontSize: '0.6rem', color: 'var(--accent-gold)' }}>Sair</span>
         </div>
-        <div className="nav-links" style={{ marginTop: '2rem' }}>
+        <div className="nav-links">
           <div className={`nav-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')} title="Início">
             <Home size={24} />
           </div>
@@ -191,7 +191,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
             <Key size={24} />
           </div>
           {currentUser && (currentUser.role === 'author' || currentUser.role === 'curator') && (
-            <div className={`nav-item ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} title="Painel CMS" style={{marginTop: 'auto', marginBottom: '2rem'}}>
+            <div className={`nav-item admin-nav-item ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} title="Painel CMS">
               <Settings size={24} />
             </div>
           )}
@@ -199,7 +199,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
       </aside>
 
       {/* Main Content */}
-      <main className="main-content" style={{ padding: (activeTab === 'reader' || activeTab === 'admin') ? '0' : '2rem 3rem', height: '100%', overflowY: (activeTab === 'reader' || activeTab === 'admin') ? 'hidden' : 'auto' }}>
+      <main className={`main-content ${(activeTab === 'reader' || activeTab === 'admin') ? 'no-padding' : ''}`}>
         {activeTab === 'reader' ? (
           <Reader 
             db={db} 
@@ -250,6 +250,19 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
                       )}
                       {(featuredItem.category || featuredItem.territory || featuredItem.ageRating) ? ` • ${featuredItem.category || featuredItem.territory} ${featuredItem.ageRating ? '• Classificação: ' + featuredItem.ageRating : ''}` : ''}
                     </div>
+
+                    {/* Cover visible only on mobile, placed between subtitle and description */}
+                    {featuredItem.image && (
+                      <div className="featured-cover-wrapper show-only-on-mobile" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
+                        <img 
+                          src={featuredItem.image} 
+                          alt="" 
+                          className="featured-cover-blur"
+                        />
+                        <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
+                      </div>
+                    )}
+
                     <p className="description">{featuredItem.description}</p>
                     <div className="featured-actions">
                       {showBookCover ? (
@@ -265,10 +278,26 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
                       )}
                     </div>
                   </div>
-                  <div className="featured-cover-wrapper" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
-                    <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
+
+                  {/* Cover visible only on desktop */}
+                  <div className="featured-cover-wrapper hide-on-mobile" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
+                    {featuredItem.image ? (
+                      <>
+                        <img 
+                          src={featuredItem.image} 
+                          alt="" 
+                          className="featured-cover-blur"
+                        />
+                        <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
+                      </>
+                    ) : (
+                      <div style={{ opacity: 0.2 }}>
+                        <BookOpen size={48} />
+                      </div>
+                    )}
                   </div>
                 </section>
+
 
                 {showBookCover ? (
                   <>
