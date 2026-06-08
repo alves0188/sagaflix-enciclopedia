@@ -104,6 +104,14 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const initialColumnIdx = savedPos ? savedPos.columnIdx : 0;
 
   const [theme, setTheme] = useState('dark');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [activeChapterIdx, setActiveChapterIdx] = useState(initialChapterIdx);
   const [activeSubthemeIdx, setActiveSubthemeIdx] = useState(initialSubthemeIdx);
   const [activeColumnIdx, setActiveColumnIdx] = useState(initialColumnIdx);
@@ -332,44 +340,50 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         padding: '0 1rem', borderBottom: `1px solid ${themeColors.border}`, backgroundColor: themeColors.panelBg, flexShrink: 0
       }}>
         {/* Left Side: Back Button & Book Title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', width: '280px', flexShrink: 0 }}>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }} title="Voltar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.8rem' : '1.5rem', width: isMobile ? 'auto' : '280px', flexShrink: 0, overflow: 'hidden' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', flexShrink: 0 }} title="Voltar">
             <ArrowLeft size={20} />
           </button>
           
-          <button className="mobile-only" onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', display: 'none' }}>
+          <button className="mobile-only" onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', display: 'none', flexShrink: 0 }}>
             <Menu size={24} />
           </button>
 
-          <div style={{ fontWeight: '600', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif", color: themeColors.gold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontWeight: '600', fontSize: isMobile ? '1.1rem' : '1.3rem', fontFamily: "'Playfair Display', serif", color: themeColors.gold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {book?.title || 'Leitura'}
           </div>
         </div>
 
         {/* Center: Current Chapter Info */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingLeft: '2rem' }}>
-          {chapter && (
-            <>
-              <div style={{ fontWeight: 'bold', fontSize: '1rem', color: themeColors.text }}>
-                {chapter.isVirtual ? chapter.title : `Capítulo ${String(activeChapterIdx - 2).padStart(2, '0')}`}
-              </div>
-              <div style={{ fontSize: '0.9rem', color: themeColors.text, opacity: 0.7 }}>
-                {!chapter.isVirtual && chapter.title} {subthemeObj?.subtheme && !chapter.isVirtual ? `- ${subthemeObj.subtheme}` : ''}
-              </div>
-            </>
-          )}
-        </div>
+        {!isMobile && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingLeft: '2rem', overflow: 'hidden' }}>
+            {chapter && (
+              <>
+                <div style={{ fontWeight: 'bold', fontSize: '1rem', color: themeColors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {chapter.isVirtual ? chapter.title : `Capítulo ${String(activeChapterIdx - 2).padStart(2, '0')}`}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: themeColors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {!chapter.isVirtual && chapter.title} {subthemeObj?.subtheme && !chapter.isVirtual ? `- ${subthemeObj.subtheme}` : ''}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Right Side: Zoom and Theme Controls */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: '320px', justifyContent: 'flex-end', flexShrink: 0 }}>
-          <button onClick={() => setZoom(Math.max(50, zoom - 10))} title="Reduzir Letra" style={{ background: 'transparent', border: `1px solid ${themeColors.border}`, color: themeColors.text, padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>
-            <ZoomOut size={18} />
-          </button>
-          <button onClick={() => setZoom(Math.min(200, zoom + 10))} title="Aumentar Letra" style={{ background: 'transparent', border: `1px solid ${themeColors.border}`, color: themeColors.text, padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>
-            <ZoomIn size={18} />
-          </button>
-          <div style={{ width: '1px', height: '20px', background: themeColors.border, margin: '0 0.5rem' }}></div>
-          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', padding: '0.5rem', borderRadius: '50%' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', width: isMobile ? 'auto' : '320px', justifyContent: 'flex-end', flexShrink: 0 }}>
+          {!isMobile && (
+            <>
+              <button onClick={() => setZoom(Math.max(50, zoom - 10))} title="Reduzir Letra" style={{ background: 'transparent', border: `1px solid ${themeColors.border}`, color: themeColors.text, padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>
+                <ZoomOut size={18} />
+              </button>
+              <button onClick={() => setZoom(Math.min(200, zoom + 10))} title="Aumentar Letra" style={{ background: 'transparent', border: `1px solid ${themeColors.border}`, color: themeColors.text, padding: '0.2rem', borderRadius: '4px', cursor: 'pointer' }}>
+                <ZoomIn size={18} />
+              </button>
+              <div style={{ width: '1px', height: '20px', background: themeColors.border, margin: '0 0.5rem' }}></div>
+            </>
+          )}
+          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
@@ -479,7 +493,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               style={{
                 height: '100%',
                 width: '100%',
-                columnWidth: '100vw',
+                columnWidth: '100%',
                 columnGap: '2rem',
                 transform: `translateX(calc(${activeColumnIdx} * -100% - ${activeColumnIdx} * 2rem))`,
                 transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
@@ -537,7 +551,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                     style={{
                       height: '100%',
                       width: '100%',
-                      columnWidth: '100vw',
+                      columnWidth: '100%',
                       columnGap: '2rem',
                       fontSize: `${zoom}%`,
                       lineHeight: '1.9',

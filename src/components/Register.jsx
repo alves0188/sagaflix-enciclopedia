@@ -29,6 +29,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
   ];
   
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,10 +64,13 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+    setIsLoading(true);
     setError('');
     
     if (formData.password !== confirmPassword) {
       setError('As senhas digitadas não coincidem.');
+      setIsLoading(false);
       return;
     }
 
@@ -74,9 +78,40 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       const res = await fetch(window.API_BASE_URL + '/api/data');
       const db = await res.json();
       
-      if (db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
-        setError('Este e-mail já está em uso.');
-        return;
+      const existingUser = db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
+      if (existingUser) {
+        if (existingUser.status === 'pending_email') {
+          let token = existingUser.verificationToken;
+          if (!token) {
+            token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            existingUser.verificationToken = token;
+            await fetch(window.API_BASE_URL + '/api/data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(db)
+            });
+          }
+          setError('Este e-mail já está cadastrado, mas a conta ainda não foi ativada. Reenviamos o link de confirmação para o seu e-mail.');
+          try {
+            await fetch(window.API_BASE_URL + '/api/send-verification-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: existingUser.email,
+                token: token,
+                name: existingUser.name
+              })
+            });
+          } catch (mailErr) {
+            console.error('Falha ao acionar reenvio de e-mail:', mailErr);
+          }
+          setIsLoading(false);
+          return;
+        } else {
+          setError('Este e-mail já está em uso.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       const existingUserIds = db.users.map(u => u.id.toString());
@@ -146,6 +181,8 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
     } catch (err) {
       setError('Erro ao conectar com o servidor.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -348,8 +385,8 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
             </div>
           )}
 
-          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1rem', marginTop: '1rem' }}>
-            {role === 'author' ? 'ENVIAR PARA APROVAÇÃO' : 'CRIAR CONTA'}
+          <button type="submit" className="btn-primary" disabled={isLoading} style={{ width: '100%', padding: '1rem', fontSize: '1rem', marginTop: '1rem', opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}>
+            {isLoading ? 'ENVIANDO...' : (role === 'author' ? 'ENVIAR PARA APROVAÇÃO' : 'CRIAR CONTA')}
           </button>
         </form>
 

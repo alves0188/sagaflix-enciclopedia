@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2 } from 'lucide-react';
+import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal } from 'lucide-react';
 
 const DEFAULT_BANNERS = [
   {
@@ -62,6 +62,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
 
   // Filtros avançados
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedAgeRating, setSelectedAgeRating] = useState('');
   const [selectedAuthorFilter, setSelectedAuthorFilter] = useState('');
@@ -656,134 +657,179 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
         {/* Filtros e Pesquisa Combinados em uma única linha */}
         {activeTab === 'vitrine' && (
-          <div className="reader-filters-bar" style={{ 
-            display: 'flex', 
-            flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'space-between', 
-            alignItems: isMobile ? 'stretch' : 'center', 
-            background: 'rgba(255,255,255,0.02)', 
-            padding: isMobile ? '0.8rem' : '0.8rem 1.2rem', 
-            borderRadius: '8px', 
-            border: '1px solid var(--border-color)',
-            gap: '1rem',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ display: 'flex', gap: isMobile ? '0.5rem' : '0.8rem', alignItems: 'center', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: isMobile ? 'block' : 'inline', width: isMobile ? '100%' : 'auto' }}>Filtros:</span>
-              
-              {/* Gênero */}
-              <select 
-                value={selectedGenre} 
-                onChange={e => setSelectedGenre(e.target.value)}
-                style={{ 
-                  padding: '0.4rem 0.8rem', 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="reader-filters-bar" style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between', 
+              alignItems: isMobile ? 'stretch' : 'center', 
+              background: 'rgba(255,255,255,0.02)', 
+              padding: isMobile ? '0.8rem' : '0.8rem 1.2rem', 
+              borderRadius: '8px', 
+              border: '1px solid var(--border-color)',
+              gap: '1rem'
+            }}>
+              {/* Catalogo Title / Status */}
+              <div style={{ fontSize: '1rem', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BookOpen size={18} /> Catálogo de Histórias
+              </div>
+
+              {/* Search input and toggle filters button */}
+              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
+                {/* Lupa / Pesquisa */}
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  alignItems: 'center', 
                   background: '#1b1d22', 
                   border: '1px solid rgba(255,255,255,0.1)', 
-                  color: 'var(--text-muted)', 
-                  borderRadius: '4px', 
-                  fontSize: '0.8rem', 
-                  cursor: 'pointer', 
-                  outline: 'none',
-                  flex: isMobile ? '1 1 calc(50% - 0.5rem)' : 'none',
-                  minWidth: isMobile ? '110px' : 'auto'
-                }}
-              >
-                <option value="">Todos os Gêneros</option>
-                {getUniqueGenres().map(g => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-
-              {/* Classificação Indicativa */}
-              <select 
-                value={selectedAgeRating} 
-                onChange={e => setSelectedAgeRating(e.target.value)}
-                style={{ 
+                  borderRadius: '6px', 
                   padding: '0.4rem 0.8rem', 
-                  background: '#1b1d22', 
-                  border: '1px solid rgba(255,255,255,0.1)', 
-                  color: 'var(--text-muted)', 
-                  borderRadius: '4px', 
-                  fontSize: '0.8rem', 
-                  cursor: 'pointer', 
-                  outline: 'none',
-                  flex: isMobile ? '1 1 calc(50% - 0.5rem)' : 'none',
-                  minWidth: isMobile ? '110px' : 'auto'
-                }}
-              >
-                <option value="">Qualquer Idade</option>
-                {getUniqueAgeRatings().map(r => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
+                  width: isMobile ? '100%' : '240px',
+                  flex: isMobile ? 1 : 'none'
+                }}>
+                  <Search size={14} color="var(--text-muted)" />
+                  <input 
+                    type="text" 
+                    placeholder="Pesquisar livros..." 
+                    value={searchText}
+                    onChange={e => setSearchText(e.target.value)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', outline: 'none', width: '100%', fontSize: '0.8rem' }}
+                  />
+                </div>
 
-              {/* Autor */}
-              <select 
-                value={selectedAuthorFilter} 
-                onChange={e => setSelectedAuthorFilter(e.target.value)}
-                style={{ 
-                  padding: '0.4rem 0.8rem', 
-                  background: '#1b1d22', 
-                  border: '1px solid rgba(255,255,255,0.1)', 
-                  color: 'var(--text-muted)', 
-                  borderRadius: '4px', 
-                  fontSize: '0.8rem', 
-                  cursor: 'pointer', 
-                  outline: 'none',
-                  flex: isMobile ? '1 1 100%' : 'none',
-                  minWidth: isMobile ? '100%' : 'auto'
-                }}
-              >
-                <option value="">Todos os Autores</option>
-                {getUniqueAuthors().map(a => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-
-              {/* Limpar Filtros */}
-              {(selectedGenre || selectedAgeRating || selectedAuthorFilter || letterFilter) && (
+                {/* Filtros Toggle Button */}
                 <button 
-                  onClick={() => { setSelectedGenre(''); setSelectedAgeRating(''); setSelectedAuthorFilter(''); setLetterFilter(''); }}
+                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    background: showFiltersPanel ? 'var(--accent-gold)' : '#1b1d22',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: showFiltersPanel ? '#000' : 'var(--text-main)',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                  title="Mais Filtros"
+                >
+                  <SlidersHorizontal size={14} />
+                  <span>Filtros</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible advanced filters panel */}
+            {showFiltersPanel && (
+              <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: '0.8rem',
+                alignItems: isMobile ? 'stretch' : 'center',
+                background: 'rgba(255,255,255,0.01)',
+                padding: '1rem',
+                borderRadius: '8px',
+                border: '1px dashed var(--border-color)',
+                animation: 'slideIn 0.3s ease-out'
+              }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Filtrar por:</span>
+                
+                {/* Gênero */}
+                <select 
+                  value={selectedGenre} 
+                  onChange={e => setSelectedGenre(e.target.value)}
                   style={{ 
-                    background: 'transparent', 
-                    border: 'none', 
-                    color: '#ff4444', 
+                    padding: '0.4rem 0.8rem', 
+                    background: '#1b1d22', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    color: 'var(--text-muted)', 
+                    borderRadius: '4px', 
                     fontSize: '0.8rem', 
                     cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.2rem', 
-                    fontWeight: 'bold',
-                    width: isMobile ? '100%' : 'auto',
-                    justifyContent: isMobile ? 'center' : 'flex-start',
-                    marginTop: isMobile ? '0.5rem' : '0'
+                    outline: 'none',
+                    minWidth: isMobile ? '100%' : '140px'
                   }}
                 >
-                  <X size={12} /> Limpar
-                </button>
-              )}
-            </div>
+                  <option value="">Todos os Gêneros</option>
+                  {getUniqueGenres().map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
 
-            {/* Lupa / Pesquisa */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '0.5rem', 
-              alignItems: 'center', 
-              background: '#1b1d22', 
-              border: '1px solid rgba(255,255,255,0.1)', 
-              borderRadius: '6px', 
-              padding: '0.3rem 0.8rem', 
-              width: isMobile ? '100%' : '240px'
-            }}>
-              <Search size={14} color="var(--text-muted)" />
-              <input 
-                type="text" 
-                placeholder="Pesquisar livros..." 
-                value={searchText}
-                onChange={e => setSearchText(e.target.value)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', outline: 'none', width: '100%', fontSize: '0.8rem' }}
-              />
-            </div>
+                {/* Classificação Indicativa */}
+                <select 
+                  value={selectedAgeRating} 
+                  onChange={e => setSelectedAgeRating(e.target.value)}
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    background: '#1b1d22', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    color: 'var(--text-muted)', 
+                    borderRadius: '4px', 
+                    fontSize: '0.8rem', 
+                    cursor: 'pointer', 
+                    outline: 'none',
+                    minWidth: isMobile ? '100%' : '140px'
+                  }}
+                >
+                  <option value="">Qualquer Idade</option>
+                  {getUniqueAgeRatings().map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+
+                {/* Autor */}
+                <select 
+                  value={selectedAuthorFilter} 
+                  onChange={e => setSelectedAuthorFilter(e.target.value)}
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    background: '#1b1d22', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    color: 'var(--text-muted)', 
+                    borderRadius: '4px', 
+                    fontSize: '0.8rem', 
+                    cursor: 'pointer', 
+                    outline: 'none',
+                    minWidth: isMobile ? '100%' : '180px'
+                  }}
+                >
+                  <option value="">Todos os Autores</option>
+                  {getUniqueAuthors().map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+
+                {/* Limpar Filtros */}
+                {(selectedGenre || selectedAgeRating || selectedAuthorFilter || letterFilter) && (
+                  <button 
+                    onClick={() => { setSelectedGenre(''); setSelectedAgeRating(''); setSelectedAuthorFilter(''); setLetterFilter(''); }}
+                    style={{ 
+                      background: 'transparent', 
+                      border: 'none', 
+                      color: '#ff4444', 
+                      fontSize: '0.8rem', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.2rem', 
+                      fontWeight: 'bold',
+                      justifyContent: 'center',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      background: 'rgba(255,68,68,0.1)'
+                    }}
+                  >
+                    <X size={12} /> Limpar Filtros
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 

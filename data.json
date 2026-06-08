@@ -18,9 +18,9 @@
       "tastes": [
         "Aventura",
         "Romance",
-        "FicÃƒÂ§ÃƒÂ£o CientÃƒÂ­fica"
+        "Ficção Científica"
       ],
-      "about": "Escritor apaixonado por construir mundos ÃƒÂ©picos. Especialista em misturar o realismo com a ficÃƒÂ§ÃƒÂ£o cientÃƒÂ­fica, criando tramas de suspense e romance que prendem o leitor do inÃƒÂ­cio ao fim.",
+      "about": "Escritor apaixonado por construir mundos épicos. Especialista em misturar o realismo com a ficção científica, criando tramas de suspense e romance que prendem o leitor do início ao fim.",
       "avatar": "/wagner.jpg",
       "ideas": [
         {
@@ -149,7 +149,7 @@
       "authorId": "82490517",
       "status": "draft",
       "title": "Jardim das Flores",
-      "synopsis": "Um mistÃƒÂ©rio profundo envolvendo a morte de Elias...",
+      "synopsis": "Um mistério profundo envolvendo a morte de Elias...",
       "ageRating": "16",
       "cover": "/book_cover.png",
       "universe": {
@@ -158,31 +158,31 @@
             "id": "luan",
             "name": "Luan",
             "type": "personagem",
-            "role": "O Ãƒâ€šncora",
+            "role": "O Âncora",
             "age": 16,
-            "territory": "TerritÃƒÂ³rio A",
+            "territory": "Território A",
             "image": "/luan.png",
-            "description": "O mais jovem do grupo, porÃƒÂ©m carrega a mente mais fria, calculista e sensata de todos. Um 'adulto prematuro' devido ÃƒÂ s responsabilidades que precisou assumir cedo.",
-            "motivations": "Manter o grupo focado e evitar que decisÃƒÂµes impulsivas coloquem todos em risco.",
+            "description": "O mais jovem do grupo, porém carrega a mente mais fria, calculista e sensata de todos. Um 'adulto prematuro' devido às responsabilidades que precisou assumir cedo.",
+            "motivations": "Manter o grupo focado e evitar que decisões impulsivas coloquem todos em risco.",
             "connections": [
               {
                 "name": "Bia",
-                "relation": "Vizinha protetora, ela pensa que precisa proteger-lo, talvez por pena, talvez por senso de auto responsabilidade, isso ÃƒÂ© fofo, mas Luan se sente invadido, mas nÃƒÂ£o sabe como dizfazer isso sem magoa sua amiga."
+                "relation": "Vizinha protetora, ela pensa que precisa proteger-lo, talvez por pena, talvez por senso de auto responsabilidade, isso é fofo, mas Luan se sente invadido, mas não sabe como dizfazer isso sem magoa sua amiga."
               },
               {
                 "name": "Cronos",
-                "relation": "CÃƒÂ£o e fiel escudeiro"
+                "relation": "Cão e fiel escudeiro"
               },
               {
                 "name": "Thiago",
-                "relation": "Aliado no TerritÃƒÂ³rio A"
+                "relation": "Aliado no Território A"
               },
               {
                 "name": "",
                 "relation": ""
               }
             ],
-            "curiosities": "Apesar da postura sÃƒÂ©ria, ele tem um ponto fraco gigante: seu cachorro Cronos, que resgatou das ruas."
+            "curiosities": "Apesar da postura séria, ele tem um ponto fraco gigante: seu cachorro Cronos, que resgatou das ruas."
           },
           {
             "id": "bia",
@@ -190,21 +190,21 @@
             "type": "personagem",
             "role": "A Observadora",
             "age": 18,
-            "territory": "TerritÃƒÂ³rio A",
+            "territory": "Território A",
             "image": "/bia.png",
-            "description": "FotÃƒÂ³grafa e designer freelancer, extremamente detalhista e atenta a padrÃƒÂµes visuais que passam despercebidos. Usa seus recÃƒÂ©m-completados 18 anos como escudo de autoridade.",
-            "motivations": "Proteger Luan a todo custo e desvendar o mistÃƒÂ©rio visual por trÃƒÂ¡s da morte de Elias.",
+            "description": "Fotógrafa e designer freelancer, extremamente detalhista e atenta a padrões visuais que passam despercebidos. Usa seus recém-completados 18 anos como escudo de autoridade.",
+            "motivations": "Proteger Luan a todo custo e desvendar o mistério visual por trás da morte de Elias.",
             "connections": [
               {
                 "name": "Luan",
-                "relation": "Vizinho (age como irmÃƒÂ£ mais velha)"
+                "relation": "Vizinho (age como irmã mais velha)"
               },
               {
                 "name": "Thiago",
-                "relation": "Amigo no TerritÃƒÂ³rio A"
+                "relation": "Amigo no Território A"
               }
             ],
-            "curiosities": "Ela nunca sai de casa sem sua cÃƒÂ¢mera e confia mais no que vÃƒÂª nas lentes do que nas palavras das pessoas.",
+            "curiosities": "Ela nunca sai de casa sem sua câmera e confia mais no que vê nas lentes do que nas palavras das pessoas.",
             "gallery": [
               "/uploads/1780680417988-513775958.jpg",
               "/uploads/1780680418178-113238444.jpg"
@@ -214,12 +214,12 @@
             "id": "thiago",
             "name": "Thiago",
             "type": "personagem",
-            "role": "O TÃƒÂ©cnico",
+            "role": "O Técnico",
             "age": 21,
-            "territory": "TerritÃƒÂ³rio A",
+            "territory": "Território A",
             "image": "/thiago.png",
-            "description": "Rapaz pragmÃƒÂ¡tico, calmo, lida com hardware e sistemas. Ãƒâ€° extremamente pacÃƒÂ­fico e evita conflitos diretos.",
-            "motivations": "Ajudar com a tecnologia na investigaÃƒÂ§ÃƒÂ£o, buscando justiÃƒÂ§a de forma silenciosa.",
+            "description": "Rapaz pragmático, calmo, lida com hardware e sistemas. É extremamente pacífico e evita conflitos diretos.",
+            "motivations": "Ajudar com a tecnologia na investigação, buscando justiça de forma silenciosa.",
             "connections": [
               {
                 "name": "Luan",
@@ -227,10 +227,10 @@
               },
               {
                 "name": "Camila",
-                "relation": "Alvo do ÃƒÂ³dio secreto dela (ele nÃƒÂ£o sabe)"
+                "relation": "Alvo do ódio secreto dela (ele não sabe)"
               }
             ],
-            "curiosities": "Ele sofreu amnÃƒÂ©sia aos 13 anos em um grave acidente de carro que tirou a vida de sua irmÃƒÂ£ Lia. Ele nÃƒÂ£o lembra do acidente."
+            "curiosities": "Ele sofreu amnésia aos 13 anos em um grave acidente de carro que tirou a vida de sua irmã Lia. Ele não lembra do acidente."
           },
           {
             "id": "camila",
@@ -238,39 +238,39 @@
             "type": "personagem",
             "role": "A Condutora do Conflito",
             "age": 23,
-            "territory": "TerritÃƒÂ³rio B",
+            "territory": "Território B",
             "image": "/camila.png",
-            "description": "A mais velha do grupo B, focada em aÃƒÂ§ÃƒÂ£o e impulsiva. Entra na investigaÃƒÂ§ÃƒÂ£o com segundas intenÃƒÂ§ÃƒÂµes e guarda um rancor mortal.",
-            "motivations": "VinganÃƒÂ§a. Ela quer destruir Thiago, que ela culpa pela morte de seu irmÃƒÂ£o JÃƒÂºnior em um acidente de carro hÃƒÂ¡ 8 anos.",
+            "description": "A mais velha do grupo B, focada em ação e impulsiva. Entra na investigação com segundas intenções e guarda um rancor mortal.",
+            "motivations": "Vingança. Ela quer destruir Thiago, que ela culpa pela morte de seu irmão Júnior em um acidente de carro há 8 anos.",
             "connections": [
               {
-                "name": "TomÃƒÂ¡s",
+                "name": "Tomás",
                 "relation": "Namorado"
               },
               {
                 "name": "Thiago",
-                "relation": "Alvo de sua fÃƒÂºria e ressentimento"
+                "relation": "Alvo de sua fúria e ressentimento"
               }
             ],
-            "curiosities": "Ela canalizou todo o trauma do luto em raiva. O fato de Thiago nÃƒÂ£o se lembrar do acidente a enfurece ainda mais."
+            "curiosities": "Ela canalizou todo o trauma do luto em raiva. O fato de Thiago não se lembrar do acidente a enfurece ainda mais."
           },
           {
             "id": "tomas",
-            "name": "TomÃƒÂ¡s",
+            "name": "Tomás",
             "type": "personagem",
             "role": "A Mente Musical",
             "age": 22,
-            "territory": "TerritÃƒÂ³rio B",
+            "territory": "Território B",
             "image": "/tomas.png",
-            "description": "MÃƒÂºsico introspectivo e analÃƒÂ­tico. Toca baixo e teclado. Consegue perceber 'padrÃƒÂµes' nos movimentos da cidade como se fossem ritmos.",
-            "motivations": "Encontrar a verdade atravÃƒÂ©s da intuiÃƒÂ§ÃƒÂ£o e dos padrÃƒÂµes que ninguÃƒÂ©m mais vÃƒÂª.",
+            "description": "Músico introspectivo e analítico. Toca baixo e teclado. Consegue perceber 'padrões' nos movimentos da cidade como se fossem ritmos.",
+            "motivations": "Encontrar a verdade através da intuição e dos padrões que ninguém mais vê.",
             "connections": [
               {
                 "name": "Camila",
                 "relation": "Namorada"
               }
             ],
-            "curiosities": "Ele toca no Local Neutro e nÃƒÂ£o faz a menor ideia do segredo sombrio de vinganÃƒÂ§a que Camila esconde."
+            "curiosities": "Ele toca no Local Neutro e não faz a menor ideia do segredo sombrio de vingança que Camila esconde."
           },
           {
             "id": "elias",
@@ -280,29 +280,29 @@
             "age": 72,
             "territory": "Todos",
             "image": "/elias.png",
-            "description": "O idoso mais querido da cidade. Cuidava dos jardins e praÃƒÂ§as. Sua morte repentina forÃƒÂ§ou uma trÃƒÂ©gua inÃƒÂ©dita entre as trÃƒÂªs maiores gangues.",
-            "motivations": "Desconhecidas. Seu passado ÃƒÂ© um quebra-cabeÃƒÂ§a que uniu os jovens de territÃƒÂ³rios rivais.",
+            "description": "O idoso mais querido da cidade. Cuidava dos jardins e praças. Sua morte repentina forçou uma trégua inédita entre as três maiores gangues.",
+            "motivations": "Desconhecidas. Seu passado é um quebra-cabeça que uniu os jovens de territórios rivais.",
             "connections": [
               {
-                "name": "LÃƒÂ­deres das Gangues",
+                "name": "Líderes das Gangues",
                 "relation": "Respeito misterioso absoluto"
               }
             ],
-            "curiosities": "A morte dele foi o ÃƒÂºnico dia em toda a histÃƒÂ³ria recente da cidade em que as gangues pararam de atirar."
+            "curiosities": "A morte dele foi o único dia em toda a história recente da cidade em que as gangues pararam de atirar."
           }
         ],
         "locations": [
           {
             "id": "local_neutro",
-            "name": "O BistrÃƒÂ´ Neutro",
+            "name": "O Bistrô Neutro",
             "type": "local",
             "territory": "Zona Desmilitarizada",
             "image": "/local_neutro.png",
-            "description": "Um estabelecimento muito charmoso, como uma enoteca, onde nenhuma gangue opera criminalmente. Ãƒâ€° um territÃƒÂ³rio pacÃƒÂ­fico gerenciado secretamente pelas trÃƒÂªs gangues em conjunto.",
-            "motivations": "Servir de refÃƒÂºgio e ponto de encontro. O terreno ÃƒÂ© do Leste, a logÃƒÂ­stica do Norte, e a operaÃƒÂ§ÃƒÂ£o do Sul.",
+            "description": "Um estabelecimento muito charmoso, como uma enoteca, onde nenhuma gangue opera criminalmente. É um território pacífico gerenciado secretamente pelas três gangues em conjunto.",
+            "motivations": "Servir de refúgio e ponto de encontro. O terreno é do Leste, a logística do Norte, e a operação do Sul.",
             "connections": [
               {
-                "name": "TomÃƒÂ¡s",
+                "name": "Tomás",
                 "relation": "Toca jazz no local"
               },
               {
@@ -310,44 +310,44 @@
                 "relation": "Local do primeiro encontro"
               }
             ],
-            "curiosities": "Ãƒâ€° o lugar com as melhores bebidas da cidade e onde as tensÃƒÂµes desaparecem magicamente pela porta."
+            "curiosities": "É o lugar com as melhores bebidas da cidade e onde as tensões desaparecem magicamente pela porta."
           }
         ],
         "posts": [],
         "book": {
           "title": "Jardim das Flores",
           "author": "Wagner Rocha",
-          "category": "Aventura, MistÃƒÂ©rio, Drama",
+          "category": "Aventura, Mistério, Drama",
           "ageRating": "16+",
           "image": "/book_cover.png",
-          "description": "Uma cidadezinha aparentemente pacata esconde uma guerra civil silenciosa entre trÃƒÂªs grandes gangues. Quando o idoso mais querido da cidade morre e os lÃƒÂ­deres criminosos declaram paz absoluta no velÃƒÂ³rio, um misterioso quebra-cabeÃƒÂ§as ÃƒÂ© revelado. Dois grupos de jovens rivais serÃƒÂ£o obrigados a se unir para descobrir a verdade por trÃƒÂ¡s do simples jardineiro que botou a mÃƒÂ¡fia de joelhos."
+          "description": "Uma cidadezinha aparentemente pacata esconde uma guerra civil silenciosa entre três grandes gangues. Quando o idoso mais querido da cidade morre e os líderes criminosos declaram paz absoluta no velório, um misterioso quebra-cabeças é revelado. Dois grupos de jovens rivais serão obrigados a se unir para descobrir a verdade por trás do simples jardineiro que botou a máfia de joelhos."
         },
         "chapters": [
           {
             "pages": [
               {
-                "subtheme": "O InÃ­cio",
-                "text": "<p>A chuva caÃ­a forte sobre a cidade de Jardim das Flores. O corpo de Elias, outrora o lÃ­der pacÃ­fico da juventude, jazia inerte no chÃ£o frio.</p><p>As facÃ§Ãµes locais, lideradas por Kael e LÃºcia, observavam o cenÃ¡rio com desconfianÃ§a. O clima estava pesado, e todos sabiam que a paz nÃ£o duraria muito tempo.</p>",
+                "subtheme": "O Início",
+                "text": "<p>A chuva caía forte sobre a cidade de Jardim das Flores. O corpo de Elias, outrora o líder pacífico da juventude, jazia inerte no chão frio.</p><p>As facções locais, lideradas por Kael e Lúcia, observavam o cenário com desconfiança. O clima estava pesado, e todos sabiam que a paz não duraria muito tempo.</p>",
                 "image": "https://images.unsplash.com/photo-1518773553398-650c184e0bb3?q=80&w=600&auto=format&fit=crop"
               },
               {
-                "text": "<p>No dia seguinte, a investigaÃ§Ã£o comeÃ§ou, mas os jovens revolucionÃ¡rios jÃ¡ haviam tirado suas prÃ³prias conclusÃµes: a TrÃ­ade estava envolvida.</p>",
-                "subtheme": "A InvestigaÃ§Ã£o"
+                "text": "<p>No dia seguinte, a investigação começou, mas os jovens revolucionários já haviam tirado suas próprias conclusões: a Tríade estava envolvida.</p>",
+                "subtheme": "A Investigação"
               }
             ],
-            "title": "CapÃ­tulo 1: A Morte de Elias",
+            "title": "Capítulo 1: A Morte de Elias",
             "id": "cap-1",
             "type": "chapter"
           },
           {
             "pages": [
               {
-                "subtheme": "ReuniÃ£o no Bar",
-                "text": "<p>O bar da esquina estava cheio. Todos os jovens se reuniram para discutir os prÃ³ximos passos. A morte de Elias nÃ£o passaria impune.</p>",
+                "subtheme": "Reunião no Bar",
+                "text": "<p>O bar da esquina estava cheio. Todos os jovens se reuniram para discutir os próximos passos. A morte de Elias não passaria impune.</p>",
                 "image": "https://images.unsplash.com/photo-1543007630-9710e4a00a20?q=80&w=600&auto=format&fit=crop"
               }
             ],
-            "title": "CapÃ­tulo 2: O Despertar da RevoluÃ§Ã£o",
+            "title": "Capítulo 2: O Despertar da Revolução",
             "id": "cap-2",
             "type": "chapter"
           }
