@@ -1,0 +1,7 @@
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\luan_portrait_*.png" "public\luan.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\bia_portrait_*.png" "public\bia.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\thiago_portrait_*.png" "public\thiago.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\camila_portrait_*.png" "public\camila.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\tomas_portrait_*.png" "public\tomas.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\elias_portrait_*.png" "public\elias.png"
+copy /Y "C:\Users\Wagner\.gemini\antigravity\brain\bcd24532-33aa-4693-b5f1-071844666dd6\local_neutro_*.png" "public\local_neutro.png"

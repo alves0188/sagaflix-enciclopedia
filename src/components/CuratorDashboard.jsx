@@ -1,0 +1,2631 @@
+import { useState, useEffect } from 'react';
+import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search } from 'lucide-react';
+import AdminPanel from './AdminPanel';
+
+const ROLE_PRESETS = {
+  admin: {
+    dashboard_access: true,
+    view_authors: true,
+    notifications_access: true,
+    approve_books: true,
+    manage_review_requests: true,
+    send_messages: true,
+    manage_team: true,
+    manage_banners: true,
+    cms_edit: true,
+    cms_chapters: true,
+    cms_pages: true,
+    cms_characters: true,
+    cms_locations: true,
+    cms_organizations: true,
+    cms_clues: true,
+    cms_posts: true,
+    cms_events: true,
+    support_technical_access: true,
+    support_curator_access: true,
+    support_financial_access: true,
+    support_other_access: true
+  },
+  approver: {
+    dashboard_access: true,
+    view_authors: true,
+    notifications_access: true,
+    approve_books: true,
+    manage_review_requests: true,
+    send_messages: true,
+    manage_team: false,
+    manage_banners: true,
+    cms_edit: true,
+    cms_chapters: true,
+    cms_pages: true,
+    cms_characters: true,
+    cms_locations: true,
+    cms_organizations: true,
+    cms_clues: true,
+    cms_posts: true,
+    cms_events: true,
+    support_technical_access: true,
+    support_curator_access: true,
+    support_financial_access: true,
+    support_other_access: true
+  },
+  redator: {
+    dashboard_access: true,
+    view_authors: true,
+    notifications_access: false,
+    approve_books: false,
+    manage_review_requests: false,
+    send_messages: false,
+    manage_team: false,
+    manage_banners: false,
+    cms_edit: false,
+    cms_chapters: true,
+    cms_pages: true,
+    cms_characters: true,
+    cms_locations: true,
+    cms_organizations: true,
+    cms_clues: true,
+    cms_posts: true,
+    cms_events: true,
+    support_technical_access: false,
+    support_curator_access: true,
+    support_financial_access: false,
+    support_other_access: true
+  },
+  revisor: {
+    dashboard_access: false,
+    view_authors: true,
+    notifications_access: false,
+    approve_books: false,
+    manage_review_requests: false,
+    send_messages: false,
+    manage_team: false,
+    manage_banners: false,
+    cms_edit: false,
+    cms_chapters: true,
+    cms_pages: false,
+    cms_characters: false,
+    cms_locations: false,
+    cms_organizations: false,
+    cms_clues: false,
+    cms_posts: false,
+    cms_events: false,
+    support_technical_access: false,
+    support_curator_access: false,
+    support_financial_access: false,
+    support_other_access: false
+  }
+};
+
+const getCuratorPermissions = (user) => {
+  if (!user) return ROLE_PRESETS.revisor;
+  const role = user.curatorRole || 'admin';
+  const preset = ROLE_PRESETS[role] || ROLE_PRESETS.admin;
+  return { ...preset, ...(user.permissions || {}) };
+};
+
+export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId }) {
+  const permissions = getCuratorPermissions(currentUser);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashTab, setDashTab] = useState('geral');
+  const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);
+  
+  const [msgTarget, setMsgTarget] = useState('all');
+  const [msgText, setMsgText] = useState('');
+  const [searchAuthor, setSearchAuthor] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [authorSearchText, setAuthorSearchText] = useState('');
+  const [authorIdSearchText, setAuthorIdSearchText] = useState('');
+  const [authorLetterFilter, setAuthorLetterFilter] = useState('');
+
+  // ESTADOS DO INBOX/CHAMADOS DE SUPORTE
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [ticketReplyText, setTicketReplyText] = useState('');
+  const [supportStatusFilter, setSupportStatusFilter] = useState('open'); // 'open' | 'resolved' | 'all'
+  const [supportSearchText, setSupportSearchText] = useState('');
+  const [supportCategoryFilter, setSupportCategoryFilter] = useState('all'); // 'all' | 'technical' | 'curator' | 'financial' | 'other'
+
+  // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
+  const [equipeSubTab, setEquipeSubTab] = useState('membros');
+  const [showCuratorModal, setShowCuratorModal] = useState(false);
+  const [editingCurator, setEditingCurator] = useState(null);
+  const [curatorForm, setCuratorForm] = useState({ name: '', email: '', password: '', curatorRole: 'approver' });
+  const [auditSearchText, setAuditSearchText] = useState('');
+  const [auditCuratorFilter, setAuditCuratorFilter] = useState('all');
+  const [auditActionFilter, setAuditActionFilter] = useState('all');
+
+  // ESTADOS DO GERENCIADOR DE BANNERS
+  const [editingBanner, setEditingBanner] = useState(null);
+  const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '' });
+  const [bannerUploading, setBannerUploading] = useState(false);
+
+  useEffect(() => {
+    if (focusAuthorId) {
+      const author = db.users.find(u => u.id === focusAuthorId);
+      if (author) {
+        setSelectedAuthor(author);
+        setSelectedBook(null);
+      }
+      if (setFocusAuthorId) setFocusAuthorId(null);
+    }
+  }, [focusAuthorId, db, setFocusAuthorId]);
+
+  // REDIRECIONAMENTO DE ABAS POR PERMISSÕES
+  useEffect(() => {
+    const perms = getCuratorPermissions(currentUser);
+    const tabs = ['dashboard', 'autores', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'equipe'];
+    
+    const isAllowed = (tab) => {
+      if (tab === 'dashboard') return perms.dashboard_access;
+      if (tab === 'autores') return perms.view_authors;
+      if (tab === 'notifications') return perms.notifications_access;
+      if (tab === 'curadoria') return perms.approve_books;
+      if (tab === 'revisoes') return perms.manage_review_requests;
+      if (tab === 'mensagens') return perms.send_messages;
+      if (tab === 'banners') return perms.manage_banners;
+      if (tab === 'equipe') return perms.manage_team;
+      return false;
+    };
+
+    if (!isAllowed(activeTab)) {
+      const fallbackTab = tabs.find(isAllowed);
+      if (fallbackTab) {
+        setActiveTab(fallbackTab);
+      }
+    }
+  }, [currentUser, activeTab]);
+
+  const authors = db.users.filter(u => u.role === 'author');
+  const readers = db.users.filter(u => u.role === 'reader');
+  const notifications = db.notifications || [];
+
+  // FUNÇÃO AUXILIAR DE LOG DE CURADORIA
+  const logCuratorAction = (action, details, targetDb = db) => {
+    const newDb = { ...targetDb };
+    if (!newDb.auditLogs) newDb.auditLogs = [];
+    newDb.auditLogs.push({
+      id: 'audit_' + Date.now() + Math.floor(Math.random() * 1000),
+      curatorId: currentUser.id,
+      curatorName: currentUser.name,
+      action: action,
+      details: details,
+      date: new Date().toLocaleString('pt-BR')
+    });
+    return newDb;
+  };
+
+  const handleEditBanner = (banner) => {
+    setEditingBanner(banner);
+    setBannerFormData({
+      id: banner.id,
+      title: banner.title || '',
+      description: banner.description || '',
+      imageUrl: banner.imageUrl || '',
+      actionUrl: banner.actionUrl || '',
+      actionText: banner.actionText || 'Ler Agora'
+    });
+  };
+
+  const handleNewBanner = () => {
+    setEditingBanner('new');
+    setBannerFormData({
+      id: 'banner_' + Date.now(),
+      title: '',
+      description: '',
+      imageUrl: '',
+      actionUrl: '',
+      actionText: 'Ler Agora'
+    });
+  };
+
+  const handleDeleteBanner = (bannerId) => {
+    if (window.confirm("Deseja realmente excluir este banner?")) {
+      let newDb = { ...db };
+      const bannerToDelete = (newDb.banners || []).find(b => b.id === bannerId);
+      newDb.banners = (newDb.banners || []).filter(b => b.id !== bannerId);
+      
+      newDb = logCuratorAction(
+        'Exclusão de Banner',
+        `Removeu o banner "${bannerToDelete ? bannerToDelete.title : bannerId}"`,
+        newDb
+      );
+      onUpdateData(newDb);
+      alert("Banner excluído com sucesso!");
+    }
+  };
+
+  const handleBannerImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setBannerUploading(true);
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+
+    try {
+      const res = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: uploadData
+      });
+      const resData = await res.json();
+      if (resData.url) {
+        setBannerFormData(prev => ({ ...prev, imageUrl: resData.url }));
+      }
+    } catch (err) {
+      console.error("Erro no upload do banner", err);
+      alert("Erro ao fazer upload da imagem do banner.");
+    } finally {
+      setBannerUploading(false);
+    }
+  };
+
+  const handleSaveBanner = (e) => {
+    e.preventDefault();
+    if (!bannerFormData.title || !bannerFormData.imageUrl) {
+      alert("Por favor, preencha o título e a imagem do banner.");
+      return;
+    }
+
+    let newDb = { ...db };
+    if (!newDb.banners) newDb.banners = [];
+
+    const isNew = editingBanner === 'new';
+    
+    if (isNew) {
+      newDb.banners.push({ ...bannerFormData });
+      newDb = logCuratorAction(
+        'Criação de Banner',
+        `Criou o banner "${bannerFormData.title}"`,
+        newDb
+      );
+    } else {
+      newDb.banners = newDb.banners.map(b => b.id === bannerFormData.id ? { ...bannerFormData } : b);
+      newDb = logCuratorAction(
+        'Edição de Banner',
+        `Editou o banner "${bannerFormData.title}"`,
+        newDb
+      );
+    }
+
+    onUpdateData(newDb);
+    setEditingBanner(null);
+    alert(isNew ? "Banner criado com sucesso!" : "Banner editado com sucesso!");
+  };
+
+  const renderBanners = () => {
+    const bannersList = db.banners || [];
+
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gerenciamento de Banners</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.2rem 0 0 0' }}>Estes banners aparecem rotacionando no topo da estante dos leitores recomendando obras ou ideias.</p>
+          </div>
+          {!editingBanner && (
+            <button className="btn-primary" onClick={handleNewBanner} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <UserPlus size={16} /> Novo Banner
+            </button>
+          )}
+        </div>
+
+        {editingBanner ? (
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem', marginBottom: '2rem' }}>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0, marginBottom: '1.5rem' }}>
+              {editingBanner === 'new' ? 'Adicionar Novo Banner' : 'Editar Banner'}
+            </h3>
+            
+            <form onSubmit={handleSaveBanner} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Título do Banner *</label>
+                  <input 
+                    type="text" 
+                    value={bannerFormData.title} 
+                    onChange={e => setBannerFormData({ ...bannerFormData, title: e.target.value })} 
+                    className="form-input" 
+                    placeholder="Ex: Descubra o mistério do Jardim das Flores" 
+                    required 
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Descrição / Mensagem *</label>
+                  <textarea 
+                    value={bannerFormData.description} 
+                    onChange={e => setBannerFormData({ ...bannerFormData, description: e.target.value })} 
+                    className="form-input" 
+                    placeholder="Ex: Uma nova obra de suspense e mistério acaba de ser publicada. Comece a ler hoje mesmo!" 
+                    rows="3"
+                    style={{ resize: 'vertical' }}
+                    required 
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Texto do Botão (Ação)</label>
+                    <input 
+                      type="text" 
+                      value={bannerFormData.actionText} 
+                      onChange={e => setBannerFormData({ ...bannerFormData, actionText: e.target.value })} 
+                      className="form-input" 
+                      placeholder="Ex: Ler Agora" 
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Link de Destino / URL do Livro</label>
+                    <input 
+                      type="text" 
+                      value={bannerFormData.actionUrl} 
+                      onChange={e => setBannerFormData({ ...bannerFormData, actionUrl: e.target.value })} 
+                      className="form-input" 
+                      placeholder="Ex: book_1780778689319" 
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Imagem do Banner *</label>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <input 
+                      type="text" 
+                      value={bannerFormData.imageUrl} 
+                      onChange={e => setBannerFormData({ ...bannerFormData, imageUrl: e.target.value })} 
+                      className="form-input" 
+                      placeholder="URL da Imagem (Ex: https://images.unsplash.com/...)" 
+                      style={{ flex: 1 }}
+                    />
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleBannerImageUpload} 
+                        style={{ display: 'none' }} 
+                        id="banner-file-input" 
+                      />
+                      <label 
+                        htmlFor="banner-file-input" 
+                        className="btn-secondary" 
+                        style={{ display: 'inline-block', padding: '0.8rem 1.2rem', cursor: 'pointer', margin: 0 }}
+                      >
+                        {bannerUploading ? 'Enviando...' : 'Fazer Upload'}
+                      </label>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', lineHeight: '1.4' }}>
+                    💡 <strong>Medida sugerida:</strong> Proporção <strong>4:1</strong> (Ex: <strong>1400x350px</strong> ou <strong>1200x300px</strong>). Dê preferência a artes com o foco centralizado ou à direita.
+                  </span>
+                </div>
+              </div>
+
+              {/* Coluna da Direita: Preview Visual */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Prévia do Banner</span>
+                
+                <div style={{ 
+                  position: 'relative', 
+                  width: '100%', 
+                  height: '240px', 
+                  borderRadius: '12px', 
+                  overflow: 'hidden', 
+                  border: '1px solid var(--border-color)',
+                  background: '#1a1c20',
+                  display: 'flex',
+                  alignItems: 'flex-end'
+                }}>
+                  {bannerFormData.imageUrl ? (
+                    <img 
+                      src={bannerFormData.imageUrl} 
+                      alt="Preview" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} 
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', gap: '0.5rem', position: 'absolute' }}>
+                      <Image size={48} color="rgba(255,255,255,0.1)" />
+                      <span>Sem Imagem</span>
+                    </div>
+                  )}
+
+                  {/* Dark gradient overlay for readability */}
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    right: 0, 
+                    bottom: 0, 
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)',
+                    zIndex: 1
+                  }}></div>
+
+                  <div style={{ position: 'relative', zIndex: 2, padding: '1.5rem', width: '100%', boxSizing: 'border-box' }}>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif", textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                      {bannerFormData.title || 'Título da Recomendação'}
+                    </h4>
+                    <p style={{ margin: '0 0 1rem 0', color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', lineBreak: 'anywhere', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      {bannerFormData.description || 'Uma descrição curta para atrair os leitores...'}
+                    </p>
+                    <button type="button" className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.75rem', pointerEvents: 'none' }}>
+                      {bannerFormData.actionText || 'Ler Agora'}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn-secondary" onClick={() => setEditingBanner(null)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-primary" disabled={bannerUploading}>
+                    Salvar Banner
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
+            {bannersList.map(banner => (
+              <div 
+                key={banner.id} 
+                style={{ 
+                  background: 'var(--card-bg)', 
+                  border: '1px solid var(--border-color)', 
+                  borderRadius: '12px', 
+                  overflow: 'hidden', 
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <div style={{ position: 'relative', height: '160px', background: '#111' }}>
+                  {banner.imageUrl ? (
+                    <img src={banner.imageUrl} alt={banner.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Image size={32} color="rgba(255,255,255,0.05)" />
+                    </div>
+                  )}
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: 0, left: 0, right: 0, bottom: 0, 
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)' 
+                  }}></div>
+                  <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', right: '1rem' }}>
+                    <h4 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>{banner.title}</h4>
+                  </div>
+                </div>
+                <div style={{ padding: '1.2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.85rem', color: 'var(--text-muted)', flex: 1, lineHeight: '1.4' }}>
+                    {banner.description}
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                    <button className="btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem' }} onClick={() => handleEditBanner(banner)}>
+                      Editar
+                    </button>
+                    <button 
+                      className="btn-secondary" 
+                      style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', color: '#ff4444', borderColor: 'rgba(255, 68, 68, 0.2)' }}
+                      onClick={() => handleDeleteBanner(banner.id)}
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {bannersList.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', borderRadius: '12px', padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Image size={48} color="var(--accent-gold)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <h3>Nenhum banner personalizado cadastrado</h3>
+                <p style={{ fontSize: '0.9rem', maxWidth: '400px', margin: '0.5rem auto 1.5rem auto' }}>
+                  A vitrine do leitor exibirá os banners padrão recomendados. Crie um novo banner para personalizar o topo da estante!
+                </p>
+                <button className="btn-primary" onClick={handleNewBanner}>
+                  Criar Primeiro Banner
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const togglePermission = (key) => {
+    setCuratorForm(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [key]: !prev.permissions[key]
+      }
+    }));
+  };
+
+  const handleRolePresetChange = (role) => {
+    const preset = ROLE_PRESETS[role] || ROLE_PRESETS.admin;
+    setCuratorForm(prev => ({
+      ...prev,
+      curatorRole: role,
+      permissions: { ...preset }
+    }));
+  };
+
+  const handleSaveCurator = (e) => {
+    e.preventDefault();
+    if (!curatorForm.name || !curatorForm.email || !curatorForm.password) {
+      alert('Preencha todos os campos!');
+      return;
+    }
+    
+    let newDb = { ...db };
+    const selectedRole = curatorForm.curatorRole || 'approver';
+    
+    if (editingCurator) {
+      const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase() && u.id !== editingCurator.id);
+      if (emailExists) {
+        alert('Este e-mail já está em uso por outro usuário.');
+        return;
+      }
+      
+      if (editingCurator.id === 'admin') {
+        curatorForm.email = 'admin';
+      }
+
+      newDb.users = newDb.users.map(u => {
+        if (u.id === editingCurator.id) {
+          return { 
+            ...u, 
+            name: curatorForm.name, 
+            email: curatorForm.email, 
+            password: curatorForm.password,
+            curatorRole: editingCurator.id === 'admin' ? 'admin' : selectedRole,
+            permissions: curatorForm.permissions
+          };
+        }
+        return u;
+      });
+
+      newDb = logCuratorAction(
+        'Edição de Curador',
+        `Editou dados do curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${editingCurator.id === 'admin' ? 'admin' : selectedRole}`,
+        newDb
+      );
+      alert('Dados do curador atualizados!');
+    } else {
+      const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase());
+      if (emailExists) {
+        alert('Este e-mail já está cadastrado.');
+        return;
+      }
+      
+      const newCuratorId = 'curator_' + Date.now();
+      const newCurator = {
+        id: newCuratorId,
+        role: 'curator',
+        curatorRole: selectedRole,
+        name: curatorForm.name,
+        email: curatorForm.email,
+        password: curatorForm.password,
+        permissions: curatorForm.permissions
+      };
+      
+      newDb.users.push(newCurator);
+      newDb = logCuratorAction(
+        'Criação de Curador',
+        `Adicionou o curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${selectedRole}`,
+        newDb
+      );
+      alert('Novo curador adicionado com sucesso!');
+    }
+
+    onUpdateData(newDb);
+    setShowCuratorModal(false);
+    setEditingCurator(null);
+    setCuratorForm({ name: '', email: '', password: '', curatorRole: 'approver', permissions: { ...ROLE_PRESETS.approver } });
+  };
+
+  const handleDeleteCurator = (curatorId) => {
+    if (curatorId === 'admin') {
+      alert('O Administrador Principal (admin) não pode ser excluído.');
+      return;
+    }
+    if (curatorId === currentUser.id) {
+      alert('Você não pode excluir a si mesmo.');
+      return;
+    }
+    
+    const curator = db.users.find(u => u.id === curatorId);
+    if (!curator) return;
+    
+    if (window.confirm(`Tem certeza de que deseja remover o curador "${curator.name}"? Ele perderá acesso ao painel.`)) {
+      let newDb = { ...db };
+      newDb.users = newDb.users.filter(u => u.id !== curatorId);
+      
+      newDb = logCuratorAction(
+        'Exclusão de Curador',
+        `Removeu o curador "${curator.name}" (${curator.email}) da equipe`,
+        newDb
+      );
+      
+      onUpdateData(newDb);
+      alert('Curador removido com sucesso.');
+    }
+  };
+
+  const renderEquipe = () => {
+    const curatorsList = db.users.filter(u => u.role === 'curator');
+    const auditLogs = db.auditLogs || [];
+    
+    const filteredLogs = auditLogs.filter(log => {
+      const matchesSearch = log.details.toLowerCase().includes(auditSearchText.toLowerCase()) || 
+                            log.action.toLowerCase().includes(auditSearchText.toLowerCase());
+      const matchesCurator = auditCuratorFilter === 'all' ? true : log.curatorId === auditCuratorFilter;
+      
+      let matchesAction = true;
+      if (auditActionFilter !== 'all') {
+        if (auditActionFilter === 'approvals') {
+          matchesAction = log.action.includes('Aprovação') || log.action.includes('Pedido Aceito') || log.action.includes('Pedido Rejeitado') || log.action.includes('Aprovou');
+        } else if (auditActionFilter === 'messages') {
+          matchesAction = log.action.includes('Mensagem') || log.action.includes('Envio de Mensagem');
+        } else if (auditActionFilter === 'cms') {
+          matchesAction = log.action.includes('CMS');
+        } else if (auditActionFilter === 'team') {
+          matchesAction = log.action.includes('Curador');
+        }
+      }
+      
+      return matchesSearch && matchesCurator && matchesAction;
+    });
+
+    const subTabStyle = (isActive) => ({
+      padding: '0.8rem 1.5rem', 
+      background: isActive ? 'var(--card-bg)' : 'transparent',
+      color: isActive ? 'var(--accent-gold)' : 'var(--text-main)',
+      border: '1px solid var(--border-color)', 
+      borderBottom: isActive ? '3px solid var(--accent-gold)' : 'none',
+      cursor: 'pointer', 
+      fontWeight: 'bold', 
+      borderRadius: '8px 8px 0 0', 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: '0.5rem'
+    });
+
+    return (
+      <div style={{ maxWidth: '1800px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Equipe de Curadoria</h2>
+          {equipeSubTab === 'membros' && (
+            <button 
+              className="btn-primary" 
+              onClick={() => {
+                setEditingCurator(null);
+                setCuratorForm({ 
+                  name: '', 
+                  email: '', 
+                  password: '', 
+                  curatorRole: 'approver', 
+                  permissions: { ...ROLE_PRESETS.approver } 
+                });
+                setShowCuratorModal(true);
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <UserPlus size={16} /> Adicionar Curador
+            </button>
+          )}
+        </div>
+
+        {/* Sub-Navegação */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', gap: '0.5rem' }}>
+          <button onClick={() => setEquipeSubTab('membros')} style={subTabStyle(equipeSubTab === 'membros')}><Users size={16}/> Membros da Equipe</button>
+          <button onClick={() => setEquipeSubTab('logs')} style={subTabStyle(equipeSubTab === 'logs')}><Activity size={16}/> Histórico de Auditoria</button>
+        </div>
+
+        {/* ================= ABA MEMBROS ================= */}
+        {equipeSubTab === 'membros' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+            {curatorsList.map(curator => {
+              const isSelf = curator.id === currentUser.id;
+              const isAdmin = curator.id === 'admin';
+              
+              return (
+                <div 
+                  key={curator.id} 
+                  style={{ 
+                    background: 'var(--card-bg)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: '12px', 
+                    padding: '1.8rem', 
+                    position: 'relative',
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1.2rem', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                    {curator.avatar ? (
+                      <img src={curator.avatar} alt={curator.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={40} color="var(--accent-gold)" />
+                    )}
+                  </div>
+                  
+                  <h3 style={{ margin: '0 0 0.3rem 0', color: 'var(--text-main)', fontSize: '1.2rem' }}>
+                    {curator.name} {isSelf && <span style={{ fontSize: '0.75rem', background: 'var(--accent-gold)', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '10px', marginLeft: '0.5rem', fontWeight: 'bold' }}>Você</span>}
+                  </h3>
+                  <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{curator.email}</p>
+                  
+                  {/* Badge de Perfil de Acesso */}
+                  {(() => {
+                    const role = curator.curatorRole || 'admin';
+                    let label = 'Administrador';
+                    let badgeColor = 'rgba(212, 175, 55, 0.15)'; // Gold for admin
+                    let textColor = 'var(--accent-gold)';
+                    
+                    if (role === 'approver') {
+                      label = 'Aprovador';
+                      badgeColor = 'rgba(76, 175, 80, 0.15)'; // Green for approver
+                      textColor = '#4CAF50';
+                    } else if (role === 'redator') {
+                      label = 'Redator';
+                      badgeColor = 'rgba(33, 150, 243, 0.15)'; // Blue for redator
+                      textColor = '#2196F3';
+                    } else if (role === 'revisor') {
+                      label = 'Revisor de Textos';
+                      badgeColor = 'rgba(156, 39, 176, 0.15)'; // Purple for revisor
+                      textColor = '#9C27B0';
+                    }
+                    
+                    return (
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        background: badgeColor, 
+                        color: textColor, 
+                        padding: '0.3rem 0.8rem', 
+                        borderRadius: '12px', 
+                        fontWeight: 'bold', 
+                        marginBottom: '1.5rem',
+                        border: `1px solid ${textColor}33`
+                      }}>
+                        {label}
+                      </span>
+                    );
+                  })()}
+                  
+                  <div style={{ display: 'flex', gap: '0.8rem', width: '100%', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button 
+                      onClick={() => {
+                        setEditingCurator(curator);
+                        setCuratorForm({ 
+                          name: curator.name, 
+                          email: curator.email, 
+                          password: curator.password,
+                          curatorRole: curator.curatorRole || 'approver',
+                          permissions: { 
+                            ...(ROLE_PRESETS[curator.curatorRole || 'approver'] || ROLE_PRESETS.admin),
+                            ...(curator.permissions || {}) 
+                          }
+                        });
+                        setShowCuratorModal(true);
+                      }}
+                      className="btn-secondary" 
+                      style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem' }}
+                    >
+                      Editar
+                    </button>
+                    {!isAdmin && !isSelf && (
+                      <button 
+                        onClick={() => handleDeleteCurator(curator.id)}
+                        className="btn-secondary" 
+                        style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', color: '#ff4444', borderColor: 'rgba(255, 68, 68, 0.2)' }}
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ================= ABA AUDIT LOGS ================= */}
+        {equipeSubTab === 'logs' && (
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>Histórico Completo de Auditoria</h3>
+            
+            {/* Linha de Filtros */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+              <input 
+                type="text" 
+                placeholder="Pesquisar por descrição..." 
+                value={auditSearchText}
+                onChange={e => setAuditSearchText(e.target.value)}
+                style={{ flex: '2', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '250px' }}
+              />
+              <select 
+                value={auditCuratorFilter} 
+                onChange={e => setAuditCuratorFilter(e.target.value)}
+                style={{ flex: '1', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '150px' }}
+              >
+                <option value="all">Todos os Curadores</option>
+                {curatorsList.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <select 
+                value={auditActionFilter} 
+                onChange={e => setAuditActionFilter(e.target.value)}
+                style={{ flex: '1', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '150px' }}
+              >
+                <option value="all">Todas as Ações</option>
+                <option value="approvals">Aprovações e Revisões</option>
+                <option value="messages">Centro de Mensagens</option>
+                <option value="cms">Alterações de Livro (CMS)</option>
+                <option value="team">Gestão da Equipe</option>
+              </select>
+            </div>
+
+            {/* Tabela de Logs */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '150px' }}>Data e Hora</th>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '200px' }}>Curador</th>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '180px' }}>Ação</th>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500' }}>Detalhes do Registro</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro de auditoria encontrado.</td>
+                    </tr>
+                  ) : (
+                    filteredLogs.slice().reverse().map(log => {
+                      let badgeColor = '#555';
+                      if (log.action.includes('Aprovação') || log.action.includes('Aceito') || log.action.includes('Aprovou')) badgeColor = '#4CAF50';
+                      else if (log.action.includes('Rejeitado') || log.action.includes('Pedido Rejeitado')) badgeColor = '#f44336';
+                      else if (log.action.includes('Mensagem') || log.action.includes('Envio')) badgeColor = '#2196F3';
+                      else if (log.action.includes('CMS')) badgeColor = '#ff9800';
+                      else if (log.action.includes('Curador')) badgeColor = '#9C27B0';
+                      
+                      return (
+                        <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.9rem' }}>
+                          <td style={{ padding: '1rem 0.5rem', color: 'var(--text-muted)' }}>{log.date}</td>
+                          <td style={{ padding: '1rem 0.5rem' }}>
+                            <strong style={{ color: 'var(--text-main)' }}>{log.curatorName}</strong>
+                            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {log.curatorId}</span>
+                          </td>
+                          <td style={{ padding: '1rem 0.5rem' }}>
+                            <span style={{ background: badgeColor, color: '#fff', fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '12px', fontWeight: 'bold' }}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td style={{ padding: '1rem 0.5rem', color: 'var(--text-main)' }}>
+                            {log.details}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Curador (Novo / Edição) */}
+        {showCuratorModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+            <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', width: '850px', maxWidth: '95%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0, marginBottom: '0.5rem' }}>
+                {editingCurator ? 'Editar Curador' : 'Adicionar Novo Curador'}
+              </h3>
+              
+              <form onSubmit={handleSaveCurator} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '2rem' }}>
+                  {/* Coluna da Esquerda: Dados do Curador */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Nome Completo</label>
+                      <input 
+                        type="text" 
+                        value={curatorForm.name} 
+                        onChange={e => setCuratorForm({ ...curatorForm, name: e.target.value })} 
+                        className="form-input" 
+                        placeholder="Ex: Mariana Silva" 
+                        required 
+                      />
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>E-mail (Login)</label>
+                      <input 
+                        type="email" 
+                        value={curatorForm.email} 
+                        onChange={e => setCuratorForm({ ...curatorForm, email: e.target.value })} 
+                        className="form-input" 
+                        placeholder="Ex: mariana@sagaflix.com" 
+                        disabled={editingCurator && editingCurator.id === 'admin'}
+                        required 
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Senha de Acesso</label>
+                      <input 
+                        type="password" 
+                        value={curatorForm.password} 
+                        onChange={e => setCuratorForm({ ...curatorForm, password: e.target.value })} 
+                        className="form-input" 
+                        placeholder="Defina a senha" 
+                        required 
+                      />
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Perfil de Acesso</label>
+                      <select 
+                        value={curatorForm.curatorRole || 'approver'} 
+                        onChange={e => handleRolePresetChange(e.target.value)}
+                        className="form-input"
+                        style={{ background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.8rem' }}
+                        disabled={editingCurator && editingCurator.id === 'admin'}
+                      >
+                        <option value="admin">Administrador Geral</option>
+                        <option value="approver">Aprovador (Curador de Obras)</option>
+                        <option value="redator">Redator (Leitor do Universo)</option>
+                        <option value="revisor">Revisor de Textos (Leitor de Capítulos)</option>
+                      </select>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Escolher um perfil preenche as permissões padrão ao lado.</span>
+                    </div>
+                  </div>
+
+                  {/* Coluna da Direita: Permissões Liga e Desliga */}
+                  <div style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: '2rem', display: 'flex', flexDirection: 'column', gap: '1.2rem', maxHeight: '400px', overflowY: 'auto' }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--accent-gold)' }}>Definir Permissões</h4>
+                    
+                    <div>
+                      <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>Painel Geral (Abas)</h5>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.dashboard_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('dashboard_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Dashboard</span>
+                        </label>
+                        
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.view_authors ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('view_authors')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Ver Autores</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.notifications_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('notifications_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Notificações</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.approve_books ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('approve_books')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Curadoria</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.manage_review_requests ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('manage_review_requests')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Revisões</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.send_messages ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('send_messages')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Mensagens</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.manage_team ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('manage_team')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Equipe (Gerir)</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.manage_banners ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('manage_banners')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Banners (Gerir)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>Categorias de Suporte (Sessão de Atendimento)</h5>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.support_technical_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('support_technical_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>🛠️ Suporte Técnico</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.support_curator_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('support_curator_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>📖 Curadoria</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.support_financial_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('support_financial_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>💰 Financeiro</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.support_other_access ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('support_other_access')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>❓ Outros Assuntos</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>CMS do Livro</h5>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', marginBottom: '0.8rem', background: 'rgba(212, 175, 55, 0.05)', padding: '0.4rem', borderRadius: '4px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={curatorForm.permissions?.cms_edit ?? true} 
+                          disabled={editingCurator && editingCurator.id === 'admin'}
+                          onChange={() => togglePermission('cms_edit')}
+                          style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Habilitar Escrita / Edição</span>
+                      </label>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_chapters ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_chapters')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Capítulos</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_pages ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_pages')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Apresentações</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_characters ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_characters')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Personagens</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_locations ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_locations')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Locais</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_organizations ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_organizations')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Organizações</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_clues ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_clues')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Complementos</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_posts ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_posts')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Blog / Notícias</span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={curatorForm.permissions?.cms_events ?? true} 
+                            disabled={editingCurator && editingCurator.id === 'admin'}
+                            onChange={() => togglePermission('cms_events')}
+                            style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Eventos / Tags</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <button 
+                    type="button" 
+                    className="btn-secondary" 
+                    onClick={() => {
+                      setShowCuratorModal(false);
+                      setEditingCurator(null);
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Salvar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleUpdateBookStatus = (bookId, newStatus) => {
+    const newDb = { ...db };
+    const bookIndex = newDb.books.findIndex(b => b.id === bookId);
+    if (bookIndex >= 0) {
+      const book = newDb.books[bookIndex];
+      const bookTitle = book.title;
+      book.status = newStatus;
+      
+      // Calcular datas de agendamento de capítulos ao publicar
+      if (newStatus === 'published') {
+        const releaseMode = book.releaseMode || 'all';
+        const intervalDays = parseInt(book.releaseIntervalDays) || 2;
+        const targetWeekday = book.releaseWeekday !== undefined ? parseInt(book.releaseWeekday) : 1; // Padrão: Segunda (1)
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const formatDate = (date) => {
+          const yyyy = date.getFullYear();
+          const mm = String(date.getMonth() + 1).padStart(2, '0');
+          const dd = String(date.getDate()).padStart(2, '0');
+          return `${yyyy}-${mm}-${dd}`;
+        };
+
+        if (book.universe && book.universe.chapters) {
+          book.universe.chapters = book.universe.chapters.map((ch, i) => {
+            let chDate = new Date(today);
+            
+            if (releaseMode === 'daily') {
+              chDate.setDate(today.getDate() + i);
+            } else if (releaseMode === 'interval') {
+              chDate.setDate(today.getDate() + i * intervalDays);
+            } else if (releaseMode === 'weekly') {
+              const currentWeekday = today.getDay();
+              let daysToAdd = targetWeekday - currentWeekday;
+              if (daysToAdd < 0) {
+                daysToAdd += 7;
+              }
+              const firstRelease = new Date(today);
+              firstRelease.setDate(today.getDate() + daysToAdd);
+              
+              chDate = new Date(firstRelease);
+              chDate.setDate(firstRelease.getDate() + i * 7);
+            } else if (releaseMode === 'monthly') {
+              chDate.setMonth(today.getMonth() + i);
+            } else {
+              // Imediato: Tudo hoje
+              chDate = new Date(today);
+            }
+            
+            return {
+              ...ch,
+              publishDate: formatDate(chDate)
+            };
+          });
+        }
+      }
+      
+      const actionText = newStatus === 'published' ? 'Aprovação de Livro' : 'Alteração de Status';
+      const detailText = newStatus === 'published'
+        ? `Aprovou a publicação do livro "${bookTitle}"`
+        : `Reverteu o livro "${bookTitle}" para rascunho`;
+        
+      const loggedDb = logCuratorAction(actionText, detailText, newDb);
+      onUpdateData(loggedDb);
+    }
+  };
+
+  const handleMarkNotificationRead = (notifId) => {
+    const newDb = { ...db };
+    const notif = newDb.notifications.find(n => n.id === notifId);
+    if (notif) {
+      notif.read = true;
+      onUpdateData(newDb);
+    }
+  };
+
+  const handleAcceptRequest = (notif) => {
+    let newDb = { ...db };
+    const bookIndex = newDb.books.findIndex(b => b.id === notif.bookId);
+    if (bookIndex >= 0) {
+      newDb.books[bookIndex].status = 'draft';
+    }
+    const notifIndex = newDb.notifications.findIndex(n => n.id === notif.id);
+    if (notifIndex >= 0) {
+      newDb.notifications[notifIndex].read = true;
+    }
+    const loggedDb = logCuratorAction(
+      'Pedido Aceito',
+      `Aceitou o pedido de revisão do autor "${notif.authorName}" para o livro "${notif.bookTitle}" (Voltou para Rascunho)`,
+      newDb
+    );
+    onUpdateData(loggedDb);
+    alert(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editá-lo.`);
+  };
+
+  const handleRejectRequest = (notif) => {
+    let newDb = { ...db };
+    const notifIndex = newDb.notifications.findIndex(n => n.id === notif.id);
+    if (notifIndex >= 0) {
+      newDb.notifications[notifIndex].read = true;
+    }
+    const loggedDb = logCuratorAction(
+      'Pedido Rejeitado',
+      `Rejeitou o pedido de revisão do autor "${notif.authorName}" para o livro "${notif.bookTitle}"`,
+      newDb
+    );
+    onUpdateData(loggedDb);
+    alert('Pedido rejeitado.');
+  };
+
+  const handleSendMessage = () => {
+    if (!msgText.trim()) return;
+
+    let newDb = { ...db };
+    const newNotif = {
+      id: Date.now().toString(),
+      type: 'message',
+      action: 'Nova Mensagem da Curadoria',
+      details: msgText,
+      date: new Date().toLocaleString(),
+      read: false,
+      userId: msgTarget // 'all', 'all_authors', 'all_readers', or specific ID
+    };
+
+    newDb.notifications = [...(newDb.notifications || []), newNotif];
+
+    let targetName = 'Todos os Usuários';
+    if (msgTarget === 'all_authors') targetName = 'Todos os Autores';
+    else if (msgTarget === 'all_readers') targetName = 'Todos os Leitores';
+    else if (msgTarget !== 'all') {
+      const user = newDb.users.find(u => u.id === msgTarget);
+      targetName = user ? user.name : msgTarget;
+    }
+
+    newDb = logCuratorAction(
+      'Envio de Mensagem',
+      `Enviou mensagem para "${targetName}": "${msgText}"`,
+      newDb
+    );
+
+    onUpdateData(newDb);
+    setMsgText('');
+    alert('Mensagem enviada com sucesso!');
+  };
+
+  const navItemStyle = (isActive) => ({
+    background: isActive ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
+    color: isActive ? 'var(--accent-gold)' : 'var(--text-main)',
+    border: 'none',
+    borderRight: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent',
+    padding: '1rem 1.5rem',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontWeight: isActive ? '600' : '400',
+    transition: 'all 0.3s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.8rem',
+    fontSize: '1rem',
+    width: '100%'
+  });
+
+  const hasAccess = (tab) => {
+    const perms = getCuratorPermissions(currentUser);
+    if (tab === 'dashboard') return perms.dashboard_access;
+    if (tab === 'autores') return perms.view_authors;
+    if (tab === 'notifications') return perms.notifications_access;
+    if (tab === 'curadoria') return perms.approve_books;
+    if (tab === 'revisoes') return perms.manage_review_requests;
+    if (tab === 'mensagens') return perms.send_messages;
+    if (tab === 'banners') return perms.manage_banners;
+    if (tab === 'equipe') return perms.manage_team;
+    return false;
+  };
+
+  // MOCK DATA EXPANDIDO PARA BI & GROWTH
+  const MOCK_ANALYTICS = {
+    overview: {
+      totalViews: "145.020",
+      avgSessionTime: "14m 20s",
+      newPubsWeek: 85,
+    },
+    topBooks: [
+      { id: 1, title: "O Rei e o Menino", views: 45000, author: "Wagner (Autor)" },
+      { id: 2, title: "As Crônicas de Avalon", views: 32000, author: "Angelina" },
+      { id: 3, title: "O Jardim das Flores", views: 28500, author: "Luan" },
+      { id: 4, title: "Mistérios do Abismo", views: 15200, author: "Carlos" },
+    ],
+    growth: {
+      cac: "R$ 4,50",
+      kFactor: "1.2",
+      conversionRate: "28%",
+    },
+    retention: {
+      dau_mau: "35%",
+      churn: "4.2%",
+      dropOff: [
+        { chapter: "Cap 1", rate: "12%" },
+        { chapter: "Cap 2", rate: "25%" }, // Alto Abandono
+        { chapter: "Cap 3", rate: "5%" },
+        { chapter: "Cap 4+", rate: "2%" },
+      ]
+    },
+    universe: {
+      adoptionRate: "42%",
+      retentionDiff: "+60%",
+      nps: "78",
+      concentration: "Top 5% autores = 40% tráfego"
+    },
+    monetization: {
+      ltv: "R$ 85,00",
+      arpu: "R$ 12,50",
+      premiumConversion: "8.5%"
+    }
+  };
+
+  // ========== RENDERIZAÇÃO DAS ABAS ==========
+  
+  const renderDashboardGeral = () => {
+    
+    const subTabStyle = (isActive) => ({
+      padding: '0.8rem 1.5rem', background: isActive ? 'var(--card-bg)' : 'transparent',
+      color: isActive ? 'var(--accent-gold)' : 'var(--text-main)',
+      border: '1px solid var(--border-color)', borderBottom: isActive ? '3px solid var(--accent-gold)' : 'none',
+      cursor: 'pointer', fontWeight: 'bold', borderRadius: '8px 8px 0 0', display: 'flex', alignItems: 'center', gap: '0.5rem'
+    });
+
+    return (
+      <div style={{ maxWidth: '1800px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Analytics e BI</h2>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px' }}>Modo Mock de Demonstração</span>
+        </div>
+
+        {/* Sub-Navegação */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', gap: '0.5rem', overflowX: 'auto' }}>
+          <button onClick={() => setDashTab('geral')} style={subTabStyle(dashTab === 'geral')}><PieChart size={16}/> Visão Geral</button>
+          <button onClick={() => setDashTab('marketing')} style={subTabStyle(dashTab === 'marketing')}><Target size={16}/> Growth & Monetização</button>
+          <button onClick={() => setDashTab('engajamento')} style={subTabStyle(dashTab === 'engajamento')}><Activity size={16}/> Retenção & Engajamento</button>
+          <button onClick={() => setDashTab('universo')} style={subTabStyle(dashTab === 'universo')}><Star size={16}/> Universo & Creators</button>
+        </div>
+
+        {/* ================= ABA GERAL ================= */}
+        {dashTab === 'geral' && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+              <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Users size={18} /> <strong>Total de Usuários</strong></div>
+                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{authors.length + readers.length}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{authors.length} Autores | {readers.length} Leitores</span>
+              </div>
+              <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><TrendingUp size={18} /> <strong>Views Totais</strong></div>
+                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{MOCK_ANALYTICS.overview.totalViews}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Somatório de todos os livros</span>
+              </div>
+              <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Clock size={18} /> <strong>Retenção Média</strong></div>
+                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{MOCK_ANALYTICS.overview.avgSessionTime}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessão diária</span>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+              {/* Card 1: Top Livros (MOCK) */}
+              <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><TrendingUp size={20} /> Top Livros (Popularidade Mock)</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {MOCK_ANALYTICS.topBooks.map((book, idx) => {
+                    const maxViews = MOCK_ANALYTICS.topBooks[0].views;
+                    const percentage = (book.views / maxViews) * 100;
+                    return (
+                      <div key={book.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.3rem' }}>
+                          <strong>{idx + 1}. {book.title}</strong><span style={{ color: 'var(--text-muted)' }}>{book.views.toLocaleString()} views</span>
+                        </div>
+                        <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${percentage}%`, background: idx === 0 ? 'var(--accent-gold)' : '#555', borderRadius: '4px' }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Card 2: Livros Melhores Classificados */}
+              <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Star size={20} fill="var(--accent-gold)" color="var(--accent-gold)" /> Livros Melhores Classificados</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {(() => {
+                    const ratedBooks = db.books
+                      .filter(b => b.status === 'published')
+                      .map(b => {
+                        const ratings = b.ratings || [];
+                        const count = ratings.length;
+                        const avg = count > 0 
+                          ? ratings.reduce((sum, r) => sum + r.stars, 0) / count 
+                          : 0;
+                        return { ...b, avgRating: avg, ratingCount: count };
+                      })
+                      .sort((a, b) => b.avgRating - a.avgRating || b.ratingCount - a.ratingCount);
+
+                    if (ratedBooks.length === 0) {
+                      return <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>Nenhuma obra publicada no sistema ainda.</p>;
+                    }
+
+                    return ratedBooks.map((book, idx) => {
+                      const author = db.users.find(u => u.id === book.authorId);
+                      return (
+                        <div key={book.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.8rem' }}>
+                          <div style={{ width: '40px', height: '55px', borderRadius: '4px', overflow: 'hidden', background: '#000', flexShrink: 0 }}>
+                            {book.cover ? (
+                              <img src={book.cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)' }}><BookOpen size={16} /></div>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {idx + 1}. {book.title}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              por {author?.name || 'Desconhecido'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.1rem' }}>
+                            <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                              ⭐ {book.avgRating.toFixed(1)}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              {book.ratingCount === 1 ? '1 avaliação' : `${book.ratingCount} avaliações`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= ABA MARKETING & GROWTH ================= */}
+        {dashTab === 'marketing' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><Target size={20} /> Atração (Growth)</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>CAC (Custo de Aquisição)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.growth.cac} <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#4CAF50'}}>↓ 12% M/M</span></div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>K-Factor (Virabilidade)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{MOCK_ANALYTICS.growth.kFactor}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Acima de 1.0 = Crescimento Exponencial</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão (Landing Page)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.growth.conversionRate}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFD700' }}><DollarSign size={20} /> Monetização (Funil)</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>LTV (Lifetime Value)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.monetization.ltv}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita Média por Usuário)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.monetization.arpu}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão para Premium</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.monetization.premiumConversion}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= ABA ENGAJAMENTO ================= */}
+        {dashTab === 'engajamento' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Activity size={20} /> Saúde da Base</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (Usuários Ativos)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.retention.dau_mau}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formação de hábito diário</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Churn Rate (Evasão Mensal)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#f44336' }}>{MOCK_ANALYTICS.retention.churn}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f44336' }}>Alerta de Drop-off (Abandono)</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Porcentagem de leitores que desistem da obra neste ponto.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                {MOCK_ANALYTICS.retention.dropOff.map(item => (
+                  <div key={item.chapter}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.3rem' }}>
+                      <strong>{item.chapter}</strong><span style={{ color: item.chapter === 'Cap 2' ? '#f44336' : 'var(--text-muted)' }}>{item.rate}</span>
+                    </div>
+                    <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: item.rate, background: item.chapter === 'Cap 2' ? '#f44336' : '#555', borderRadius: '4px' }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= ABA UNIVERSO & CREATORS ================= */}
+        {dashTab === 'universo' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Star size={20} /> O Diferencial: Universo</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Adoção da Enciclopédia</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.universe.adoptionRate}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Leitores que interagem com Personagens/Locais</div>
+                </div>
+                <div style={{ padding: '1rem', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '8px', border: '1px solid rgba(76, 175, 80, 0.3)' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Correlação Universo vs Retenção</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.universe.retentionDiff} retenção</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Leitores que consomem os Extras abandonam menos as obras do que os que leem apenas o texto.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#9C27B0' }}><Users size={20} /> Creator Economy</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>NPS do Autor (Net Promoter Score)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.universe.nps} <span style={{fontSize:'1rem'}}>Zona de Excelência</span></div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Concentração de Audiência</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.universe.concentration}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica necessidade de promover mais autores da cauda longa.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAutores = () => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const filteredAuthors = authors.filter(a => {
+      const matchesSearch = a.name.toLowerCase().includes(authorSearchText.toLowerCase());
+      const matchesId = authorIdSearchText ? (a.id && a.id.toString().includes(authorIdSearchText)) : true;
+      const matchesLetter = authorLetterFilter ? a.name.toUpperCase().startsWith(authorLetterFilter) : true;
+      return matchesSearch && matchesId && matchesLetter;
+    });
+
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Autores da Plataforma</h2>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <input 
+              type="text" 
+              placeholder="Pesquisar por ID..." 
+              value={authorIdSearchText}
+              onChange={e => setAuthorIdSearchText(e.target.value)}
+              style={{ padding: '0.8rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '180px' }}
+            />
+            <input 
+              type="text" 
+              placeholder="Pesquisar por nome..." 
+              value={authorSearchText}
+              onChange={e => setAuthorSearchText(e.target.value)}
+              style={{ padding: '0.8rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '250px' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '2rem' }}>
+          <button 
+            onClick={() => setAuthorLetterFilter('')} 
+            style={{ padding: '0.4rem 0.8rem', background: authorLetterFilter === '' ? 'var(--accent-gold)' : 'var(--card-bg)', color: authorLetterFilter === '' ? '#000' : 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Todos
+          </button>
+          {alphabet.map(letter => (
+            <button 
+              key={letter}
+              onClick={() => setAuthorLetterFilter(letter)} 
+              style={{ padding: '0.4rem 0.8rem', background: authorLetterFilter === letter ? 'var(--accent-gold)' : 'var(--card-bg)', color: authorLetterFilter === letter ? '#000' : 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '2rem' }}>
+          {filteredAuthors.map(author => {
+          const authorNotifs = notifications.filter(n => n.authorId === author.id && !n.read);
+          const hasPendingRequests = authorNotifs.some(n => n.type === 'request');
+          
+          return (
+            <div 
+              key={author.id} 
+              onClick={() => setSelectedAuthor(author)}
+              style={{ 
+                background: 'var(--card-bg)', border: '1px solid var(--border-color)', 
+                borderRadius: '8px', padding: '1.5rem', cursor: 'pointer', 
+                transition: 'transform 0.2s', position: 'relative',
+                display: 'flex', flexDirection: 'column', alignItems: 'center'
+              }}
+            >
+              {authorNotifs.length > 0 && (
+                <div style={{ 
+                  position: 'absolute', top: '-10px', right: '-10px', 
+                  background: hasPendingRequests ? '#f44336' : '#ff9800', 
+                  color: '#fff', width: '24px', height: '24px', borderRadius: '50%', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  fontSize: '0.8rem', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
+                }}>
+                  {authorNotifs.length}
+                </div>
+              )}
+
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '2px solid var(--accent-gold)' }}>
+                {author.avatar ? (
+                  <img src={author.avatar} alt={author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <User size={48} color="var(--accent-gold)" style={{ margin: '16px' }} />
+                )}
+              </div>
+              <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--text-main)', textAlign: 'center' }}>{author.name}</h3>
+              <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontFamily: 'monospace', background: 'rgba(212, 175, 55, 0.1)', padding: '0.1rem 0.5rem', borderRadius: '4px', marginBottom: '0.5rem', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                ID: {author.id}
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{author.email}</p>
+              
+              {hasPendingRequests && (
+                <div style={{ marginTop: '1rem', color: '#f44336', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <AlertCircle size={14} /> Pedidos Pendentes
+                </div>
+              )}
+            </div>
+          )})}
+        </div>
+      </div>
+    );
+  };
+
+  // ========== VIEW: CMS DO LIVRO (Sobrepõe tudo) ==========
+  if (selectedBook) {
+    const handleUpdateUniverse = (newUniverse) => {
+      const newDb = { ...db };
+      const bookIndex = newDb.books.findIndex(b => b.id === selectedBook.id);
+      newDb.books[bookIndex].universe = newUniverse;
+      onUpdateData(newDb);
+    };
+
+    const handleUpdateBook = (newBookProps) => {
+      const newDb = { ...db };
+      const bookIndex = newDb.books.findIndex(b => b.id === selectedBook.id);
+      newDb.books[bookIndex] = { ...newDb.books[bookIndex], ...newBookProps };
+      onUpdateData(newDb);
+      setSelectedBook({ ...selectedBook, ...newBookProps });
+    };
+
+    return (
+      <div style={{ height: 'calc(100vh - 120px)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '1rem 2rem', background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button onClick={() => setSelectedBook(null)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowLeft size={16} /> Voltar
+          </button>
+          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>Acessando CMS: {selectedBook.title}</h2>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{selectedBook.status.toUpperCase()}</strong></span>
+            {permissions.approve_books && selectedBook.status === 'pending' && (
+              <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: '#4CAF50' }}>
+                <Check size={16} /> Aprovar Publicação
+              </button>
+            )}
+            {permissions.approve_books && selectedBook.status === 'published' && (
+              <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'draft')} className="btn-secondary" style={{ color: '#ff9800', borderColor: '#ff9800' }}>
+                Reverter para Rascunho
+              </button>
+            )}
+          </div>
+        </div>
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <AdminPanel 
+            data={selectedBook.universe || {}} 
+            onUpdate={handleUpdateUniverse} 
+            bookId={selectedBook.id} 
+            currentBook={selectedBook} 
+            onUpdateBook={handleUpdateBook} 
+            currentUser={currentUser}
+            onLogChange={(action, details) => {
+              const loggedDb = logCuratorAction(`CMS: ${action}`, `No livro "${selectedBook.title}": ${details}`, db);
+              onUpdateData(loggedDb);
+            }}
+            isReadOnly={!permissions.cms_edit}
+            restrictedTabs={(() => {
+              const allowed = [];
+              if (permissions.cms_chapters) allowed.push('chapters');
+              if (permissions.cms_pages) allowed.push('pages');
+              if (permissions.cms_characters) allowed.push('characters');
+              if (permissions.cms_locations) allowed.push('locations');
+              if (permissions.cms_organizations) allowed.push('organizations');
+              if (permissions.cms_clues) allowed.push('clues');
+              if (permissions.cms_posts) allowed.push('posts');
+              if (permissions.cms_events) allowed.push('events');
+              if (permissions.cms_edit) allowed.push('synopsis');
+              allowed.push('reviews'); // Sempre visível para curador com acesso ao CMS
+              return allowed;
+            })()}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ========== VIEW: PERFIL DO AUTOR (Sobrepõe abas, mantido para legado) ==========
+  if (selectedAuthor) {
+    const authorBooks = db.books.filter(b => b.authorId === selectedAuthor.id);
+    const authorNotifs = notifications.filter(n => n.authorId === selectedAuthor.id).reverse();
+
+    return (
+      <div style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <button onClick={() => setSelectedAuthor(null)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowLeft size={16} /> Voltar
+          </button>
+          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Perfil: {selectedAuthor.name}</h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '300px 2fr 1.5fr', gap: '2rem', flex: 1, overflowY: 'hidden' }}>
+          
+          {/* Coluna 1: Informações do Perfil */}
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '3px solid var(--accent-gold)' }}>
+              {selectedAuthor.avatar ? (
+                <img src={selectedAuthor.avatar} alt={selectedAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <User size={80} color="var(--accent-gold)" style={{ margin: '20px' }} />
+              )}
+            </div>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', textAlign: 'center', fontSize: '1.5rem' }}>{selectedAuthor.name}</h3>
+            <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-muted)' }}>{selectedAuthor.email}</p>
+
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
+                <MapPin size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Cidade / Origem</strong>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.location || 'São Paulo, Brasil'}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
+                <Edit3 size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Estilo de Escrita</strong>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.writingStyle || 'Fantasia Épica & Ficção Histórica'}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
+                <Calendar size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Membro desde</strong>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.joinDate || 'Janeiro de 2026'}</span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Biografia</strong>
+                <p style={{ fontSize: '0.85rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)' }}>
+                  {selectedAuthor.bio || 'Autor apaixonado por criar mundos imersivos e complexos. Busca explorar a psique humana através de narrativas de fantasia sombria e aventuras épicas.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Coluna 2: Obras */}
+          <div style={{ overflowY: 'auto', paddingRight: '1rem' }}>
+            <h3 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Obras do Autor</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+              {authorBooks.map(book => (
+                <div key={book.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div style={{ aspectRatio: '2/3', width: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                    {book.cover ? (
+                      <>
+                        <img 
+                          src={book.cover} 
+                          alt="" 
+                          style={{ 
+                            position: 'absolute', 
+                            top: 0, 
+                            left: 0, 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover', 
+                            filter: 'blur(10px)', 
+                            opacity: 0.35, 
+                            zIndex: 0 
+                          }} 
+                        />
+                        <img 
+                          src={book.cover} 
+                          alt={book.title} 
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'contain', 
+                            zIndex: 1 
+                          }} 
+                        />
+                      </>
+                    ) : (
+                      <BookOpen size={32} color="rgba(255,255,255,0.1)" />
+                    )}
+                  </div>
+                  <div style={{ padding: '1rem' }}>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>{book.title}</h4>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: book.status === 'published' ? '#4CAF50' : book.status === 'pending' ? '#ff9800' : 'var(--text-muted)' }}>
+                      Status: {book.status.toUpperCase()}
+                    </p>
+                    <button onClick={() => setSelectedBook(book)} className="btn-secondary" style={{ width: '100%', marginTop: '1rem', padding: '0.5rem', fontSize: '0.8rem' }}>
+                      Acessar CMS do Livro
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {authorBooks.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Nenhuma obra cadastrada.</p>}
+            </div>
+          </div>
+
+          {/* Logs */}
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Registro de Atividades</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+              {authorNotifs.map(notif => (
+                <div key={notif.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', borderLeft: notif.type === 'request' ? '3px solid #2196F3' : '3px solid var(--accent-gold)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{notif.date}</span>
+                    {notif.type === 'request' && !notif.read && (
+                      <span style={{ fontSize: '0.7rem', background: '#2196F3', color: '#fff', padding: '0.1rem 0.5rem', borderRadius: '12px' }}>Novo Pedido</span>
+                    )}
+                  </div>
+                  <strong style={{ color: 'var(--text-main)', display: 'block', marginBottom: '0.3rem' }}>{notif.action}</strong>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Livro: {notif.bookTitle}</p>
+                  
+                  {notif.type === 'request' && (
+                    <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(0,0,0,0.3)', borderRadius: '4px', fontSize: '0.9rem' }}>
+                      {(() => {
+                        try {
+                          const reqData = JSON.parse(notif.details);
+                          return (
+                            <>
+                              <p style={{ margin: '0 0 0.5rem 0' }}><strong>O que:</strong> {reqData.what}</p>
+                              <p style={{ margin: '0 0 0.5rem 0' }}><strong>Por que:</strong> {reqData.why}</p>
+                              {reqData.impact && <p style={{ margin: 0 }}><strong>Impacto:</strong> {reqData.impact}</p>}
+                            </>
+                          );
+                        } catch (e) {
+                          return <p style={{ margin: 0 }}>{notif.details}</p>;
+                        }
+                      })()}
+                      
+                      {!notif.read && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                          <button onClick={() => handleAcceptRequest(notif)} style={{ flex: 1, background: '#4CAF50', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}><Check size={14}/> Aceitar</button>
+                          <button onClick={() => handleRejectRequest(notif)} style={{ flex: 1, background: '#f44336', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}><X size={14}/> Rejeitar</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {notif.type !== 'request' && (
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-main)' }}>{notif.details}</p>
+                  )}
+                </div>
+              ))}
+              {authorNotifs.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Nenhuma atividade registrada.</p>}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
+  const renderNotifications = () => {
+    return (
+      <div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Notificações por Autor</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {authors.map(author => {
+            const logs = notifications.filter(n => n.authorId === author.id && n.type !== 'request').reverse();
+            if (logs.length === 0) return null;
+            return (
+              <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+                  {author.avatar ? <img src={author.avatar} alt="" style={{width:'40px', height:'40px', borderRadius:'50%'}}/> : <User size={40} />}
+                  <h3 style={{ margin: 0 }}>{author.name}</h3>
+                  <button onClick={() => setSelectedAuthor(author)} className="btn-secondary" style={{ marginLeft: 'auto', padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Ver Perfil Completo</button>
+                </div>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {logs.slice(0, 5).map(log => (
+                    <div key={log.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '4px', fontSize: '0.9rem' }}>
+                      <strong style={{ color: 'var(--accent-gold)' }}>{log.action}</strong> no livro <span style={{ color: 'var(--text-main)' }}>{log.bookTitle}</span>
+                      <span style={{ color: 'var(--text-muted)', marginLeft: '1rem', fontSize: '0.8rem' }}>{log.date}</span>
+                      <p style={{ margin: '0.3rem 0 0 0', color: 'var(--text-muted)' }}>{log.details}</p>
+                    </div>
+                  ))}
+                  {logs.length > 5 && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.5rem' }}>+ {logs.length - 5} logs anteriores (acesse o perfil para ver tudo)</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCuradoria = () => {
+    const pendingBooks = db.books.filter(b => b.status === 'pending');
+    
+    return (
+      <div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Aprovação de Livros (Curadoria)</h2>
+        {pendingBooks.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum livro aguardando aprovação no momento.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {authors.map(author => {
+              const authorPending = pendingBooks.filter(b => b.authorId === author.id);
+              if (authorPending.length === 0) return null;
+              
+              return (
+                <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {author.name}</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                    {authorPending.map(book => (
+                      <div key={book.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <h4 style={{ margin: '0 0 0.5rem 0' }}>{book.title}</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                          <button onClick={() => setSelectedBook(book)} className="btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem' }}>
+                            Acessar CMS do Livro
+                          </button>
+                          <button onClick={() => handleUpdateBookStatus(book.id, 'published')} className="btn-primary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem', background: '#4CAF50' }}>
+                            Aprovar Publicação
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderRevisoes = () => {
+    const pendingRequests = notifications.filter(n => n.type === 'request' && !n.read).reverse();
+
+    return (
+      <div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Pedidos de Revisão/Alteração</h2>
+        {pendingRequests.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum pedido de alteração pendente.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {authors.map(author => {
+              const authorRequests = pendingRequests.filter(r => r.authorId === author.id);
+              if (authorRequests.length === 0) return null;
+
+              return (
+                <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {author.name}</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {authorRequests.map(notif => (
+                      <div key={notif.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '8px', borderLeft: '4px solid #2196F3' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                          <strong style={{ color: 'var(--text-main)' }}>Livro: {notif.bookTitle}</strong>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{notif.date}</span>
+                        </div>
+                        {(() => {
+                          try {
+                            const reqData = JSON.parse(notif.details);
+                            return (
+                              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
+                                <p style={{ margin: '0 0 0.5rem 0' }}><strong>O que:</strong> {reqData.what}</p>
+                                <p style={{ margin: '0 0 0.5rem 0' }}><strong>Por que:</strong> {reqData.why}</p>
+                                {reqData.impact && <p style={{ margin: 0 }}><strong>Impacto:</strong> {reqData.impact}</p>}
+                              </div>
+                            );
+                          } catch (e) {
+                            return <p style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>{notif.details}</p>;
+                          }
+                        })()}
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <button onClick={() => handleAcceptRequest(notif)} style={{ flex: 1, background: '#4CAF50', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><Check size={16}/> Aceitar Pedido (Reverter para Rascunho)</button>
+                          <button onClick={() => handleRejectRequest(notif)} style={{ flex: 1, background: '#f44336', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><X size={16}/> Rejeitar Pedido</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderMensagens = () => {
+    const allTickets = db.supportTickets || [];
+    
+    const getCategoryDetails = (cat) => {
+      const cats = {
+        technical: { label: '🛠️ Suporte Técnico', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
+        curator: { label: '📖 Curadoria / Obras', color: 'var(--accent-gold)', bg: 'rgba(212, 175, 55, 0.1)' },
+        financial: { label: '💰 Financeiro', color: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)' },
+        other: { label: '❓ Outros Assuntos', color: '#9e9e9e', bg: 'rgba(158, 158, 158, 0.1)' }
+      };
+      return cats[cat] || cats.other;
+    };
+
+    const permittedTickets = allTickets.filter(t => {
+      if (currentUser.id === 'admin') return true;
+      if (t.category === 'technical') return permissions.support_technical_access ?? true;
+      if (t.category === 'curator') return permissions.support_curator_access ?? true;
+      if (t.category === 'financial') return permissions.support_financial_access ?? true;
+      if (t.category === 'other') return permissions.support_other_access ?? true;
+      return true;
+    });
+
+    const filteredTickets = permittedTickets.filter(t => {
+      // 1. Filtrar por Status (Aberto, Resolvido)
+      if (supportStatusFilter !== 'all' && t.status !== supportStatusFilter) return false;
+
+      // 2. Filtrar por Categoria (Tópico)
+      if (supportCategoryFilter !== 'all' && t.category !== supportCategoryFilter) return false;
+
+      // 3. Filtrar por Busca de Texto (Assunto, Autor ou Corpo da Mensagem)
+      if (supportSearchText.trim()) {
+        const query = supportSearchText.toLowerCase();
+        const subjectMatch = t.subject?.toLowerCase().includes(query);
+        const authorMatch = t.authorName?.toLowerCase().includes(query);
+        const messageMatch = t.message?.toLowerCase().includes(query);
+        if (!subjectMatch && !authorMatch && !messageMatch) return false;
+      }
+
+      return true;
+    });
+
+    const selectedTicket = filteredTickets.find(t => t.id === selectedTicketId);
+
+    const handleSendTicketReply = () => {
+      if (!ticketReplyText.trim() || !selectedTicket) return;
+
+      const newReply = {
+        id: 'reply_' + Date.now() + Math.floor(Math.random() * 1000),
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        message: ticketReplyText,
+        createdAt: new Date().toLocaleString('pt-BR')
+      };
+
+      let newDb = { ...db };
+      
+      newDb.supportTickets = (newDb.supportTickets || []).map(t => {
+        if (t.id === selectedTicket.id) {
+          return {
+            ...t,
+            replies: [...(t.replies || []), newReply]
+          };
+        }
+        return t;
+      });
+
+      const newNotif = {
+        id: 'notif_' + Date.now() + Math.floor(Math.random() * 1000),
+        type: 'message',
+        action: 'Resposta de Suporte',
+        details: `O(A) curador(a) ${currentUser.name} respondeu ao chamado de suporte "${selectedTicket.subject}":\n\n"${ticketReplyText}"`,
+        date: new Date().toLocaleString('pt-BR'),
+        read: false,
+        userId: selectedTicket.authorId
+      };
+      newDb.notifications = [...(newDb.notifications || []), newNotif];
+
+      newDb = logCuratorAction(
+        'Resposta de Chamado',
+        `Respondeu ao chamado "${selectedTicket.subject}" de ${selectedTicket.authorName}`,
+        newDb
+      );
+
+      onUpdateData(newDb);
+      setTicketReplyText('');
+      alert("Resposta enviada com sucesso!");
+    };
+
+    const handleToggleTicketStatus = (ticket) => {
+      const newStatus = ticket.status === 'open' ? 'resolved' : 'open';
+      let newDb = { ...db };
+
+      newDb.supportTickets = (newDb.supportTickets || []).map(t => {
+        if (t.id === ticket.id) {
+          return { ...t, status: newStatus };
+        }
+        return t;
+      });
+
+      const newNotif = {
+        id: 'notif_' + Date.now() + Math.floor(Math.random() * 1000),
+        type: 'message',
+        action: 'Status de Chamado Alterado',
+        details: `O chamado de suporte "${ticket.subject}" foi marcado como ${newStatus === 'open' ? 'Reaberto' : 'Resolvido'} por ${currentUser.name}.`,
+        date: new Date().toLocaleString('pt-BR'),
+        read: false,
+        userId: ticket.authorId
+      };
+      newDb.notifications = [...(newDb.notifications || []), newNotif];
+
+      newDb = logCuratorAction(
+        newStatus === 'resolved' ? 'Chamado Resolvido' : 'Chamado Reaberto',
+        `${newStatus === 'resolved' ? 'Resolveu' : 'Reabriu'} o chamado "${ticket.subject}" de ${ticket.authorName}`,
+        newDb
+      );
+
+      onUpdateData(newDb);
+      alert(`Chamado marcado como ${newStatus === 'resolved' ? 'Resolvido' : 'Aberto'}!`);
+    };
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', height: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Central de Chamados e Suporte</h2>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gerencie e responda às dúvidas dos autores conforme sua área de atuação.</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.02)', padding: '0.3rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button 
+              onClick={() => setSupportStatusFilter('open')}
+              style={{
+                padding: '0.4rem 1rem',
+                fontSize: '0.85rem',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                background: supportStatusFilter === 'open' ? 'var(--accent-gold)' : 'transparent',
+                color: supportStatusFilter === 'open' ? '#000' : 'var(--text-main)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Abertos
+            </button>
+            <button 
+              onClick={() => setSupportStatusFilter('resolved')}
+              style={{
+                padding: '0.4rem 1rem',
+                fontSize: '0.85rem',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                background: supportStatusFilter === 'resolved' ? '#4CAF50' : 'transparent',
+                color: supportStatusFilter === 'resolved' ? '#fff' : 'var(--text-main)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Resolvidos
+            </button>
+            <button 
+              onClick={() => setSupportStatusFilter('all')}
+              style={{
+                padding: '0.4rem 1rem',
+                fontSize: '0.85rem',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                background: supportStatusFilter === 'all' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                color: 'var(--text-main)',
+                transition: 'all 0.2s'
+              }}
+            >
+              Todos
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '2rem', flex: 1, minHeight: '500px' }}>
+          <div style={{ width: '320px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '1.2rem', borderBottom: '1px solid var(--border-color)', fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Caixa de Entrada</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.1)', padding: '0.1rem 0.5rem', borderRadius: '10px' }}>
+                {filteredTickets.length}
+              </span>
+            </div>
+
+            {/* FILTROS E BUSCA DE TICKET */}
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.8rem', background: 'rgba(0,0,0,0.1)' }}>
+              {/* Campo de Busca por assunto / autor */}
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Buscar assunto ou autor..."
+                  value={supportSearchText}
+                  onChange={e => setSupportSearchText(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 2.2rem 0.6rem 0.8rem',
+                    background: 'var(--bg-main)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                />
+                <Search size={14} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                {supportSearchText && (
+                  <button
+                    onClick={() => setSupportSearchText('')}
+                    style={{ position: 'absolute', right: '28px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filtro de Categoria/Tópico */}
+              <div>
+                <select
+                  value={supportCategoryFilter}
+                  onChange={e => setSupportCategoryFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem',
+                    background: 'var(--bg-main)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-main)',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">📂 Todos os Tópicos</option>
+                  <option value="technical">🛠️ Suporte Técnico</option>
+                  <option value="curator">📖 Curadoria / Obras</option>
+                  <option value="financial">💰 Financeiro</option>
+                  <option value="other">❓ Outros Assuntos</option>
+                </select>
+              </div>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              {filteredTickets.length === 0 ? (
+                <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                  Nenhum chamado {supportStatusFilter === 'open' ? 'aberto' : supportStatusFilter === 'resolved' ? 'resolvido' : ''} nesta categoria.
+                </div>
+              ) : (
+                filteredTickets.slice().reverse().map(t => {
+                  const cat = getCategoryDetails(t.category);
+                  const isSelected = t.id === selectedTicketId;
+                  return (
+                    <div 
+                      key={t.id}
+                      onClick={() => setSelectedTicketId(t.id)}
+                      style={{
+                        padding: '1.2rem',
+                        borderBottom: '1px solid var(--border-color)',
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(255,255,255,0.02)' : 'transparent',
+                        borderLeft: isSelected ? '4px solid var(--accent-gold)' : '4px solid transparent',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.7rem', background: cat.bg, color: cat.color, padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>{cat.label}</span>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          color: t.status === 'open' ? 'var(--accent-gold)' : '#4CAF50',
+                          fontWeight: 'bold'
+                        }}>
+                          {t.status === 'open' ? 'Aberto' : 'Resolvido'}
+                        </span>
+                      </div>
+                      <h4 style={{ margin: '0 0 0.3rem 0', color: 'var(--text-main)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.subject}</h4>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>De: {t.authorName}</span>
+                        <span>{t.createdAt.split(',')[0]}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div style={{ flex: 1, background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {selectedTicket ? (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1 }}>
+                
+                <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{selectedTicket.subject}</h3>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Autor: <strong>{selectedTicket.authorName} (ID: {selectedTicket.authorId})</strong></span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Categoria: <strong style={{ color: getCategoryDetails(selectedTicket.category).color }}>{getCategoryDetails(selectedTicket.category).label}</strong></span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Enviado em: <strong>{selectedTicket.createdAt}</strong></span>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                    <button 
+                      onClick={() => handleToggleTicketStatus(selectedTicket)}
+                      className={selectedTicket.status === 'open' ? 'btn-secondary' : 'btn-primary'}
+                      style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+                    >
+                      {selectedTicket.status === 'open' ? '🔒 Marcar como Resolvido' : '🔓 Reabrir Chamado'}
+                    </button>
+                    <span style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      background: selectedTicket.status === 'open' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(76, 175, 80, 0.15)',
+                      color: selectedTicket.status === 'open' ? 'var(--accent-gold)' : '#4CAF50'
+                    }}>
+                      {selectedTicket.status === 'open' ? 'CHAMADO ABERTO' : 'RESOLVIDO'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ alignSelf: 'flex-start', maxWidth: '80%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.4rem' }}>{selectedTicket.authorName} (Autor)</div>
+                    <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{selectedTicket.message}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '0.4rem' }}>{selectedTicket.createdAt}</div>
+                  </div>
+
+                  {(selectedTicket.replies || []).map(reply => {
+                    const isCurator = reply.senderId !== selectedTicket.authorId;
+                    return (
+                      <div 
+                        key={reply.id}
+                        style={{
+                          alignSelf: isCurator ? 'flex-end' : 'flex-start',
+                          maxWidth: '80%',
+                          background: isCurator ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.02)',
+                          border: isCurator ? '1px solid rgba(212,175,55,0.2)' : '1px solid var(--border-color)',
+                          borderRadius: '8px',
+                          padding: '1rem'
+                        }}
+                      >
+                        <div style={{ fontSize: '0.75rem', color: isCurator ? '#2196F3' : 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.4rem' }}>
+                          {reply.senderName} {isCurator ? '(Curadoria)' : '(Autor)'}
+                        </div>
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{reply.message}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '0.4rem' }}>{reply.createdAt}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+                  {selectedTicket.status === 'open' ? (
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <textarea
+                        value={ticketReplyText}
+                        onChange={e => setTicketReplyText(e.target.value)}
+                        placeholder="Escreva uma resposta para o autor..."
+                        rows="2"
+                        style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
+                      />
+                      <button 
+                        onClick={handleSendTicketReply}
+                        disabled={!ticketReplyText.trim()}
+                        className="btn-primary" 
+                        style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.8rem 1.5rem', opacity: ticketReplyText.trim() ? 1 : 0.5 }}
+                      >
+                        <Send size={16} /> Responder
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic', padding: '0.5rem' }}>
+                      Este chamado foi resolvido e encerrado. Se necessário, reabra o chamado para continuar conversando.
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', padding: '3rem', textAlign: 'center' }}>
+                <MessageSquare size={48} style={{ opacity: 0.15, marginBottom: '1.5rem' }} />
+                <p style={{ margin: 0, fontSize: '1.05rem' }}>Selecione um chamado na barra lateral para ver o atendimento ou filtrar por status.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="curator-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+      
+      {/* Sidebar de Curadoria */}
+      <div className="curator-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', padding: '0 1.5rem' }}>
+          <ShieldAlert size={24} color="var(--accent-gold)" />
+          <h2 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 'bold' }}>Painel Curadoria</h2>
+        </div>
+
+        {hasAccess('dashboard') && <button onClick={() => setActiveTab('dashboard')} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>}
+        {hasAccess('autores') && <button onClick={() => setActiveTab('autores')} style={navItemStyle(activeTab === 'autores')}><Users size={18}/> Autores</button>}
+        {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> Notificações</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('curadoria')} style={navItemStyle(activeTab === 'curadoria')}><CheckCircle size={18}/> Curadoria</button>}
+        {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
+        {hasAccess('mensagens') && <button onClick={() => setActiveTab('mensagens')} style={navItemStyle(activeTab === 'mensagens')}><MessageSquare size={18}/> Mensagens</button>}
+        {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
+        {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
+      </div>
+
+      {/* Conteúdo Principal */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)' }}>
+        {activeTab === 'dashboard' && hasAccess('dashboard') && renderDashboardGeral()}
+        {activeTab === 'autores' && hasAccess('autores') && renderAutores()}
+        {activeTab === 'notifications' && hasAccess('notifications') && renderNotifications()}
+        {activeTab === 'curadoria' && hasAccess('curadoria') && renderCuradoria()}
+        {activeTab === 'revisoes' && hasAccess('revisoes') && renderRevisoes()}
+        {activeTab === 'mensagens' && hasAccess('mensagens') && renderMensagens()}
+        {activeTab === 'banners' && hasAccess('banners') && renderBanners()}
+        {activeTab === 'equipe' && hasAccess('equipe') && renderEquipe()}
+      </div>
+
+    </div>
+  );
+}
