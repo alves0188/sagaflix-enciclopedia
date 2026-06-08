@@ -98,12 +98,27 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 
 // Test email endpoint
 app.post('/api/test-email', async (req, res) => {
-  const { to } = req.body;
+  const { to, host, port, secure } = req.body;
   try {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       return res.status(400).json({ error: 'SMTP não configurado nas variáveis de ambiente.' });
     }
-    const info = await transporter.sendMail({
+    
+    let activeTransporter = transporter;
+    if (host !== undefined || port !== undefined || secure !== undefined) {
+      console.log(`Using custom diagnostic transporter: ${host || process.env.SMTP_HOST}:${port || process.env.SMTP_PORT} (secure: ${secure})`);
+      activeTransporter = nodemailer.createTransport({
+        host: host || process.env.SMTP_HOST || '',
+        port: port !== undefined ? parseInt(port) : (parseInt(process.env.SMTP_PORT) || 587),
+        secure: secure !== undefined ? (secure === true || secure === 'true') : (process.env.SMTP_SECURE === 'true' || false),
+        auth: {
+          user: process.env.SMTP_USER || '',
+          pass: process.env.SMTP_PASS || '',
+        },
+      });
+    }
+
+    const info = await activeTransporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER || '"Sagaflix" <noreply@sagaflix.com>',
       to,
       subject: 'Teste de Envio de E-mail - Sagaflix',
@@ -121,6 +136,7 @@ app.post('/api/test-email', async (req, res) => {
     });
   }
 });
+
 
 // Send verification email endpoint
 app.post('/api/send-verification-email', async (req, res) => {
