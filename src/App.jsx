@@ -545,7 +545,14 @@ export default function App() {
       </header>
 
       {/* Áreas exclusivas por Perfil */}
-      <main style={{ flex: 1, padding: '2rem', maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
+      <main style={{ 
+        flex: 1, 
+        padding: isMobile && currentUser.role === 'reader' ? '0' : '2rem', 
+        maxWidth: isMobile && currentUser.role === 'reader' ? '100%' : '1800px', 
+        margin: '0 auto', 
+        width: '100%',
+        boxSizing: 'border-box'
+      }}>
         
         {/* VIEW DO CURADOR (FASE 2) */}
         {currentUser.role === 'curator' && (
