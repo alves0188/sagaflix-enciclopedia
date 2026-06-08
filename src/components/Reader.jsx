@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock } from 'lucide-react';
 
+const cleanChapterTitle = (title) => {
+  if (!title) return '';
+  return title.replace(/^(capítulo|cap\.|cap)\s*\d+\s*[-:]\s*/i, '').trim();
+};
+
 export default function Reader({ db, bookId, currentUser, onUpdateData, onClose }) {
   const [theme, setTheme] = useState('dark');
   const colors = {
@@ -12,6 +17,30 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const book = db?.books?.find(b => b.id === bookId);
   const data = book?.universe || {};
   const rawChapters = data?.chapters || [];
+
+  const processedRawChapters = rawChapters.map((ch, idx) => {
+    const chapterNum = idx + 1;
+    const headerPage = {
+      isChapterHeader: true,
+      subtheme: '',
+      text: `
+        <div class="reader-chapter-header-page" style="text-align: center; padding: 4rem 1rem 2rem 1rem;">
+          <div style="color: ${themeColors.gold}; margin-bottom: 1.5rem; font-size: 1.8rem; font-family: 'Playfair Display', serif;">❦</div>
+          <div style="text-transform: uppercase; letter-spacing: 3px; font-size: 0.9rem; opacity: 0.7; margin-bottom: 1.2rem; color: ${themeColors.gold}; font-weight: 600;">
+            CAPÍTULO ${String(chapterNum).padStart(2, '0')}
+          </div>
+          <h1 style="font-family: 'Playfair Display', serif; color: ${themeColors.gold}; font-size: 2.6rem; margin: 0; font-weight: normal; line-height: 1.3;">
+            ${cleanChapterTitle(ch.title || 'Sem título')}
+          </h1>
+        </div>
+      `,
+      image: ''
+    };
+    return {
+      ...ch,
+      pages: [headerPage, ...(ch.pages || [])]
+    };
+  });
 
   // Helper date formatting
   const formatDate = (date) => {
@@ -100,7 +129,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     }
   ];
 
-  const chapters = [...virtualChapters, ...rawChapters];
+  const chapters = [...virtualChapters, ...processedRawChapters];
 
   // Resuming Bookmark reading position
   const savedPos = currentUser?.readingPositions?.[bookId];
@@ -319,6 +348,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     if (!pages) return [];
     const groups = [];
     pages.forEach((p, pIdx) => {
+      if (p.isChapterHeader) return;
       const name = p.subtheme ? p.subtheme.trim() : `Trecho ${pIdx + 1}`;
       if (groups.length === 0 || groups[groups.length - 1].name !== name) {
         groups.push({ name, startIdx: pIdx });
@@ -507,17 +537,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             >
               {subthemeObj ? (
                 <div>
-                  {activeSubthemeIdx === 0 && !chapter.isVirtual && (
-                    <div style={{ textAlign: 'center', marginBottom: '4rem', marginTop: '2rem' }}>
-                      <div style={{ color: themeColors.gold, marginBottom: '1.5rem', fontSize: '1.5rem', fontFamily: "'Playfair Display', serif" }}>❦</div>
-                      <div style={{ textTransform: 'uppercase', letterSpacing: '3px', fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem', color: themeColors.gold }}>
-                        CAPÍTULO {String(activeChapterIdx - 2).padStart(2, '0')}
-                      </div>
-                      <h1 style={{ fontFamily: "'Playfair Display', serif", color: themeColors.gold, fontSize: '3.5rem', margin: 0, fontWeight: 'normal' }}>
-                        {chapter?.title}
-                      </h1>
-                    </div>
-                  )}
+
                   
                   {subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
                     <h2 style={{ 
@@ -562,17 +582,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                       position: 'absolute', top: 0, left: 0
                     }}
                   >
-                    {isFirstSub && !chapterObj?.isVirtual && (
-                      <div style={{ textAlign: 'center', marginBottom: '4rem', marginTop: '2rem' }}>
-                        <div style={{ color: themeColors.gold, marginBottom: '1.5rem', fontSize: '1.5rem', fontFamily: "'Playfair Display', serif" }}>❦</div>
-                        <div style={{ textTransform: 'uppercase', letterSpacing: '3px', fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem', color: themeColors.gold }}>
-                          CAPÍTULO {String(sub.chIdx - 2).padStart(2, '0')}
-                        </div>
-                        <h1 style={{ fontFamily: "'Playfair Display', serif", color: themeColors.gold, fontSize: '3.5rem', margin: 0, fontWeight: 'normal' }}>
-                          {chapterObj?.title}
-                        </h1>
-                      </div>
-                    )}
+
                     {sub.subtheme && !chapterObj?.isVirtual && (isFirstSub || chapters[sub.chIdx]?.pages?.[sub.subIdx - 1]?.subtheme !== sub.subtheme) && (
                       <h2 style={{ 
                         fontFamily: "'Playfair Display', serif", 
@@ -704,6 +714,9 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             margin: 0 auto !important;
             display: block !important;
             box-shadow: 0 8px 20px rgba(0,0,0,0.6) !important;
+          }
+          .reader-chapter-header-page h1 {
+            font-size: 1.8rem !important;
           }
           .reader-author-header {
             flex-direction: column !important;
