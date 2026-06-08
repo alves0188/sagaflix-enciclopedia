@@ -5,7 +5,7 @@ const path = require('path');
 const multer = require('multer');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const dataFile = path.join(__dirname, 'data.json');
 
 app.use(cors());
