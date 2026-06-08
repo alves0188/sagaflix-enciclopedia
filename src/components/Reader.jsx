@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock } from 'lucide-react';
 
 export default function Reader({ db, bookId, currentUser, onUpdateData, onClose }) {
+  const [theme, setTheme] = useState('dark');
+  const colors = {
+    dark: { bg: '#121212', text: '#e0e0e0', panelBg: '#1e1e1e', border: '#333', gold: '#d4af37' },
+    light: { bg: '#fdfcf0', text: '#2d2d2d', panelBg: '#f4f2e6', border: '#e0ddd0', gold: '#b8942b' }
+  };
+  const themeColors = colors[theme];
+
   const book = db?.books?.find(b => b.id === bookId);
   const data = book?.universe || {};
   const rawChapters = data?.chapters || [];
@@ -38,9 +45,9 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           subtheme: 'Capa Oficial',
           text: `
             <div class="reader-cover-page" style="text-align: center; padding: 1rem 0;">
-              <h1 class="reader-cover-title" style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--accent-gold); margin-bottom: 1.5rem;">${book?.title || 'Sem título'}</h1>
-              ${book?.cover ? `<img src="${book.cover}" alt="Capa" class="reader-cover-img" style="max-height: 260px; max-width: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 1.5rem; object-fit: contain;"/>` : '<div style="margin-bottom: 1.5rem; opacity: 0.1;"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10M6 10h10"></svg></div>'}
-              <p style="font-size: 1.1rem; font-style: italic; opacity: 0.8; margin-top: 0.5rem;">por ${bookAuthor ? bookAuthor.name : 'Autor Desconhecido'}</p>
+              <h1 class="reader-cover-title" style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: ${themeColors.gold}; margin-bottom: 0.5rem;">${book?.title || 'Sem título'}</h1>
+              <p class="reader-cover-subtitle" style="font-size: 1.1rem; font-style: italic; opacity: 0.8; margin-top: 0; margin-bottom: 1.5rem; color: ${themeColors.gold};">por ${bookAuthor ? bookAuthor.name : 'Autor Desconhecido'}</p>
+              ${book?.cover ? `<img src="${book.cover}" alt="Capa" class="reader-cover-img" style="max-height: 400px; max-width: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;"/>` : '<div style="margin-bottom: 1.5rem; opacity: 0.1;"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10M6 10h10"></svg></div>'}
             </div>
           `,
           image: book?.cover
@@ -57,16 +64,16 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           text: `
             <div class="reader-author-page" style="padding: 1rem 0;">
               <div class="reader-author-header" style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
-                <div class="reader-author-avatar-wrapper" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-gold); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
-                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${bookAuthor.name}" style="width:100%; height:100%; object-fit:cover;"/>` : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'}
+                <div class="reader-author-avatar-wrapper" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid ${themeColors.gold}; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
+                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${bookAuthor.name}" style="width:100%; height:100%; object-fit:cover;"/>` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${themeColors.gold}" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
                 </div>
                 <div>
-                  <h2 class="reader-author-name" style="font-family: 'Playfair Display', serif; margin: 0; color: var(--accent-gold); font-size: 1.5rem;">${bookAuthor?.name || 'Autor Desconhecido'}</h2>
+                  <h2 class="reader-author-name" style="font-family: 'Playfair Display', serif; margin: 0; color: ${themeColors.gold}; font-size: 1.5rem;">${bookAuthor?.name || 'Autor Desconhecido'}</h2>
                   <p style="font-size: 0.85rem; opacity: 0.7; margin: 0.3rem 0 0 0;"><strong>Origem:</strong> ${bookAuthor?.location || 'Não informada'}</p>
                   ${bookAuthor?.writingStyle ? `<p style="font-size: 0.85rem; opacity: 0.7; margin: 0.15rem 0 0 0;"><strong>Estilo:</strong> ${bookAuthor.writingStyle}</p>` : ''}
                 </div>
               </div>
-              <h3 style="font-family: 'Playfair Display', serif; color: var(--accent-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.4rem; margin-top: 1rem; font-size: 1.1rem;">Biografia</h3>
+              <h3 style="font-family: 'Playfair Display', serif; color: ${themeColors.gold}; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.4rem; margin-top: 1rem; font-size: 1.1rem;">Biografia</h3>
               <p class="reader-author-bio" style="line-height: 1.7; font-size: 0.95rem; white-space: pre-line;">${bookAuthor?.bio || 'O autor ainda não cadastrou sua biografia.'}</p>
             </div>
           `,
@@ -83,7 +90,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           subtheme: 'Sinopse',
           text: `
             <div class="reader-synopsis-page" style="padding: 1rem 0;">
-              <h2 class="reader-synopsis-title" style="font-family: 'Playfair Display', serif; color: var(--accent-gold); margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-size: 1.6rem;">Sinopse da Obra</h2>
+              <h2 class="reader-synopsis-title" style="font-family: 'Playfair Display', serif; color: ${themeColors.gold}; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; font-size: 1.6rem;">Sinopse da Obra</h2>
               <p class="reader-synopsis-text" style="line-height: 1.8; font-size: 1.05rem; font-style: italic; white-space: pre-line;">${book?.synopsis || 'Sem sinopse cadastrada.'}</p>
             </div>
           `,
@@ -103,7 +110,6 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const initialSubthemeIdx = savedPos ? savedPos.subthemeIdx : 0;
   const initialColumnIdx = savedPos ? savedPos.columnIdx : 0;
 
-  const [theme, setTheme] = useState('dark');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -321,11 +327,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     return groups;
   };
 
-  const colors = {
-    dark: { bg: '#121212', text: '#e0e0e0', panelBg: '#1e1e1e', border: '#333', gold: '#d4af37' },
-    light: { bg: '#fdfcf0', text: '#2d2d2d', panelBg: '#f4f2e6', border: '#e0ddd0', gold: '#b8942b' }
-  };
-  const themeColors = colors[theme];
+
 
   return (
     <div style={{
@@ -336,7 +338,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     }}>
       {/* Navbar */}
       <div style={{
-        height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        height: isMobile ? '60px' : '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 1rem', borderBottom: `1px solid ${themeColors.border}`, backgroundColor: themeColors.panelBg, flexShrink: 0
       }}>
         {/* Left Side: Back Button & Book Title */}
@@ -485,7 +487,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
           overflow: 'hidden', position: 'relative'
         }}>
-          <div style={{ flex: 1, width: '100%', maxWidth: '800px', display: 'flex', overflow: 'hidden', padding: '2rem 1rem', position: 'relative' }}>
+          <div style={{ flex: 1, width: '100%', maxWidth: '800px', display: 'flex', overflow: 'hidden', padding: isMobile ? '1.2rem 1rem' : '2rem 1rem', position: 'relative' }}>
             
             {/* The Sliding Container */}
             <div 
@@ -595,25 +597,39 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           {chapters.length > 0 && (
             <div style={{ 
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '800px', 
-              padding: '1.5rem 2rem', borderTop: `1px solid ${themeColors.border}`
+              padding: isMobile ? '1rem' : '1.5rem 2rem', borderTop: `1px solid ${themeColors.border}`
             }}>
               <button onClick={handlePrevPage} disabled={activeChapterIdx === 0 && activeSubthemeIdx === 0 && activeColumnIdx === 0} 
-                style={{ background: 'transparent', color: themeColors.text, border: `1px solid ${themeColors.border}`, padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: (activeChapterIdx === 0 && activeSubthemeIdx === 0 && activeColumnIdx === 0) ? 0.3 : 1, fontWeight: '500' }}>
-                <ChevronLeft size={18} /> Ant.
+                style={{ 
+                  background: 'transparent', 
+                  color: themeColors.text, 
+                  border: `1px solid ${themeColors.border}`, 
+                  padding: isMobile ? '0.4rem 0.8rem' : '0.6rem 1rem', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.3rem', 
+                  opacity: (activeChapterIdx === 0 && activeSubthemeIdx === 0 && activeColumnIdx === 0) ? 0.3 : 1, 
+                  fontWeight: '500',
+                  fontSize: isMobile ? '0.9rem' : '1rem'
+                }}>
+                <span style={{ marginRight: '6px', fontFamily: 'monospace', fontWeight: 'bold' }}>&lt;</span> Ant.
               </button>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.9 }}>
                 <span>Página</span>
-                <form onSubmit={handlePageSubmit}>
+                <form onSubmit={handlePageSubmit} style={{ display: 'inline-block', margin: 0 }}>
                   <input 
                     type="text" 
                     value={pageInput}
                     onChange={(e) => setPageInput(e.target.value)}
                     onBlur={handlePageSubmit}
                     style={{
-                      width: '50px', textAlign: 'center', background: 'transparent', 
+                      width: '45px', textAlign: 'center', background: 'transparent', 
                       color: themeColors.text, border: `1px solid ${themeColors.border}`, 
-                      borderRadius: '4px', padding: '0.3rem'
+                      borderRadius: '4px', padding: '0.3rem 0.1rem',
+                      fontSize: '0.95rem'
                     }}
                   />
                 </form>
@@ -621,8 +637,21 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               </div>
 
               <button onClick={handleNextPage} disabled={activeChapterIdx === chapters.length - 1 && activeSubthemeIdx === (chapters[chapters.length - 1]?.pages?.length || 1) - 1 && activeColumnIdx === totalColumns - 1} 
-                style={{ background: 'transparent', color: themeColors.text, border: `1px solid ${themeColors.border}`, padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: (activeChapterIdx === chapters.length - 1 && activeSubthemeIdx === (chapters[chapters.length - 1]?.pages?.length || 1) - 1 && activeColumnIdx === totalColumns - 1) ? 0.3 : 1, fontWeight: '500' }}>
-                Próx. <ChevronRight size={18} />
+                style={{ 
+                  background: 'transparent', 
+                  color: themeColors.text, 
+                  border: `1px solid ${themeColors.border}`, 
+                  padding: isMobile ? '0.4rem 0.8rem' : '0.6rem 1rem', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.3rem', 
+                  opacity: (activeChapterIdx === chapters.length - 1 && activeSubthemeIdx === (chapters[chapters.length - 1]?.pages?.length || 1) - 1 && activeColumnIdx === totalColumns - 1) ? 0.3 : 1, 
+                  fontWeight: '500',
+                  fontSize: isMobile ? '0.9rem' : '1rem'
+                }}>
+                Próx. <span style={{ marginLeft: '6px', fontFamily: 'monospace', fontWeight: 'bold' }}>&gt;</span>
               </button>
             </div>
           )}
@@ -660,12 +689,21 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         
         @media (max-width: 768px) {
           .reader-cover-title {
-            font-size: 1.6rem !important;
-            margin-bottom: 1rem !important;
+            font-size: 1.9rem !important;
+            margin-bottom: 0.3rem !important;
+            margin-top: 0.2rem !important;
+          }
+          .reader-cover-subtitle {
+            font-size: 1rem !important;
+            margin-bottom: 1.2rem !important;
+            margin-top: 0 !important;
           }
           .reader-cover-img {
-            max-height: 180px !important;
-            margin-bottom: 1rem !important;
+            max-height: 48vh !important;
+            max-width: 90% !important;
+            margin: 0 auto !important;
+            display: block !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6) !important;
           }
           .reader-author-header {
             flex-direction: column !important;
