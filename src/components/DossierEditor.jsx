@@ -209,10 +209,10 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div className="dossier-modal-container">
       
       {/* Coluna Esquerda: Painel Adm (Ferramentas de Edição) */}
-      <div style={{ width: '300px', backgroundColor: 'var(--card-bg)', borderRight: '1px solid var(--border-color)', padding: '1.5rem', display: 'flex', flexDirection: 'column', overflowY: 'auto', zIndex: 10, boxShadow: '5px 0 25px rgba(0,0,0,0.5)', height: '100%' }}>
+      <div className="dossier-left-panel">
         
         <h2 style={{ fontSize: '1.2rem', margin: '0 0 1.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
           {isReadOnly ? 'Painel de Leitura' : 'Ferramentas de Controle'}
@@ -270,9 +270,9 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
       </div>
 
       {/* Coluna Direita: O Papel Dossiê */}
-      <div className="dossier-wrapper" style={{ flex: 1, padding: '3rem', overflowY: 'auto', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', height: '100%' }}>
+      <div className="dossier-wrapper">
         
-        <div className="dossier-paper" style={{ maxWidth: '1000px', width: '100%', position: 'relative', cursor: 'default', transform: 'none', margin: '0 auto' }}>
+        <div className="dossier-paper">
           
           {/* Paperclip */}
           <div className="dossier-paperclip"></div>
@@ -563,10 +563,10 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
           </div>
 
           {/* Sticky Notes Area */}
-          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', display: 'flex', gap: '1rem', zIndex: 45, alignItems: 'flex-end', flexDirection: 'row-reverse' }}>
+          <div className="dossier-sticky-area">
             
             {/* Sticky Note - Curiosities */}
-            <div className="sticky-wrapper" style={{ position: 'relative', bottom: 0, right: 0, zIndex: 40, cursor: 'default' }}>
+            <div className="sticky-wrapper" style={{ zIndex: 40, cursor: 'default' }}>
               <div className="tape-dossier"></div>
               <div className="sticky-dossier">
                 <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#666', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif' }}>

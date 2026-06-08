@@ -13,10 +13,10 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
   });
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div className="dossier-modal-container">
       
       {/* Coluna Esquerda: Arquivos Confidenciais */}
-      <div onClick={e => e.stopPropagation()} style={{ width: '300px', backgroundColor: 'var(--card-bg)', borderRight: '1px solid var(--border-color)', padding: '1.5rem', display: 'flex', flexDirection: 'column', overflowY: 'auto', zIndex: 10, boxShadow: '5px 0 25px rgba(0,0,0,0.5)', height: '100%' }}>
+      <div onClick={e => e.stopPropagation()} className="dossier-left-panel">
         
         <button className="btn-voltar-dossier" onClick={onClose} style={{ marginBottom: '2rem', background: '#333', color: '#fff', border: 'none', padding: '0.8rem 1rem', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', borderRadius: '4px' }}>
           <ArrowLeft size={18} /> FECHAR DOSSIÊ
@@ -39,8 +39,8 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
       </div>
 
       {/* Coluna Direita: O Papel Dossiê */}
-      <div className="dossier-wrapper" onClick={onClose} style={{ flex: 1, padding: '3rem', overflowY: 'auto', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', height: '100%', background: 'transparent' }}>
-        <div className="dossier-paper" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', width: '100%', position: 'relative', cursor: 'default', transform: 'none', margin: '0 auto' }}>
+      <div className="dossier-wrapper" onClick={onClose}>
+        <div className="dossier-paper" onClick={e => e.stopPropagation()}>
           
           {/* Paperclip */}
           <div className="dossier-paperclip"></div>
@@ -204,10 +204,10 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
           </div>
 
           {/* Sticky Notes Area */}
-          <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', display: 'flex', gap: '1rem', zIndex: 30, alignItems: 'flex-end', flexDirection: 'row-reverse' }}>
+          <div className="dossier-sticky-area">
             
             {((!isClue && item.curiosities) || (isClue && item.curiosities)) && (
-              <div className="sticky-wrapper" onClick={() => setIsNoteLifted(!isNoteLifted)} style={{ position: 'relative', bottom: 0, right: 0 }}>
+              <div className="sticky-wrapper" onClick={() => setIsNoteLifted(!isNoteLifted)}>
                 <div className="tape-dossier"></div>
                 <div className={`sticky-dossier ${isNoteLifted ? 'lifted' : ''}`}>
                   <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif' }}>
@@ -220,7 +220,7 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
             )}
 
           {matchingEvents.map((ev, idx) => (
-            <div key={idx} className="sticky-wrapper" style={{ position: 'relative', bottom: 0, right: 0, zIndex: 35 + idx }}>
+            <div key={idx} className="sticky-wrapper" style={{ zIndex: 35 + idx }}>
               <div className="tape-dossier"></div>
               <div className="sticky-dossier" style={{ backgroundColor: '#a8d8ea', transform: `rotate(${Math.random() * 6 - 3}deg)` }}>
                 <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#444', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase' }}>OCORRÊNCIA: {ev.name}</div>
