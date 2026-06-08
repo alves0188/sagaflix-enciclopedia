@@ -11,7 +11,7 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/data');
+      const res = await fetch(window.API_BASE_URL + '/api/data');
       const data = await res.json();
       
       const user = data.users.find(u => u.email === email && u.password === password);

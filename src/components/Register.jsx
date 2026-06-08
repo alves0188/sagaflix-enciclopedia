@@ -46,7 +46,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
     formDataUpload.append('file', file);
     
     try {
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const res = await fetch(window.API_BASE_URL + '/api/upload', {
         method: 'POST',
         body: formDataUpload
       });
@@ -61,7 +61,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3001/api/data');
+      const res = await fetch(window.API_BASE_URL + '/api/data');
       const db = await res.json();
       
       if (db.users.find(u => u.email === formData.email)) {
@@ -103,7 +103,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         });
       }
 
-      await fetch('http://localhost:3001/api/data', {
+      await fetch(window.API_BASE_URL + '/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(db)

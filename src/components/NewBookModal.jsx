@@ -22,7 +22,7 @@ export default function NewBookModal({ onClose, onSave }) {
     uploadData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const res = await fetch(window.API_BASE_URL + '/api/upload', {
         method: 'POST',
         body: uploadData
       });

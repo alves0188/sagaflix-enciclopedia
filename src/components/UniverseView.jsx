@@ -68,7 +68,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
   const handleUpdateData = async (newData) => {
     setDb(newData);
     try {
-      await fetch('http://localhost:3001/api/data', {
+      await fetch(window.API_BASE_URL + '/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newData)

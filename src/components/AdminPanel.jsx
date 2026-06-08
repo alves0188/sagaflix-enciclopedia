@@ -155,7 +155,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       uploadData.append('file', file);
 
       try {
-        const res = await fetch('http://localhost:3001/api/upload', {
+        const res = await fetch(window.API_BASE_URL + '/api/upload', {
           method: 'POST',
           body: uploadData
         });
@@ -193,7 +193,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     uploadData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const res = await fetch(window.API_BASE_URL + '/api/upload', {
         method: 'POST',
         body: uploadData
       });
@@ -271,7 +271,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     uploadData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const res = await fetch(window.API_BASE_URL + '/api/upload', {
         method: 'POST',
         body: uploadData
       });

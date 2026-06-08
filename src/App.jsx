@@ -32,7 +32,7 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/data');
+      const res = await fetch(window.API_BASE_URL + '/api/data');
       const data = await res.json();
       setDb(data);
       setLoading(false);
@@ -55,7 +55,7 @@ export default function App() {
       }
     }
     try {
-      await fetch('http://localhost:3001/api/data', {
+      await fetch(window.API_BASE_URL + '/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newData)
@@ -138,7 +138,7 @@ export default function App() {
     uploadData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/api/upload', {
+      const res = await fetch(window.API_BASE_URL + '/api/upload', {
         method: 'POST',
         body: uploadData
       });
