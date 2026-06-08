@@ -140,6 +140,18 @@
       "about": "",
       "location": "",
       "writingStyle": ""
+    },
+    {
+      "id": "59135305",
+      "role": "reader",
+      "name": "Angelina",
+      "email": "angel.pessoal07@gmail.com",
+      "password": "Angelina*12",
+      "age": "15",
+      "tastes": [
+        "romance"
+      ],
+      "status": "approved"
     }
   ],
   "authorRequests": [],
