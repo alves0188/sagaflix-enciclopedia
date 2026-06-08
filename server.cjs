@@ -96,48 +96,6 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   res.json({ url: `/uploads/${req.file.filename}` });
 });
 
-// Test email endpoint
-app.post('/api/test-email', async (req, res) => {
-  const { to, host, port, secure } = req.body;
-  try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      return res.status(400).json({ error: 'SMTP não configurado nas variáveis de ambiente.' });
-    }
-    
-    let activeTransporter = transporter;
-    if (host !== undefined || port !== undefined || secure !== undefined) {
-      console.log(`Using custom diagnostic transporter: ${host || process.env.SMTP_HOST}:${port || process.env.SMTP_PORT} (secure: ${secure})`);
-      activeTransporter = nodemailer.createTransport({
-        host: host || process.env.SMTP_HOST || '',
-        port: port !== undefined ? parseInt(port) : (parseInt(process.env.SMTP_PORT) || 587),
-        secure: secure !== undefined ? (secure === true || secure === 'true') : (process.env.SMTP_SECURE === 'true' || false),
-        auth: {
-          user: process.env.SMTP_USER || '',
-          pass: process.env.SMTP_PASS || '',
-        },
-      });
-    }
-
-    const info = await activeTransporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER || '"Sagaflix" <noreply@sagaflix.com>',
-      to,
-      subject: 'Teste de Envio de E-mail - Sagaflix',
-      text: 'Este é um e-mail de teste para validar as configurações SMTP do Sagaflix.',
-      html: '<p>Este é um e-mail de teste para validar as configurações SMTP do <strong>Sagaflix</strong>.</p>'
-    });
-    res.json({ success: true, messageId: info.messageId });
-  } catch (error) {
-    console.error('Erro no teste de e-mail:', error);
-    res.status(500).json({ 
-      error: error.message, 
-      code: error.code, 
-      command: error.command, 
-      stack: error.stack 
-    });
-  }
-});
-
-
 // Send verification email endpoint
 app.post('/api/send-verification-email', async (req, res) => {
   const { email, token, name } = req.body;
