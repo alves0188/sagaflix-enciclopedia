@@ -12,7 +12,14 @@ import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, C
 export default function App() {
   const [db, setDb] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sagaflix_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (err) {
+      return null;
+    }
+  });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -112,6 +119,24 @@ export default function App() {
       const res = await fetch(window.API_BASE_URL + '/api/data');
       const data = await res.json();
       setDb(data);
+      
+      const saved = localStorage.getItem('sagaflix_user');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const latest = data.users.find(u => u.id === parsed.id);
+          if (latest) {
+            setCurrentUser(latest);
+            localStorage.setItem('sagaflix_user', JSON.stringify(latest));
+          } else {
+            setCurrentUser(null);
+            localStorage.removeItem('sagaflix_user');
+          }
+        } catch (e) {
+          localStorage.removeItem('sagaflix_user');
+        }
+      }
+      
       setLoading(false);
     } catch (err) {
       console.error('Erro ao buscar dados.', err);
@@ -132,6 +157,7 @@ export default function App() {
       const latestUser = newData.users.find(u => u.id === currentUser.id);
       if (latestUser) {
         setCurrentUser(latestUser);
+        localStorage.setItem('sagaflix_user', JSON.stringify(latestUser));
       }
     }
     try {
@@ -147,12 +173,14 @@ export default function App() {
 
   const handleLogin = (user, newDb) => {
     setCurrentUser(user);
+    localStorage.setItem('sagaflix_user', JSON.stringify(user));
     if (newDb) setDb(newDb);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     setCurrentBookId(null);
+    localStorage.removeItem('sagaflix_user');
   };
 
   const handleOpenProfileModal = () => {
@@ -204,6 +232,7 @@ export default function App() {
     }
 
     setCurrentUser(updatedUser);
+    localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
     await handleUpdateData(newDb);
     setShowProfileModal(false);
     alert('Configurações salvas com sucesso!');
