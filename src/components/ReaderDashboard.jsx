@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal } from 'lucide-react';
 
 const DEFAULT_BANNERS = [
@@ -91,6 +91,28 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
   // Carrossel
   const [currentSlide, setCurrentSlide] = useState(0);
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) {
+        setCurrentSlide(prev => (prev + 1) % activeBanners.length);
+      } else {
+        setCurrentSlide(prev => (prev - 1 + activeBanners.length) % activeBanners.length);
+      }
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   const publishedBooks = db.books.filter(b => b.status === 'published');
   
@@ -307,25 +329,34 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     const authorName = book ? (db.users.find(u => u.id === book.authorId)?.name || 'Wagner Rocha') : 'Wagner Rocha';
 
     return (
-      <div className="reader-banner" style={{ 
-        position: 'relative', 
-        width: '100%', 
-        height: isMobile ? '380px' : '280px', 
-        borderRadius: isMobile ? '12px' : '0 0 16px 16px', // Rounded corners at bottom only to merge with top of section
-        overflow: 'hidden', 
-        border: '1px solid var(--border-color)',
-        borderTop: isMobile ? '1px solid var(--border-color)' : 'none',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-        background: '#1a1c20',
-        padding: isMobile ? '1.5rem' : '2rem 3rem',
-        boxSizing: 'border-box',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: isMobile ? '0' : '3rem',
-        marginBottom: '1.5rem',
-        flexShrink: 0
-      }}>
+      <div
+        className="reader-banner"
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchEnd={isMobile ? handleTouchEnd : undefined}
+        style={{ 
+          position: 'relative', 
+          width: '100%',
+          marginLeft: '0',
+          marginRight: '0',
+          marginTop: '0',
+          height: isMobile ? '420px' : '280px', 
+          borderRadius: isMobile ? '0 0 20px 20px' : '0 0 16px 16px',
+          overflow: 'hidden', 
+          border: isMobile ? 'none' : '1px solid var(--border-color)',
+          borderTop: 'none',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          background: '#1a1c20',
+          padding: isMobile ? '1.5rem 1.5rem 2.5rem 1.5rem' : '2rem 3rem',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: isMobile ? '0' : '3rem',
+          marginBottom: '0',
+          flexShrink: 0,
+          userSelect: 'none',
+          touchAction: 'pan-y'
+        }}>
         {/* Background Image Slide */}
         {currentBanner.imageUrl && (
           <img 
@@ -482,10 +513,11 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         {activeBanners.length > 1 && (
           <div style={{ 
             position: 'absolute', 
-            bottom: '1rem', 
-            right: '2rem', 
+            bottom: isMobile ? '1.2rem' : '1rem', 
+            left: '50%',
+            transform: 'translateX(-50%)',
             display: 'flex', 
-            gap: '0.5rem', 
+            gap: '6px', 
             zIndex: 3 
           }}>
             {activeBanners.map((_, idx) => (
@@ -493,14 +525,14 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
                 style={{ 
-                  width: '8px', 
+                  width: idx === currentSlide ? '20px' : '8px', 
                   height: '8px', 
-                  borderRadius: '50%', 
+                  borderRadius: '4px', 
                   border: 'none', 
-                  background: idx === currentSlide ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)',
+                  background: idx === currentSlide ? 'var(--accent-gold)' : 'rgba(255,255,255,0.4)',
                   cursor: 'pointer',
                   padding: 0,
-                  transition: 'background 0.3s'
+                  transition: 'all 0.3s ease'
                 }}
                 title={`Slide ${idx + 1}`}
               />
@@ -612,12 +644,12 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         flex: 1, 
         overflowY: isMobile ? 'visible' : 'auto', 
         padding: isMobile 
-          ? (activeTab === 'vitrine' ? '0 1rem 1rem 1rem' : '1rem')
+          ? (activeTab === 'vitrine' ? '0 0 1rem 0' : '1rem')
           : (activeTab === 'vitrine' ? '0 3rem 3rem 3rem' : '3rem'),
         background: 'var(--bg-main)', 
         display: 'flex', 
         flexDirection: 'column', 
-        gap: isMobile ? '1.2rem' : '2rem' 
+        gap: isMobile ? '0' : '2rem'
       }}>
         
         {/* Top Header para abas que não sejam a Vitrine */}
@@ -653,11 +685,15 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         `}</style>
 
         {/* Carousel Banner no topo da Vitrine */}
-        {activeTab === 'vitrine' && renderBannerCarousel()}
+        {activeTab === 'vitrine' && (
+          <div style={{ marginBottom: isMobile ? '1.2rem' : '0' }}>
+            {renderBannerCarousel()}
+          </div>
+        )}
 
         {/* Filtros e Pesquisa Combinados em uma única linha */}
         {activeTab === 'vitrine' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: isMobile ? '0 1rem' : '0' }}>
             <div className="reader-filters-bar" style={{ 
               display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
@@ -895,7 +931,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
         {/* Grid de Livros */}
         {filteredBooks.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0' }}>
             <BookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
             <p style={{ margin: 0 }}>Nenhum livro nesta estante.</p>
           </div>
@@ -903,7 +939,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: isMobile ? '1rem' : '2rem' 
+            gap: isMobile ? '1rem' : '2rem',
+            padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0'
           }}>
             {filteredBooks.map(book => {
               const author = db.users.find(u => u.id === book.authorId);
