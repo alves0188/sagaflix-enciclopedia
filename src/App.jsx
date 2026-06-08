@@ -7,7 +7,7 @@ import NewBookModal from './components/NewBookModal';
 import CuratorDashboard from './components/CuratorDashboard';
 import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
-import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload } from 'lucide-react';
+import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -23,12 +23,82 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
   const [initialUniverseTab, setInitialUniverseTab] = useState('home');
+  const [showProfilePassword, setShowProfilePassword] = useState(false);
+
+  // Email and password recovery states
+  const params = new URLSearchParams(window.location.search);
+  const verificationToken = params.get('token');
+  const isVerificationRoute = window.location.pathname === '/verificar-email';
+  const isResetRoute = window.location.pathname === '/recuperar-senha';
+
+  const [verifying, setVerifying] = useState(isVerificationRoute);
+  const [verifyStatus, setVerifyStatus] = useState('verifying');
+  const [verifyMessage, setVerifyMessage] = useState('');
+  
+  const [resetTokenActive, setResetTokenActive] = useState(isResetRoute ? verificationToken : null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   // Roteamento Nativo Simples
   const path = window.location.pathname;
   let portalRole = 'reader';
   if (path.startsWith('/curador')) portalRole = 'curator';
   if (path.startsWith('/autor')) portalRole = 'author';
+
+  const handleVerifyEmail = async (token) => {
+    try {
+      const res = await fetch(window.API_BASE_URL + '/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setVerifyStatus('success');
+        setVerifyMessage(data.role === 'author' 
+          ? 'E-mail verificado com sucesso! Sua conta de autor agora foi enviada para análise da curadoria. Você receberá um e-mail quando for aprovado.' 
+          : 'E-mail verificado com sucesso! Sua conta está ativa. Você já pode fazer login.'
+        );
+      } else {
+        setVerifyStatus('error');
+        setVerifyMessage(data.error || 'Token de confirmação inválido ou expirado.');
+      }
+    } catch (err) {
+      setVerifyStatus('error');
+      setVerifyMessage('Erro de conexão ao verificar e-mail.');
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    
+    if (newPassword !== confirmNewPassword) {
+      setResetError('As senhas digitadas não coincidem.');
+      return;
+    }
+
+    try {
+      const res = await fetch(window.API_BASE_URL + '/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetTokenActive, password: newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
+        window.history.replaceState({}, document.title, '/');
+        setResetTokenActive(null);
+      } else {
+        setResetError(data.error || 'Erro ao redefinir a senha.');
+      }
+    } catch (err) {
+      setResetError('Erro de conexão ao redefinir a senha.');
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -44,6 +114,9 @@ export default function App() {
 
   useEffect(() => {
     fetchData();
+    if (isVerificationRoute && verificationToken) {
+      handleVerifyEmail(verificationToken);
+    }
   }, []);
 
   const handleUpdateData = async (newData) => {
@@ -155,6 +228,132 @@ export default function App() {
   };
 
   if (loading || !db) return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Plataforma...</div>;
+
+  // Tela de verificação de e-mail
+  if (verifying) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+        <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%', maxWidth: '450px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <BookOpen size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem' }} />
+          </div>
+          
+          {verifyStatus === 'verifying' && (
+            <div>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Confirmando seu E-mail</h2>
+              <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Estamos ativando sua conta. Aguarde um instante...</p>
+            </div>
+          )}
+
+          {verifyStatus === 'success' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <CheckCircle size={48} color="#4caf50" />
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#4caf50' }}>E-mail Confirmado!</h2>
+              <p style={{ color: 'var(--text-main)', marginTop: '1rem', lineHeight: '1.5' }}>{verifyMessage}</p>
+              <button 
+                onClick={() => { window.history.replaceState({}, document.title, '/'); setVerifying(false); }} 
+                className="btn-primary" 
+                style={{ width: '100%', padding: '1rem', marginTop: '2rem' }}
+              >
+                IR PARA O LOGIN
+              </button>
+            </div>
+          )}
+
+          {verifyStatus === 'error' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <XCircle size={48} color="#f44336" />
+              </div>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#f44336' }}>Erro na Confirmação</h2>
+              <p style={{ color: 'var(--text-main)', marginTop: '1rem', lineHeight: '1.5' }}>{verifyMessage}</p>
+              <button 
+                onClick={() => { window.history.replaceState({}, document.title, '/'); setVerifying(false); }} 
+                className="btn-secondary" 
+                style={{ width: '100%', padding: '1rem', marginTop: '2rem' }}
+              >
+                VOLTAR AO LOGIN
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Tela de Redefinição de Senha
+  if (resetTokenActive) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+        <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%', maxWidth: '400px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <BookOpen size={48} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
+            </div>
+            <h1 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: '1.8rem', textAlign: 'center' }}>Nova Senha</h1>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '0.9rem', textAlign: 'center' }}>Escolha sua nova credencial de acesso</p>
+          </div>
+
+          {resetError && <div style={{ background: 'rgba(255,0,0,0.1)', color: '#ff7777', padding: '1rem', borderRadius: '4px', marginBottom: '1rem', textAlign: 'center', fontSize: '0.9rem' }}>{resetError}</div>}
+
+          <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nova Senha</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showNewPassword ? 'text' : 'password'} 
+                  value={newPassword} 
+                  onChange={e => setNewPassword(e.target.value)} 
+                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem 2.5rem 0.8rem 0.8rem', borderRadius: '4px' }} 
+                  required
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewPassword(!showNewPassword)} 
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Confirmar Nova Senha</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showConfirmNewPassword ? 'text' : 'password'} 
+                  value={confirmNewPassword} 
+                  onChange={e => setConfirmNewPassword(e.target.value)} 
+                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem 2.5rem 0.8rem 0.8rem', borderRadius: '4px' }} 
+                  required
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)} 
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  {showConfirmNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1rem', marginTop: '1rem' }}>
+              SALVAR NOVA SENHA
+            </button>
+          </form>
+
+          <button 
+            onClick={() => { window.history.replaceState({}, document.title, '/'); setResetTokenActive(null); }} 
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}
+          >
+            Voltar ao Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Fluxo não logado (separado por portal)
   if (!currentUser) {
@@ -431,13 +630,23 @@ export default function App() {
               {/* Senha */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Senha</label>
-                <input 
-                  type="password" 
-                  value={profileForm.password || ''} 
-                  onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
-                  className="form-input" 
-                  required 
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showProfilePassword ? 'text' : 'password'} 
+                    value={profileForm.password || ''} 
+                    onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
+                    className="form-input" 
+                    style={{ paddingRight: '2.5rem', width: '100%' }}
+                    required 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowProfilePassword(!showProfilePassword)} 
+                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               {/* Cidade / Origem (Autores e Curadores) */}

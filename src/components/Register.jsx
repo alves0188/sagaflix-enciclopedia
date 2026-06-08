@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Eye, EyeOff } from 'lucide-react';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -60,11 +63,18 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    
+    if (formData.password !== confirmPassword) {
+      setError('As senhas digitadas não coincidem.');
+      return;
+    }
+
     try {
       const res = await fetch(window.API_BASE_URL + '/api/data');
       const db = await res.json();
       
-      if (db.users.find(u => u.email === formData.email)) {
+      if (db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
         setError('Este e-mail já está em uso.');
         return;
       }
@@ -74,6 +84,8 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       do {
         newId = Math.floor(10000000 + Math.random() * 90000000).toString();
       } while (existingUserIds.includes(newId));
+
+      const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
       const newUser = {
         id: newId,
@@ -85,7 +97,8 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         tastes: formData.tastes,
         about: formData.about, // Bio do autor
         avatar: formData.avatar, // Foto de perfil
-        status: role === 'author' ? 'pending' : 'approved'
+        status: 'pending_email',
+        verificationToken
       };
 
       db.users.push(newUser);
@@ -98,7 +111,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
           bookTitle: formData.bookTitle,
           sampleText: formData.sampleText,
           synopsis: formData.synopsis,
-          status: 'pending',
+          status: 'pending_email',
           createdAt: new Date().toISOString()
         });
       }
@@ -109,13 +122,27 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         body: JSON.stringify(db)
       });
 
-      if (role === 'author') {
-        alert('Cadastro enviado! Sua solicitação passará pela curadoria. Aguarde nosso e-mail.');
-        onNavigateLogin();
-      } else {
-        alert('Cadastro realizado com sucesso!');
-        onRegisterSuccess(newUser, db);
+      // Disparar envio do e-mail de confirmação
+      try {
+        await fetch(window.API_BASE_URL + '/api/send-verification-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: newUser.email,
+            token: verificationToken,
+            name: newUser.name
+          })
+        });
+      } catch (mailErr) {
+        console.error('Falha ao acionar envio de e-mail:', mailErr);
       }
+
+      if (role === 'author') {
+        alert('Cadastro enviado! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme seu e-mail para ativar sua conta e enviá-la para análise da curadoria.');
+      } else {
+        alert('Cadastro realizado com sucesso! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme seu e-mail para ativar sua conta antes de fazer login.');
+      }
+      onNavigateLogin();
 
     } catch (err) {
       setError('Erro ao conectar com o servidor.');
@@ -208,7 +235,43 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Senha</label>
-            <input name="password" value={formData.password} onChange={handleChange} type="password" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+            <div style={{ position: 'relative' }}>
+              <input 
+                name="password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                type={showPassword ? 'text' : 'password'} 
+                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem 2.5rem 0.8rem 0.8rem', borderRadius: '4px' }} 
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)} 
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Confirmar Senha</label>
+            <div style={{ position: 'relative' }}>
+              <input 
+                value={confirmPassword} 
+                onChange={e => setConfirmPassword(e.target.value)} 
+                type={showConfirmPassword ? 'text' : 'password'} 
+                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem 2.5rem 0.8rem 0.8rem', borderRadius: '4px' }} 
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div>
