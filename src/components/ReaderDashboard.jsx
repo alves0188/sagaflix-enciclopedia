@@ -48,7 +48,7 @@ const getAgeRatingBadge = (rating) => {
   };
 };
 
-export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelectBook, onSelectBookUniverse }) {
+export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -57,7 +57,12 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [activeTab, setActiveTab] = useState('vitrine'); // 'vitrine', 'favoritos', 'lendo', 'lidos'
+  const [activeTabState, setActiveTabState] = useState(initialActiveTab || 'vitrine');
+  const activeTab = activeTabState;
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    if (onTabChange) onTabChange(tab);
+  };
   const [searchText, setSearchText] = useState('');
   const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
 

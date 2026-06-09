@@ -27,7 +27,15 @@ export default function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const [currentBookId, setCurrentBookId] = useState(null);
+  const [currentBookId, setCurrentBookIdState] = useState(() => {
+    try { return localStorage.getItem('sagaflix_bookId') || null; } catch { return null; }
+  });
+  const setCurrentBookId = (id) => {
+    setCurrentBookIdState(id);
+    if (id) localStorage.setItem('sagaflix_bookId', id);
+    else localStorage.removeItem('sagaflix_bookId');
+  };
+
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showNewBook, setShowNewBook] = useState(false);
   const [authView, setAuthView] = useState('login'); 
@@ -36,7 +44,23 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
-  const [initialUniverseTab, setInitialUniverseTab] = useState('home');
+  const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
+    try { return localStorage.getItem('sagaflix_universeTab') || 'home'; } catch { return 'home'; }
+  });
+  const initialUniverseTab = initialUniverseTabState;
+  const setInitialUniverseTab = (tab) => {
+    setInitialUniverseTabState(tab);
+    localStorage.setItem('sagaflix_universeTab', tab);
+  };
+
+  const [readerActiveTab, setReaderActiveTabState] = useState(() => {
+    try { return localStorage.getItem('sagaflix_readerTab') || 'vitrine'; } catch { return 'vitrine'; }
+  });
+  const setReaderActiveTab = (tab) => {
+    setReaderActiveTabState(tab);
+    localStorage.setItem('sagaflix_readerTab', tab);
+  };
+
   const [showProfilePassword, setShowProfilePassword] = useState(false);
 
   // Email and password recovery states
@@ -181,6 +205,9 @@ export default function App() {
     setCurrentUser(null);
     setCurrentBookId(null);
     localStorage.removeItem('sagaflix_user');
+    localStorage.removeItem('sagaflix_bookId');
+    localStorage.removeItem('sagaflix_universeTab');
+    localStorage.removeItem('sagaflix_readerTab');
   };
 
   const handleOpenProfileModal = () => {
@@ -576,6 +603,8 @@ export default function App() {
             db={db} 
             currentUser={currentUser} 
             onUpdateData={handleUpdateData} 
+            initialActiveTab={readerActiveTab}
+            onTabChange={setReaderActiveTab}
             onSelectBook={(bookId) => {
               setInitialUniverseTab('reader');
               setCurrentBookId(bookId);
