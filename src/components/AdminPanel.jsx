@@ -612,7 +612,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         ) : activeList === 'ideias' ? (
           <BookIdeasBoard 
             book={currentBook} 
-            onUpdateBook={(updatedBook) => onUpdateBook(updatedBook.id, updatedBook)} 
+            onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
           />
         ) : (
           <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>

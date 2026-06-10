@@ -2509,7 +2509,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gestão de Leitores</h2>
-          <button className="btn-primary" onClick={() => alert('Função de Cadastro Manual em desenvolvimento')}>+ Novo Perfil Manual</button>
+          <button className="btn-primary" onClick={() => {
+            const name = window.prompt("Nome do novo Leitor:");
+            if (!name) return;
+            const email = window.prompt("E-mail fictício ou real para o leitor:", `${name.replace(/\s+/g, '').toLowerCase()}@sagaflix.com`);
+            const newUser = { id: 'usr_' + Date.now(), name, email: email || '', role: 'reader', avatar: '', status: 'active', registeredAt: new Date().toISOString(), badges: [], readPages: 0 };
+            onUpdateData({ ...db, users: [...(db.users || []), newUser] });
+          }}>+ Novo Perfil Manual</button>
         </div>
         <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -2618,7 +2624,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os títulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
-              <button className="btn-primary" onClick={() => alert('Função de criar badge em desenvolvimento')}>+ Novo Título</button>
+              <button className="btn-primary" onClick={() => {
+                const name = window.prompt("Nome do novo Título:");
+                if (!name) return;
+                const description = window.prompt("Descrição curta do Título:");
+                const rule = window.prompt("Regra para ganhar este título:");
+                const icon = window.prompt("Ícone (Emoji ou URL de Imagem):", "🏆");
+                const newBadge = { id: 'bdg_' + Date.now(), name, description: description || '', rule: rule || '', icon: icon || '🏆' };
+                onUpdateData({ ...db, gamificationBadges: [...(db.gamificationBadges || []), newBadge] });
+              }}>+ Novo Título</button>
             </div>
             
             {badges.length === 0 ? (
@@ -2631,8 +2645,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {badges.map((badge, idx) => (
                   <div key={idx} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                      {badge.icon ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Award size={24} color="var(--accent-gold)" />}
+                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', fontSize: '24px' }}>
+                      {badge.icon ? (
+                        badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
+                          ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
+                          : <span>{badge.icon}</span>
+                      ) : <Award size={24} color="var(--accent-gold)" />}
                     </div>
                     <div>
                       <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--accent-gold)' }}>{badge.name}</h4>
@@ -2708,7 +2726,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Aprovação de Autores</h2>
-          <button className="btn-primary" onClick={() => alert('Função de Cadastro Manual em desenvolvimento')}>+ Novo Autor Manual</button>
+          <button className="btn-primary" onClick={() => {
+            const name = window.prompt("Nome do novo Autor:");
+            if (!name) return;
+            const email = window.prompt("E-mail fictício ou real para o autor:", `${name.replace(/\\s+/g, '').toLowerCase()}@sagaflix.com`);
+            const newUser = { id: 'usr_' + Date.now(), name, email: email || '', role: 'author', avatar: '', status: 'active', registeredAt: new Date().toISOString() };
+            onUpdateData({ ...db, users: [...(db.users || []), newUser] });
+          }}>+ Novo Autor Manual</button>
         </div>
         {pedidos.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>Nenhum autor aguardando aprovação no momento.</p>
