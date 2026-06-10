@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ArrowLeft, Plus, X, Upload, Edit, Trash2, CheckCircle2, ShieldAlert, Star, TrendingUp, Search, User, PlayCircle, Lock, Book, FileText, Image as ImageIcon, MapPin, Users, Lightbulb } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
