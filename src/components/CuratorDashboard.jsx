@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard } from 'lucide-react';
+import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import { uploadImage } from '../lib/supabaseClient';
@@ -2573,6 +2573,132 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     } catch (err) {
       alert('Erro ao atualizar autor: ' + err.message);
     }
+  };
+
+  const renderGamificacao = () => {
+    const badges = db.gamificationBadges || [];
+    const leitores = db.users.filter(u => u.role === 'reader');
+    
+    // Sort top 100 readers by pagesRead
+    const topLeitores = [...leitores].sort((a, b) => (b.pagesRead || 0) - (a.pagesRead || 0)).slice(0, 100);
+
+    const subTabStyle = (isActive) => ({
+      padding: '0.8rem 1.5rem',
+      background: 'transparent',
+      border: 'none',
+      borderBottom: isActive ? '2px solid var(--accent-gold)' : '2px solid transparent',
+      color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+      fontWeight: isActive ? 'bold' : 'normal',
+      cursor: 'pointer',
+      fontSize: '0.9rem',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      transition: 'all 0.3s ease'
+    });
+
+    return (
+      <div className="curator-gamificacao-section animate-fade-in">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gamificação e Engajamento</h2>
+        </div>
+
+        {/* Sub-abas */}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
+          <button onClick={() => setGamificacaoSubTab('badges')} style={subTabStyle(gamificacaoSubTab === 'badges')}>
+            <Award size={16} /> Gestão de Títulos (Badges)
+          </button>
+          <button onClick={() => setGamificacaoSubTab('ranking')} style={subTabStyle(gamificacaoSubTab === 'ranking')}>
+            <TrendingUp size={16} /> Top 100 Leitores
+          </button>
+        </div>
+
+        {gamificacaoSubTab === 'badges' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os títulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
+              <button className="btn-primary" onClick={() => alert('Função de criar badge em desenvolvimento')}>+ Novo Título</button>
+            </div>
+            
+            {badges.length === 0 ? (
+              <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                <Star size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>Nenhum título cadastrado</h3>
+                <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie os 10 títulos principais para incentivar os leitores!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                {badges.map((badge, idx) => (
+                  <div key={idx} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      {badge.icon ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Award size={24} color="var(--accent-gold)" />}
+                    </div>
+                    <div>
+                      <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--accent-gold)' }}>{badge.name}</h4>
+                      <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{badge.description}</p>
+                      <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.6rem', borderRadius: '4px', color: '#aaa' }}>
+                        <strong>Diretriz/Regra:</strong> {badge.rule || 'Atribuição manual'}
+                      </div>
+                      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => alert('Editar em dev')}>Editar</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {gamificacaoSubTab === 'ranking' && (
+          <div>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Os 100 leitores mais engajados da plataforma com base em páginas lidas.</p>
+            
+            <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)' }}>
+                    <th style={{ padding: '1rem', width: '60px', textAlign: 'center' }}>Pos</th>
+                    <th style={{ padding: '1rem' }}>Leitor (Nickname)</th>
+                    <th style={{ padding: '1rem' }}>Páginas Lidas</th>
+                    <th style={{ padding: '1rem' }}>Livros Lidos</th>
+                    <th style={{ padding: '1rem' }}>Títulos Desbloqueados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topLeitores.length === 0 ? (
+                    <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum leitor com progresso computado.</td></tr>
+                  ) : (
+                    topLeitores.map((leitor, idx) => (
+                      <tr key={leitor.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold', color: idx < 3 ? 'var(--accent-gold)' : 'var(--text-muted)' }}>
+                          #{idx + 1}
+                        </td>
+                        <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <User size={16} color="var(--text-muted)" />
+                          {leitor.nickname || leitor.name}
+                        </td>
+                        <td style={{ padding: '1rem', color: 'var(--accent-gold)' }}>{leitor.pagesRead || 0} pgs</td>
+                        <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{(leitor.finishedBooks || []).length} obras</td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                            {(leitor.badges || []).slice(0, 3).map((b, i) => (
+                              <span key={i} title={b.name} style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'inline-block' }}></span>
+                            ))}
+                            {(leitor.badges || []).length > 3 && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>+{(leitor.badges.length - 3)}</span>}
+                            {(leitor.badges || []).length === 0 && <span style={{ color: 'var(--text-muted)' }}>-</span>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderNovosPedidos = () => {
