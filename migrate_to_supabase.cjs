@@ -16,15 +16,15 @@ async function migrate() {
 
   console.log('Enviando dados para o Supabase...');
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/sagaflix_db`, {
-      method: 'POST',
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/sagaflix_db?id=eq.1`, {
+      method: 'PATCH',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
+        'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ id: 1, data: data })
+      body: JSON.stringify({ data: data })
     });
 
     if (!response.ok) {
