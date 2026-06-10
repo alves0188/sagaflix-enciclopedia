@@ -2659,7 +2659,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                         <strong>Diretriz/Regra:</strong> {badge.rule || 'Atribuição manual'}
                       </div>
                       <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => alert('Editar em dev')}>Editar</button>
+                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => {
+                          const name = window.prompt("Nome do Título:", badge.name);
+                          if (!name) return;
+                          const description = window.prompt("Descrição:", badge.description);
+                          const rule = window.prompt("Regra:", badge.rule);
+                          const icon = window.prompt("Ícone (Emoji ou URL):", badge.icon);
+                          const updatedBadge = { ...badge, name, description: description || '', rule: rule || '', icon: icon || '🏆' };
+                          const newBadges = db.gamificationBadges.map(b => b.id === badge.id ? updatedBadge : b);
+                          onUpdateData({ ...db, gamificationBadges: newBadges });
+                        }}>Editar</button>
                       </div>
                     </div>
                   </div>
@@ -2682,6 +2691,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     <th style={{ padding: '1rem' }}>Páginas Lidas</th>
                     <th style={{ padding: '1rem' }}>Livros Lidos</th>
                     <th style={{ padding: '1rem' }}>Títulos Desbloqueados</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2707,6 +2717,40 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             {(leitor.badges || []).length > 3 && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>+{(leitor.badges.length - 3)}</span>}
                             {(leitor.badges || []).length === 0 && <span style={{ color: 'var(--text-muted)' }}>-</span>}
                           </div>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                          <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }} onClick={() => {
+                            const newPages = window.prompt("Páginas lidas:", leitor.pagesRead || 0);
+                            if (newPages === null) return;
+                            const newBooks = window.prompt("Obras lidas:", (leitor.finishedBooks || []).length);
+                            if (newBooks === null) return;
+                            
+                            const updatedLeitor = { ...leitor, pagesRead: parseInt(newPages) || 0 };
+                            const currentBooksLen = (leitor.finishedBooks || []).length;
+                            const targetBooksLen = parseInt(newBooks) || 0;
+                            if (targetBooksLen > currentBooksLen) {
+                               updatedLeitor.finishedBooks = [...(leitor.finishedBooks || [])];
+                               for(let i = 0; i < targetBooksLen - currentBooksLen; i++) updatedLeitor.finishedBooks.push('manual_book_' + Date.now() + i);
+                            } else if (targetBooksLen < currentBooksLen) {
+                               updatedLeitor.finishedBooks = (leitor.finishedBooks || []).slice(0, targetBooksLen);
+                            }
+                            
+                            const autoBadges = [...(updatedLeitor.badges || [])];
+                            const checkAndAdd = (badgeId) => {
+                               if (!autoBadges.find(b => b.id === badgeId)) {
+                                  const bdg = (db.gamificationBadges || []).find(b => b.id === badgeId);
+                                  if (bdg) autoBadges.push(bdg);
+                               }
+                            };
+                            
+                            if (updatedLeitor.pagesRead >= 1) checkAndAdd('bdg_1');
+                            if (updatedLeitor.finishedBooks?.length >= 10) checkAndAdd('bdg_2');
+                            if (updatedLeitor.name === 'Leitor Fiel' || updatedLeitor.nickname === 'Leitor Fiel') checkAndAdd('bdg_10');
+                            
+                            updatedLeitor.badges = autoBadges;
+                            const newUsers = db.users.map(u => u.id === updatedLeitor.id ? updatedLeitor : u);
+                            onUpdateData({ ...db, users: newUsers });
+                          }}>Editar Métricas</button>
                         </td>
                       </tr>
                     ))

@@ -603,25 +603,44 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
         <div>
           <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.8rem', marginBottom: '1.5rem' }}>Minhas Premiações</h3>
-          {badges.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
-              {badges.map((b, idx) => (
-                <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(212,175,55,0.3)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  {b.icon ? (
-                    <img src={b.icon} alt={b.name} style={{ width: '40px', height: '40px', marginBottom: '0.8rem', objectFit: 'contain' }} />
-                  ) : (
-                    <Star size={32} color="var(--accent-gold)" style={{ marginBottom: '0.8rem' }} />
-                  )}
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '0.3rem' }}>{b.name}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{b.description}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
-              Nenhuma premiação conquistada ainda. Continue lendo para desbloquear!
-            </div>
-          )}
+          {(() => {
+            const allBadges = db.gamificationBadges || [];
+            const userBadges = effectiveUser.badges || [];
+            if (allBadges.length === 0) {
+               return <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>Nenhum título disponível no sistema no momento.</div>;
+            }
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+                {allBadges.map((badge, idx) => {
+                  const hasBadge = userBadges.some(ub => ub.id === badge.id || ub === badge.id || ub.name === badge.name);
+                  return (
+                    <div key={idx} style={{ 
+                      background: hasBadge ? 'rgba(0,0,0,0.2)' : 'transparent', 
+                      padding: '1rem', 
+                      borderRadius: '8px', 
+                      border: hasBadge ? '1px solid rgba(212,175,55,0.3)' : '1px solid rgba(255,255,255,0.05)', 
+                      textAlign: 'center', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center',
+                      opacity: hasBadge ? 1 : 0.4,
+                      filter: hasBadge ? 'none' : 'grayscale(100%)'
+                    }}>
+                      <div style={{ width: '40px', height: '40px', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
+                        {badge.icon ? (
+                          badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
+                            ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> 
+                            : <span>{badge.icon}</span>
+                        ) : <Star size={32} color="var(--accent-gold)" />}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: hasBadge ? 'var(--accent-gold)' : 'var(--text-muted)', marginBottom: '0.3rem' }}>{badge.name}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{hasBadge ? badge.description : badge.rule || badge.description}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </div>
     );
