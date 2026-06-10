@@ -167,6 +167,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       if (tab === 'mensagens') return perms.send_messages;
       if (tab === 'banners') return perms.manage_banners;
       if (tab === 'equipe') return perms.manage_team;
+      if (tab === 'leitores') return perms.view_authors;
+      if (tab === 'novos_pedidos') return perms.approve_books;
       return false;
     };
 
