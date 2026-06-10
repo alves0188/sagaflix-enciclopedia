@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Plus, X, Upload, Edit, Trash2, CheckCircle2, ShieldAlert, Star, TrendingUp, Search, User, PlayCircle, Lock, Book, FileText, Image as ImageIcon, MapPin, Users, Lightbulb } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
 import PagesConfig from './PagesConfig';
 import SynopsisConfig from './SynopsisConfig';
+import BookIdeasBoard from './BookIdeasBoard';
 import { uploadImage } from '../lib/supabaseClient';
 
 const editorConfig = {
@@ -57,6 +58,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const isTabVisible = (tabKey) => {
     if (tabKey === 'posts') return false; // Hiding blog posts tab temporarily as requested
     if (!restrictedTabs) return true;
+    if (tabKey === 'ideias') return true; // Ideias board is always visible unless specifically restricted
     return restrictedTabs.includes(tabKey);
   };
 
@@ -582,6 +584,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Star size={18} /> Avaliações
           </button>
         )}
+        {isTabVisible('ideias') && (
+          <button style={navItemStyle(activeList === 'ideias')} onClick={() => {setActiveList('ideias'); setEditingItem(null);}}>
+            <Lightbulb size={18} /> Painel de Ideias
+          </button>
+        )}
         
         <div style={{ flex: 1 }}></div>
         {currentBook?.status !== 'draft' && !isReadOnly && (
@@ -602,6 +609,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
+        ) : activeList === 'ideias' ? (
+          <BookIdeasBoard 
+            book={currentBook} 
+            onUpdateBook={(updatedBook) => onUpdateBook(updatedBook.id, updatedBook)} 
+          />
         ) : (
           <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
             {!canCreateNew && currentUser?.role === 'author' && (
