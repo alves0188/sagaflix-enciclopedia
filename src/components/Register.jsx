@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { BookOpen, User, Upload, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { supabase, uploadImage } from '../lib/supabaseClient';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
@@ -46,19 +47,14 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       return;
     }
     
-    const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
-    
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: formDataUpload
-      });
-      const data = await res.json();
-      setFormData({ ...formData, [fieldName]: data.url }); // Salva a URL no campo certo
+      const url = await uploadImage(file);
+      if (url) {
+        setFormData({ ...formData, [fieldName]: url }); // Salva a URL no campo certo
+      }
     } catch (err) {
       console.error('Erro no upload do arquivo', err);
-      alert('Erro ao enviar o arquivo.');
+      alert(err.message || 'Erro ao enviar o arquivo.');
     }
   };
 
@@ -75,8 +71,9 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
     }
 
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/data');
-      const db = await res.json();
+      const { data: result, error: fetchError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (fetchError) throw fetchError;
+      const db = result.data;
       
       const existingUser = db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
       if (existingUser) {
@@ -85,11 +82,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
           if (!token) {
             token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             existingUser.verificationToken = token;
-            await fetch(window.API_BASE_URL + '/api/data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(db)
-            });
+            await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
           }
           setError('Este e-mail já está cadastrado, mas a conta ainda não foi ativada. Reenviamos o link de confirmação para o seu e-mail.');
           try {
@@ -151,11 +144,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         });
       }
 
-      await fetch(window.API_BASE_URL + '/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(db)
-      });
+      await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
 
       // Disparar envio do e-mail de confirmação
       try {

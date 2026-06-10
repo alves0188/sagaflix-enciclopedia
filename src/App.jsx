@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import UniverseView from './components/UniverseView';
-import AuthorModal from './components/AuthorModal';
-import NewBookModal from './components/NewBookModal';
+import Reader from './components/Reader';
 import CuratorDashboard from './components/CuratorDashboard';
 import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
+import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
 export default function App() {
@@ -140,8 +140,9 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/data');
-      const data = await res.json();
+      const { data: result, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (error) throw error;
+      const data = result.data;
       setDb(data);
       
       const saved = localStorage.getItem('sagaflix_user');
@@ -185,11 +186,8 @@ export default function App() {
       }
     }
     try {
-      await fetch(window.API_BASE_URL + '/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newData)
-      });
+      const { error } = await supabase.from('sagaflix_db').update({ data: newData }).eq('id', 1);
+      if (error) throw error;
     } catch (err) {
       console.error('Erro ao salvar.', err);
     }
@@ -270,21 +268,14 @@ export default function App() {
     if (!file) return;
 
     setProfileUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: uploadData
-      });
-      const resData = await res.json();
-      if (resData.url) {
-        setProfileForm(prev => ({ ...prev, avatar: resData.url }));
+      const url = await uploadImage(file);
+      if (url) {
+        setProfileForm(prev => ({ ...prev, avatar: url }));
       }
     } catch (err) {
       console.error("Erro no upload de avatar", err);
-      alert("Erro ao fazer upload da imagem.");
+      alert(err.message || "Erro ao fazer upload da imagem.");
     }
     setProfileUploading(false);
     e.target.value = null;

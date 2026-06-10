@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Home, Users, Map, Search, BookOpen, Settings, Key, Building, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import ImageLightbox from './ImageLightbox';
 import DetailModal from './DetailModal';
 import AdminPanel from './AdminPanel';
 import Reader from './Reader';
@@ -10,6 +11,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
     setActiveTab(initialTab || 'home');
@@ -63,19 +65,6 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
     // Optimistic UI update and server save
     onUpdateData(newDb);
-  };
-
-  const handleUpdateData = async (newData) => {
-    setDb(newData);
-    try {
-      await fetch(window.API_BASE_URL + '/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newData)
-      });
-    } catch (err) {
-      console.error('Erro ao salvar no servidor.', err);
-    }
   };
 
   if (!db || !currentBook) return <div style={{color:'white', padding:'3rem', textAlign:'center'}}>Carregando Universo...</div>;
@@ -348,7 +337,12 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
                         </h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', paddingBottom: '2rem' }}>
                           {globalGallery.map((img, idx) => (
-                            <img key={idx} src={img} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }} />
+                            <img 
+                              key={idx} 
+                              src={img} 
+                              style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer' }} 
+                              onClick={() => setLightboxImage(img)}
+                            />
                           ))}
                         </div>
                       </section>
@@ -385,6 +379,12 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
       {selectedAuthor && (
         <AuthorModal author={selectedAuthor} db={db} onClose={() => setSelectedAuthor(null)} />
       )}
+      
+      {/* Lightbox */}
+      <ImageLightbox 
+        imageUrl={lightboxImage} 
+        onClose={() => setLightboxImage(null)} 
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BookOpen, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 export default function Login({ onLogin, onNavigateRegister, portalRole }) {
   const [email, setEmail] = useState('');
@@ -20,8 +21,9 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/data');
-      const data = await res.json();
+      const { data: result, error: fetchError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (fetchError) throw fetchError;
+      const data = result.data;
       
       const user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       
@@ -46,7 +48,8 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
         setError('E-mail ou senha incorretos.');
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor.');
+      console.error('Login error:', err);
+      setError('Erro ao conectar com o servidor: ' + (err.message || 'Erro desconhecido.'));
     }
   };
 

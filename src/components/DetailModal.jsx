@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import ImageLightbox from './ImageLightbox';
 
 export default function DetailModal({ item, events, onClose, bookTitle }) {
   const [isNoteLifted, setIsNoteLifted] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const isClue = item.type === 'pista';
 
   const matchingEvents = (events || []).filter(ev => {
@@ -77,7 +79,13 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
             <div>
               <div className="dossier-photo-container">
                 <div className="dossier-photo-title">FOTO DE IDENTIFICAÇÃO</div>
-                <img src={item.image} alt={item.name || item.title} className="dossier-photo" />
+                <img 
+                  src={item.image} 
+                  alt={item.name || item.title} 
+                  className="dossier-photo" 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setLightboxImage(item.image)}
+                />
               </div>
 
               <div className="dossier-section-title">
@@ -183,7 +191,12 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
                   <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                     {item.gallery.map((img, idx) => (
                       <div key={idx} style={{ width: '100px', height: '100px', padding: '0.3rem', background: '#fff', border: '1px solid #999', transform: `rotate(${Math.random() * 6 - 3}deg)`, boxShadow: '2px 2px 5px rgba(0,0,0,0.2)' }}>
-                        <img src={img} alt={`Evidência ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.2) sepia(0.3)' }} />
+                        <img 
+                          src={img} 
+                          alt={`Evidência ${idx}`} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'contrast(1.2) sepia(0.3)', cursor: 'pointer' }} 
+                          onClick={() => setLightboxImage(img)}
+                        />
                       </div>
                     ))}
                   </div>
@@ -235,6 +248,12 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
         </div>
 
       </div>
+      
+      {/* Lightbox para ampliação */}
+      <ImageLightbox 
+        imageUrl={lightboxImage} 
+        onClose={() => setLightboxImage(null)} 
+      />
     </div>
   </div>
   );

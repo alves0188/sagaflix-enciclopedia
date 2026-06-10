@@ -4,6 +4,7 @@ import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
 import PagesConfig from './PagesConfig';
 import SynopsisConfig from './SynopsisConfig';
+import { uploadImage } from '../lib/supabaseClient';
 
 const editorConfig = {
   readonly: false,
@@ -151,27 +152,19 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     let newGalleryUrls = [];
 
     for (const file of files) {
-      const uploadData = new FormData();
-      uploadData.append('file', file);
-
       try {
-        const res = await fetch(window.API_BASE_URL + '/api/upload', {
-          method: 'POST',
-          body: uploadData
-        });
-        const resData = await res.json();
-        
-        if (resData.url) {
+        const url = await uploadImage(file);
+        if (url) {
           if (isGallery) {
-            newGalleryUrls.push(resData.url);
+            newGalleryUrls.push(url);
           } else {
-            setFormData(prev => ({ ...prev, [fieldName]: resData.url }));
+            setFormData(prev => ({ ...prev, [fieldName]: url }));
             break; 
           }
         }
       } catch (err) {
         console.error("Erro no upload", err);
-        alert("Erro ao fazer upload da imagem: " + file.name);
+        alert(err.message || "Erro ao fazer upload da imagem: " + file.name);
       }
     }
 
@@ -189,17 +182,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (!file) return;
 
     setUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: uploadData
-      });
-      const resData = await res.json();
-      
-      if (resData.url) {
+      const url = await uploadImage(file);
+      if (url) {
         const fallbackPages = {
           characters: { title: "Personagens", author: "Habitantes do Universo", category: "Conheça os protagonistas e antagonistas", description: "Explore os perfis, motivações e segredos de cada personagem desta história.", image: "/characters_cover.png" },
           locations: { title: "Locais e Territórios", author: "Geografia do Mundo", category: "Onde tudo acontece", description: "Navegue pelos cenários da história. Descubra as zonas seguras, os territórios perigosos e os esconderijos.", image: "/locations_cover.png" },
@@ -209,7 +194,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
         const currentPages = { ...(data.pages || fallbackPages) };
         if (currentPages[sectionKey]) {
-          currentPages[sectionKey] = { ...currentPages[sectionKey], image: resData.url };
+          currentPages[sectionKey] = { ...currentPages[sectionKey], image: url };
         }
         
         onUpdate({ ...data, pages: currentPages });
@@ -223,7 +208,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
     } catch (err) {
       console.error("Erro no upload da imagem de destaque", err);
-      alert("Erro ao fazer upload da imagem de destaque.");
+      alert(err.message || "Erro ao fazer upload da imagem de destaque.");
     }
     setUploading(false);
     e.target.value = null;
@@ -267,21 +252,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (!file) return;
 
     setUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: uploadData
-      });
-      const resData = await res.json();
-      if (resData.url) {
-        handlePageChange(pageIndex, 'image', resData.url);
+      const url = await uploadImage(file);
+      if (url) {
+        handlePageChange(pageIndex, 'image', url);
       }
     } catch (err) {
       console.error("Erro no upload", err);
-      alert("Erro ao fazer upload da imagem");
+      alert(err.message || "Erro ao fazer upload da imagem");
     }
     setUploading(false);
     e.target.value = null;

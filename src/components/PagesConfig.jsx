@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Upload } from 'lucide-react';
+import { uploadImage } from '../lib/supabaseClient';
 
 const defaultPages = {
   characters: { title: "Personagens", author: "Habitantes do Universo", category: "Conheça os protagonistas e antagonistas", description: "Explore os perfis, motivações e segredos de cada personagem desta história.", image: "/characters_cover.png" },
@@ -26,21 +27,16 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
     if (!file) return;
 
     setUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: uploadData
-      });
-      const data = await res.json();
-      const newPages = { ...pages };
-      newPages[activeTab] = { ...currentPage, image: data.url };
-      setPages(newPages);
+      const url = await uploadImage(file);
+      if (url) {
+        const newPages = { ...pages };
+        newPages[activeTab] = { ...currentPage, image: url };
+        setPages(newPages);
+      }
     } catch (err) {
       console.error('Erro no upload', err);
-      alert('Erro ao fazer upload da capa.');
+      alert(err.message || 'Erro ao fazer upload da capa.');
     }
     setUploading(false);
   };

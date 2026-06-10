@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Upload, Save } from 'lucide-react';
+import { uploadImage } from '../lib/supabaseClient';
 
 export default function NewBookModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -18,19 +19,14 @@ export default function NewBookModal({ onClose, onSave }) {
     if (!file) return;
 
     setUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('file', file);
-
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/upload', {
-        method: 'POST',
-        body: uploadData
-      });
-      const data = await res.json();
-      setFormData({ ...formData, cover: data.url });
+      const url = await uploadImage(file);
+      if (url) {
+        setFormData({ ...formData, cover: url });
+      }
     } catch (err) {
       console.error('Erro no upload', err);
-      alert('Erro ao fazer upload da capa.');
+      alert(err.message || 'Erro ao fazer upload da capa.');
     }
     setUploading(false);
   };
