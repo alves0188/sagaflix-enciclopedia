@@ -127,11 +127,9 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     const pendingCount = authorBooks.filter(b => b.status === 'pending').length;
     const draftCount = authorBooks.filter(b => b.status === 'draft').length;
     
-    // Cálculo mockado de leituras acumuladas
+    // Leitura real dos dados (usando book.views se existir, senão 0)
     const estimatedReads = authorBooks.reduce((acc, curr) => {
-      if (curr.status === 'published') return acc + 18500;
-      if (curr.status === 'pending') return acc + 2800;
-      return acc + 120;
+      return acc + (curr.views || 0);
     }, 0);
 
     // Cálculo da média de avaliação global do autor
@@ -179,16 +177,15 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           </div>
         </div>
 
-        {/* Gráfico Mockado */}
         <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-          <h3 style={{ color: 'var(--accent-gold)', margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>Acessos por Livro (Leituras Estimadas)</h3>
+          <h3 style={{ color: 'var(--accent-gold)', margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>Acessos por Livro</h3>
           {authorBooks.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', margin: 0 }}>Nenhuma obra para analisar.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               {authorBooks.map((book) => {
-                const views = book.status === 'published' ? 18500 : book.status === 'pending' ? 2800 : 120;
-                const maxViews = Math.max(...authorBooks.map(b => b.status === 'published' ? 18500 : b.status === 'pending' ? 2800 : 120), 100);
+                const views = book.views || 0;
+                const maxViews = Math.max(...authorBooks.map(b => b.views || 0), 10);
                 const percent = (views / maxViews) * 100;
                 const ratings = book.ratings || [];
                 const count = ratings.length;

@@ -1434,44 +1434,49 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     return false;
   };
 
-  // MOCK DATA EXPANDIDO PARA BI & GROWTH
-  const MOCK_ANALYTICS = {
+  // Dados reais para Analytics
+  const totalViews = db.books.reduce((sum, book) => sum + (book.views || 0), 0);
+  
+  const topBooks = [...db.books]
+    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .slice(0, 5)
+    .map(book => {
+      const author = db.users.find(u => u.id === book.authorId);
+      return { id: book.id, title: book.title, views: book.views || 0, author: author?.name || 'Desconhecido' };
+    });
+
+  const ANALYTICS = {
     overview: {
-      totalViews: "145.020",
-      avgSessionTime: "14m 20s",
-      newPubsWeek: 85,
+      totalViews: totalViews.toLocaleString(),
+      avgSessionTime: "Recurso em desenv.",
+      newPubsWeek: 0,
     },
-    topBooks: [
-      { id: 1, title: "O Rei e o Menino", views: 45000, author: "Wagner (Autor)" },
-      { id: 2, title: "As Crônicas de Avalon", views: 32000, author: "Angelina" },
-      { id: 3, title: "O Jardim das Flores", views: 28500, author: "Luan" },
-      { id: 4, title: "Mistérios do Abismo", views: 15200, author: "Carlos" },
-    ],
+    topBooks: topBooks.length > 0 ? topBooks : [ { id: 'vazio', title: "Nenhuma obra", views: 0 } ],
     growth: {
-      cac: "R$ 4,50",
-      kFactor: "1.2",
-      conversionRate: "28%",
+      cac: "R$ 0,00",
+      kFactor: "0.0",
+      conversionRate: "0%",
     },
     retention: {
-      dau_mau: "35%",
-      churn: "4.2%",
+      dau_mau: "0%",
+      churn: "0%",
       dropOff: [
-        { chapter: "Cap 1", rate: "12%" },
-        { chapter: "Cap 2", rate: "25%" }, // Alto Abandono
-        { chapter: "Cap 3", rate: "5%" },
-        { chapter: "Cap 4+", rate: "2%" },
+        { chapter: "Cap 1", rate: "0%" },
+        { chapter: "Cap 2", rate: "0%" },
+        { chapter: "Cap 3", rate: "0%" },
+        { chapter: "Cap 4+", rate: "0%" },
       ]
     },
     universe: {
-      adoptionRate: "42%",
-      retentionDiff: "+60%",
-      nps: "78",
-      concentration: "Top 5% autores = 40% tráfego"
+      adoptionRate: "0%",
+      retentionDiff: "0%",
+      nps: "0",
+      concentration: "Sem dados"
     },
     monetization: {
-      ltv: "R$ 85,00",
-      arpu: "R$ 12,50",
-      premiumConversion: "8.5%"
+      ltv: "R$ 0,00",
+      arpu: "R$ 0,00",
+      premiumConversion: "0%"
     }
   };
 
@@ -1490,7 +1495,6 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       <div style={{ maxWidth: '1800px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Analytics e BI</h2>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px' }}>Modo Mock de Demonstração</span>
         </div>
 
         {/* Sub-Navegação */}
@@ -1512,23 +1516,22 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               </div>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><TrendingUp size={18} /> <strong>Views Totais</strong></div>
-                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{MOCK_ANALYTICS.overview.totalViews}</h3>
+                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{ANALYTICS.overview.totalViews}</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Somatório de todos os livros</span>
               </div>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Clock size={18} /> <strong>Retenção Média</strong></div>
-                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{MOCK_ANALYTICS.overview.avgSessionTime}</h3>
+                <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{ANALYTICS.overview.avgSessionTime}</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessão diária</span>
               </div>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
-              {/* Card 1: Top Livros (MOCK) */}
               <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><TrendingUp size={20} /> Top Livros (Popularidade Mock)</h3>
+                <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><TrendingUp size={20} /> Top Livros (Popularidade)</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {MOCK_ANALYTICS.topBooks.map((book, idx) => {
-                    const maxViews = MOCK_ANALYTICS.topBooks[0].views;
+                  {ANALYTICS.topBooks.map((book, idx) => {
+                    const maxViews = ANALYTICS.topBooks[0].views;
                     const percentage = (book.views / maxViews) * 100;
                     return (
                       <div key={book.id}>
@@ -1610,16 +1613,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>CAC (Custo de Aquisição)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.growth.cac} <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#4CAF50'}}>↓ 12% M/M</span></div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.growth.cac} <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#4CAF50'}}>↓ 12% M/M</span></div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>K-Factor (Virabilidade)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{MOCK_ANALYTICS.growth.kFactor}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{ANALYTICS.growth.kFactor}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Acima de 1.0 = Crescimento Exponencial</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão (Landing Page)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.growth.conversionRate}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.growth.conversionRate}</div>
                 </div>
               </div>
             </div>
@@ -1629,15 +1632,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>LTV (Lifetime Value)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.monetization.ltv}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.ltv}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita Média por Usuário)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.monetization.arpu}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.arpu}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão para Premium</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.monetization.premiumConversion}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.monetization.premiumConversion}</div>
                 </div>
               </div>
             </div>
@@ -1652,12 +1655,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (Usuários Ativos)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.retention.dau_mau}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.retention.dau_mau}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formação de hábito diário</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Churn Rate (Evasão Mensal)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#f44336' }}>{MOCK_ANALYTICS.retention.churn}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#f44336' }}>{ANALYTICS.retention.churn}</div>
                 </div>
               </div>
             </div>
@@ -1666,7 +1669,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f44336' }}>Alerta de Drop-off (Abandono)</h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Porcentagem de leitores que desistem da obra neste ponto.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                {MOCK_ANALYTICS.retention.dropOff.map(item => (
+                {ANALYTICS.retention.dropOff.map(item => (
                   <div key={item.chapter}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.3rem' }}>
                       <strong>{item.chapter}</strong><span style={{ color: item.chapter === 'Cap 2' ? '#f44336' : 'var(--text-muted)' }}>{item.rate}</span>
@@ -1689,12 +1692,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Adoção da Enciclopédia</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.universe.adoptionRate}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.universe.adoptionRate}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Leitores que interagem com Personagens/Locais</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '8px', border: '1px solid rgba(76, 175, 80, 0.3)' }}>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Correlação Universo vs Retenção</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.universe.retentionDiff} retenção</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.retentionDiff} retenção</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Leitores que consomem os Extras abandonam menos as obras do que os que leem apenas o texto.</div>
                 </div>
               </div>
@@ -1705,11 +1708,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>NPS do Autor (Net Promoter Score)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{MOCK_ANALYTICS.universe.nps} <span style={{fontSize:'1rem'}}>Zona de Excelência</span></div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.nps} <span style={{fontSize:'1rem'}}>Zona de Excelência</span></div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Concentração de Audiência</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{MOCK_ANALYTICS.universe.concentration}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{ANALYTICS.universe.concentration}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica necessidade de promover mais autores da cauda longa.</div>
                 </div>
               </div>
