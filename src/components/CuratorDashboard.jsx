@@ -1998,7 +1998,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     )}
                   </div>
                   <div style={{ padding: '1rem' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>{book.title}</h4>
+                    <h4 style={{ margin: '0 0 0.2rem 0', color: 'var(--text-main)' }}>{book.title}</h4>
+                    {book.sku && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.3rem', borderRadius: '4px', display: 'inline-block' }}>
+                        SKU: {book.sku}
+                      </div>
+                    )}
                     <p style={{ margin: 0, fontSize: '0.8rem', color: book.status === 'published' ? '#4CAF50' : book.status === 'pending' ? '#ff9800' : 'var(--text-muted)' }}>
                       Status: {book.status.toUpperCase()}
                     </p>
@@ -2120,7 +2125,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
                     {authorPending.map(book => (
                       <div key={book.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0' }}>{book.title}</h4>
+                        <h4 style={{ margin: '0 0 0.2rem 0' }}>{book.title}</h4>
+                        {book.sku && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.3rem', borderRadius: '4px', display: 'inline-block' }}>
+                            SKU: {book.sku}
+                          </div>
+                        )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
                           <button onClick={() => setSelectedBook(book)} className="btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem' }}>
                             Acessar CMS do Livro
@@ -2591,6 +2601,116 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   };
 
+  const renderLeitores = () => {
+    const leitores = db.users.filter(u => u.role === 'reader');
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gestão de Leitores</h2>
+          <button className="btn-primary" onClick={() => alert('Função de Cadastro Manual em desenvolvimento')}>+ Novo Perfil Manual</button>
+        </div>
+        <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>
+              <tr>
+                <th style={{ padding: '1rem' }}>Nome</th>
+                <th style={{ padding: '1rem' }}>E-mail</th>
+                <th style={{ padding: '1rem' }}>Telefone</th>
+                <th style={{ padding: '1rem' }}>Status</th>
+                <th style={{ padding: '1rem' }}>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leitores.map(leitor => (
+                <tr key={leitor.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '1rem' }}>{leitor.name}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{leitor.email}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{leitor.phone || 'Não inf.'}</td>
+                  <td style={{ padding: '1rem' }}>
+                    <span style={{ padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', background: leitor.status === 'active' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)', color: leitor.status === 'active' ? '#4CAF50' : '#ff9800' }}>
+                      {leitor.status === 'active' ? 'Ativo' : 'Pendente'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => alert('Dossiê do Leitor em desenvolvimento')}>
+                      Ver Dossiê
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {leitores.length === 0 && (
+                <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum leitor cadastrado.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const handleUpdateAuthorStatus = async (userId, newStatus) => {
+    try {
+      const { data: dbData, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (error || !dbData) throw error;
+      const newDb = dbData.data;
+      
+      const userIndex = newDb.users.findIndex(u => u.id === userId);
+      if (userIndex !== -1) {
+        newDb.users[userIndex].status = newStatus;
+      }
+      
+      if (newDb.authorRequests) {
+        const reqIndex = newDb.authorRequests.findIndex(r => r.userId === userId);
+        if (reqIndex !== -1) {
+          newDb.authorRequests[reqIndex].status = newStatus;
+        }
+      }
+
+      await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+      alert('Status atualizado com sucesso!');
+      window.location.reload();
+    } catch (err) {
+      alert('Erro ao atualizar autor: ' + err.message);
+    }
+  };
+
+  const renderNovosPedidos = () => {
+    const pedidos = (db.authorRequests || []).filter(r => r.status === 'pending_approval');
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Aprovação de Autores</h2>
+          <button className="btn-primary" onClick={() => alert('Função de Cadastro Manual em desenvolvimento')}>+ Novo Autor Manual</button>
+        </div>
+        {pedidos.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum autor aguardando aprovação no momento.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {pedidos.map(req => {
+              const user = db.users.find(u => u.id === req.userId);
+              if (!user) return null;
+              return (
+                <div key={req.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>{user.name}</h3>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Email:</strong> {user.email}</p>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Telefone:</strong> {req.phone}</p>
+                  <div style={{ margin: '1rem 0', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Obra:</strong> {req.bookTitle}</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{req.synopsis?.substring(0, 100)}...</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button className="btn-primary" style={{ flex: 1, background: '#4CAF50' }} onClick={() => handleUpdateAuthorStatus(user.id, 'active')}>Aprovar</button>
+                    <button className="btn-secondary" style={{ flex: 1, color: '#f44336', borderColor: 'rgba(244,67,54,0.3)' }} onClick={() => handleUpdateAuthorStatus(user.id, 'rejected')}>Recusar</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="curator-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
       
@@ -2603,6 +2723,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
         {hasAccess('dashboard') && <button onClick={() => setActiveTab('dashboard')} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>}
         {hasAccess('autores') && <button onClick={() => setActiveTab('autores')} style={navItemStyle(activeTab === 'autores')}><Users size={18}/> Autores</button>}
+        {hasAccess('autores') && <button onClick={() => setActiveTab('leitores')} style={navItemStyle(activeTab === 'leitores')}><Users size={18}/> Leitores</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('novos_pedidos')} style={navItemStyle(activeTab === 'novos_pedidos')}><UserPlus size={18}/> Novos Pedidos</button>}
         {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> Notificações</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('curadoria')} style={navItemStyle(activeTab === 'curadoria')}><CheckCircle size={18}/> Curadoria</button>}
         {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
@@ -2615,6 +2737,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       <div style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)' }}>
         {activeTab === 'dashboard' && hasAccess('dashboard') && renderDashboardGeral()}
         {activeTab === 'autores' && hasAccess('autores') && renderAutores()}
+        {activeTab === 'leitores' && hasAccess('autores') && renderLeitores()}
+        {activeTab === 'novos_pedidos' && hasAccess('curadoria') && renderNovosPedidos()}
         {activeTab === 'notifications' && hasAccess('notifications') && renderNotifications()}
         {activeTab === 'curadoria' && hasAccess('curadoria') && renderCuradoria()}
         {activeTab === 'revisoes' && hasAccess('revisoes') && renderRevisoes()}

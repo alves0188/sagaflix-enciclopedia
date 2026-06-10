@@ -31,13 +31,26 @@ export default function NewBookModal({ onClose, onSave }) {
     setUploading(false);
   };
 
+  const generateSKU = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let sku = 'LIV-';
+    for (let i = 0; i < 8; i++) {
+      sku += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return sku;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title) {
       alert("O título é obrigatório");
       return;
     }
-    onSave(formData);
+    const finalData = {
+      ...formData,
+      sku: generateSKU()
+    };
+    onSave(finalData);
   };
 
   return (

@@ -321,7 +321,12 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                   )}
                 </div>
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-gold)', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</h3>
+                  <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--accent-gold)', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</h3>
+                  {book.sku && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.3rem', borderRadius: '4px', display: 'inline-block' }}>
+                      SKU: {book.sku}
+                    </div>
+                  )}
                   <p style={{ margin: 0, fontSize: '0.8rem', color: book.status === 'published' ? '#4CAF50' : book.status === 'pending' ? '#ff9800' : 'var(--text-muted)' }}>
                     Status: {book.status.toUpperCase()}
                   </p>

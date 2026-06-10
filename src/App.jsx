@@ -88,22 +88,38 @@ export default function App() {
 
   const handleVerifyEmail = async (token) => {
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setVerifyStatus('success');
-        setVerifyMessage(data.role === 'author' 
-          ? 'E-mail verificado com sucesso! Sua conta de autor agora foi enviada para análise da curadoria. Você receberá um e-mail quando for aprovado.' 
-          : 'E-mail verificado com sucesso! Sua conta está ativa. Você já pode fazer login.'
-        );
-      } else {
+      const { data: dbData, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (error || !dbData) throw new Error('Database connection failed');
+      
+      const db = dbData.data;
+      const userIndex = db.users.findIndex(u => u.verificationToken === token);
+      
+      if (userIndex === -1) {
         setVerifyStatus('error');
-        setVerifyMessage(data.error || 'Token de confirmação inválido ou expirado.');
+        setVerifyMessage('Token de confirmação inválido ou expirado.');
+        return;
       }
+
+      const user = db.users[userIndex];
+      const newStatus = user.role === 'author' ? 'pending_approval' : 'active';
+      
+      db.users[userIndex] = { ...user, status: newStatus, verificationToken: null };
+      
+      // Se for autor, atualizar também a requisição
+      if (user.role === 'author' && db.authorRequests) {
+        const reqIndex = db.authorRequests.findIndex(r => r.userId === user.id);
+        if (reqIndex !== -1) {
+          db.authorRequests[reqIndex].status = 'pending_approval';
+        }
+      }
+
+      await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+
+      setVerifyStatus('success');
+      setVerifyMessage(user.role === 'author' 
+        ? 'E-mail verificado com sucesso! Sua conta de autor agora foi enviada para análise da curadoria. Você receberá um e-mail quando for aprovado.' 
+        : 'E-mail verificado com sucesso! Sua conta está ativa. Você já pode fazer login.'
+      );
     } catch (err) {
       setVerifyStatus('error');
       setVerifyMessage('Erro de conexão ao verificar e-mail.');
