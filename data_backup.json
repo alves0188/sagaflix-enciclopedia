@@ -1,0 +1,698 @@
+{
+  "books": [
+    {
+      "id": "livro_jardim",
+      "cover": "/book_cover.png",
+      "title": "Jardim das Flores",
+      "status": "draft",
+      "authorId": "82490517",
+      "synopsis": "Um mistério profundo envolvendo a morte de Elias...",
+      "universe": {
+        "book": {
+          "image": "/book_cover.png",
+          "title": "Jardim das Flores",
+          "author": "Wagner Rocha",
+          "category": "Aventura, Mistério, Drama",
+          "ageRating": "16+",
+          "description": "Uma cidadezinha aparentemente pacata esconde uma guerra civil silenciosa entre três grandes gangues. Quando o idoso mais querido da cidade morre e os líderes criminosos declaram paz absoluta no velório, um misterioso quebra-cabeças é revelado. Dois grupos de jovens rivais serão obrigados a se unir para descobrir a verdade por trás do simples jardineiro que botou a máfia de joelhos."
+        },
+        "posts": [],
+        "chapters": [
+          {
+            "id": "cap-1",
+            "type": "chapter",
+            "pages": [
+              {
+                "text": "<p>A chuva caía forte sobre a cidade de Jardim das Flores. O corpo de Elias, outrora o líder pacífico da juventude, jazia inerte no chão frio.</p><p>As facções locais, lideradas por Kael e Lúcia, observavam o cenário com desconfiança. O clima estava pesado, e todos sabiam que a paz não duraria muito tempo.</p>",
+                "image": "https://images.unsplash.com/photo-1518773553398-650c184e0bb3?q=80&w=600&auto=format&fit=crop",
+                "subtheme": "O Início"
+              },
+              {
+                "text": "<p>No dia seguinte, a investigação começou, mas os jovens revolucionários já haviam tirado suas próprias conclusões: a Tríade estava envolvida.</p>",
+                "subtheme": "A Investigação"
+              }
+            ],
+            "title": "Capítulo 1: A Morte de Elias"
+          },
+          {
+            "id": "cap-2",
+            "type": "chapter",
+            "pages": [
+              {
+                "text": "<p>O bar da esquina estava cheio. Todos os jovens se reuniram para discutir os próximos passos. A morte de Elias não passaria impune.</p>",
+                "image": "https://images.unsplash.com/photo-1543007630-9710e4a00a20?q=80&w=600&auto=format&fit=crop",
+                "subtheme": "Reunião no Bar"
+              }
+            ],
+            "title": "Capítulo 2: O Despertar da Revolução"
+          }
+        ],
+        "locations": [
+          {
+            "id": "local_neutro",
+            "name": "O Bistrô Neutro",
+            "type": "local",
+            "image": "/local_neutro.png",
+            "territory": "Zona Desmilitarizada",
+            "connections": [
+              {
+                "name": "Tomás",
+                "relation": "Toca jazz no local"
+              },
+              {
+                "name": "Os Grupos",
+                "relation": "Local do primeiro encontro"
+              }
+            ],
+            "curiosities": "É o lugar com as melhores bebidas da cidade e onde as tensões desaparecem magicamente pela porta.",
+            "description": "Um estabelecimento muito charmoso, como uma enoteca, onde nenhuma gangue opera criminalmente. É um território pacífico gerenciado secretamente pelas três gangues em conjunto.",
+            "motivations": "Servir de refúgio e ponto de encontro. O terreno é do Leste, a logística do Norte, e a operação do Sul."
+          }
+        ],
+        "characters": [
+          {
+            "id": "luan",
+            "age": 16,
+            "name": "Luan",
+            "role": "O Âncora",
+            "type": "personagem",
+            "image": "/luan.png",
+            "territory": "Território A",
+            "connections": [
+              {
+                "name": "Bia",
+                "relation": "Vizinha protetora, ela pensa que precisa proteger-lo, talvez por pena, talvez por senso de auto responsabilidade, isso é fofo, mas Luan se sente invadido, mas não sabe como dizfazer isso sem magoa sua amiga."
+              },
+              {
+                "name": "Cronos",
+                "relation": "Cão e fiel escudeiro"
+              },
+              {
+                "name": "Thiago",
+                "relation": "Aliado no Território A"
+              },
+              {
+                "name": "",
+                "relation": ""
+              }
+            ],
+            "curiosities": "Apesar da postura séria, ele tem um ponto fraco gigante: seu cachorro Cronos, que resgatou das ruas.",
+            "description": "O mais jovem do grupo, porém carrega a mente mais fria, calculista e sensata de todos. Um 'adulto prematuro' devido às responsabilidades que precisou assumir cedo.",
+            "motivations": "Manter o grupo focado e evitar que decisões impulsivas coloquem todos em risco."
+          },
+          {
+            "id": "bia",
+            "age": 18,
+            "name": "Beatriz 'Bia'",
+            "role": "A Observadora",
+            "type": "personagem",
+            "image": "/bia.png",
+            "gallery": [
+              "/uploads/1780680417988-513775958.jpg",
+              "/uploads/1780680418178-113238444.jpg"
+            ],
+            "territory": "Território A",
+            "connections": [
+              {
+                "name": "Luan",
+                "relation": "Vizinho (age como irmã mais velha)"
+              },
+              {
+                "name": "Thiago",
+                "relation": "Amigo no Território A"
+              }
+            ],
+            "curiosities": "Ela nunca sai de casa sem sua câmera e confia mais no que vê nas lentes do que nas palavras das pessoas.",
+            "description": "Fotógrafa e designer freelancer, extremamente detalhista e atenta a padrões visuais que passam despercebidos. Usa seus recém-completados 18 anos como escudo de autoridade.",
+            "motivations": "Proteger Luan a todo custo e desvendar o mistério visual por trás da morte de Elias."
+          },
+          {
+            "id": "thiago",
+            "age": 21,
+            "name": "Thiago",
+            "role": "O Técnico",
+            "type": "personagem",
+            "image": "/thiago.png",
+            "territory": "Território A",
+            "connections": [
+              {
+                "name": "Luan",
+                "relation": "Amigo"
+              },
+              {
+                "name": "Camila",
+                "relation": "Alvo do ódio secreto dela (ele não sabe)"
+              }
+            ],
+            "curiosities": "Ele sofreu amnésia aos 13 anos em um grave acidente de carro que tirou a vida de sua irmã Lia. Ele não lembra do acidente.",
+            "description": "Rapaz pragmático, calmo, lida com hardware e sistemas. É extremamente pacífico e evita conflitos diretos.",
+            "motivations": "Ajudar com a tecnologia na investigação, buscando justiça de forma silenciosa."
+          },
+          {
+            "id": "camila",
+            "age": 23,
+            "name": "Camila",
+            "role": "A Condutora do Conflito",
+            "type": "personagem",
+            "image": "/camila.png",
+            "territory": "Território B",
+            "connections": [
+              {
+                "name": "Tomás",
+                "relation": "Namorado"
+              },
+              {
+                "name": "Thiago",
+                "relation": "Alvo de sua fúria e ressentimento"
+              }
+            ],
+            "curiosities": "Ela canalizou todo o trauma do luto em raiva. O fato de Thiago não se lembrar do acidente a enfurece ainda mais.",
+            "description": "A mais velha do grupo B, focada em ação e impulsiva. Entra na investigação com segundas intenções e guarda um rancor mortal.",
+            "motivations": "Vingança. Ela quer destruir Thiago, que ela culpa pela morte de seu irmão Júnior em um acidente de carro há 8 anos."
+          },
+          {
+            "id": "tomas",
+            "age": 22,
+            "name": "Tomás",
+            "role": "A Mente Musical",
+            "type": "personagem",
+            "image": "/tomas.png",
+            "territory": "Território B",
+            "connections": [
+              {
+                "name": "Camila",
+                "relation": "Namorada"
+              }
+            ],
+            "curiosities": "Ele toca no Local Neutro e não faz a menor ideia do segredo sombrio de vingança que Camila esconde.",
+            "description": "Músico introspectivo e analítico. Toca baixo e teclado. Consegue perceber 'padrões' nos movimentos da cidade como se fossem ritmos.",
+            "motivations": "Encontrar a verdade através da intuição e dos padrões que ninguém mais vê."
+          },
+          {
+            "id": "elias",
+            "age": 72,
+            "name": "Senhor Elias",
+            "role": "O Jardineiro (Falecido)",
+            "type": "personagem",
+            "image": "/elias.png",
+            "territory": "Todos",
+            "connections": [
+              {
+                "name": "Líderes das Gangues",
+                "relation": "Respeito misterioso absoluto"
+              }
+            ],
+            "curiosities": "A morte dele foi o único dia em toda a história recente da cidade em que as gangues pararam de atirar.",
+            "description": "O idoso mais querido da cidade. Cuidava dos jardins e praças. Sua morte repentina forçou uma trégua inédita entre as três maiores gangues.",
+            "motivations": "Desconhecidas. Seu passado é um quebra-cabeça que uniu os jovens de territórios rivais."
+          }
+        ]
+      },
+      "ageRating": "16"
+    },
+    {
+      "id": "book_1780778689319",
+      "cover": "/uploads/1780778687298-243850455.png",
+      "title": "Saga Rengaw",
+      "status": "draft",
+      "authorId": "82490517",
+      "synopsis": "Na idade média um grupo de guerreiros encontra um elichir que pode mudar as suas vidas.\nUma mistura de honra, lealdade, poder, vingança e redenção",
+      "universe": {
+        "items": [],
+        "events": [],
+        "chapters": [
+          {
+            "id": "1780804930927",
+            "type": "chapter",
+            "pages": [
+              {
+                "text": "<p>Segue o teste</p>",
+                "image": "",
+                "subtheme": "Aquele teste bom"
+              },
+              {
+                "text": "<p>será que vaidar bom?</p>",
+                "image": "",
+                "subtheme": "Novo Subtema 2"
+              }
+            ],
+            "title": "Sempre um novo teste"
+          }
+        ],
+        "locations": [
+          {
+            "id": "1780804895311",
+            "age": "",
+            "name": "Casa de chá",
+            "role": "",
+            "type": "local",
+            "image": "",
+            "gallery": [],
+            "territory": "",
+            "connections": [],
+            "curiosities": "",
+            "description": "",
+            "motivations": "",
+            "customFields": [],
+            "privateNotes": ""
+          }
+        ],
+        "characters": [
+          {
+            "id": "1780804858760",
+            "age": "",
+            "name": "Rengaw",
+            "role": "",
+            "type": "personagem",
+            "image": "",
+            "gallery": [],
+            "territory": "",
+            "connections": [],
+            "curiosities": "",
+            "description": "muito agressivo",
+            "motivations": "",
+            "customFields": [],
+            "privateNotes": ""
+          },
+          {
+            "id": "1780804880824",
+            "age": "",
+            "name": "Eline",
+            "role": "",
+            "type": "personagem",
+            "image": "",
+            "gallery": [],
+            "territory": "",
+            "connections": [],
+            "curiosities": "",
+            "description": "muito linda",
+            "motivations": "",
+            "customFields": [],
+            "privateNotes": ""
+          }
+        ],
+        "organizations": [
+          {
+            "id": "1780804908008",
+            "age": "",
+            "name": "lugar desconhecido",
+            "role": "",
+            "type": "organizacao",
+            "image": "",
+            "gallery": [],
+            "territory": "",
+            "connections": [],
+            "curiosities": "",
+            "description": "",
+            "motivations": "",
+            "customFields": [],
+            "privateNotes": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "book_1780804538190",
+      "cover": "/uploads/1780804533337-880401652.jpeg",
+      "title": "O rei e o menino",
+      "status": "draft",
+      "authorId": "82490517",
+      "synopsis": "uma história muito boa de se ler",
+      "universe": {
+        "items": [],
+        "events": [],
+        "chapters": [
+          {
+            "id": "1780804637064",
+            "type": "chapter",
+            "pages": [
+              {
+                "text": "<p>eeeeee teste&nbsp;</p>",
+                "image": "",
+                "subtheme": "Novo Subtema"
+              }
+            ],
+            "title": "teste",
+            "publishDate": "2026-06-07"
+          },
+          {
+            "id": "1780807462315",
+            "type": "chapter",
+            "pages": [
+              {
+                "text": "",
+                "image": "",
+                "subtheme": "Muito teste por enquanto"
+              }
+            ],
+            "title": "Testando log",
+            "publishDate": "2026-06-07"
+          }
+        ],
+        "locations": [],
+        "characters": []
+      },
+      "releaseMode": "all",
+      "releaseWeekday": 1,
+      "releaseIntervalDays": 2
+    }
+  ],
+  "users": [
+    {
+      "id": "admin",
+      "name": "Curadoria Sagaflix",
+      "role": "curator",
+      "email": "admin",
+      "password": "admin"
+    },
+    {
+      "id": "82490517",
+      "age": 39,
+      "name": "Wagner (Autor)",
+      "role": "author",
+      "about": "Escritor apaixonado por construir mundos épicos. Especialista em misturar o realismo com a ficção científica, criando tramas de suspense e romance que prendem o leitor do início ao fim.",
+      "email": "wagner@gmail.com",
+      "ideas": [
+        {
+          "id": "idea_1780860490935385",
+          "text": "asdandk",
+          "color": "#FFE082",
+          "title": "idea de umn"
+        },
+        {
+          "id": "idea_1780860503640632",
+          "text": "",
+          "color": "#FFCC80",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860504672690",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860504856664",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860505030619",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860505208121",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_178086050537417",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860505550100",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        },
+        {
+          "id": "idea_1780860505718952",
+          "text": "",
+          "color": "#FFE082",
+          "title": ""
+        }
+      ],
+      "avatar": "/wagner.jpg",
+      "status": "approved",
+      "tastes": [
+        "Aventura",
+        "Romance",
+        "Ficção Científica"
+      ],
+      "password": "123"
+    },
+    {
+      "id": "41785923",
+      "name": "Leitor Fiel",
+      "role": "reader",
+      "email": "leitor",
+      "password": "leitor",
+      "favorites": [
+        "book_1780778689319"
+      ],
+      "readingStatus": {
+        "book_1780778689319": "read"
+      },
+      "readingPositions": {
+        "book_1780778689319": {
+          "columnIdx": 0,
+          "updatedAt": 1780858642834,
+          "chapterIdx": 3,
+          "subthemeIdx": 1
+        }
+      }
+    },
+    {
+      "id": "83920147",
+      "age": "15",
+      "name": "Angelina",
+      "role": "reader",
+      "email": "Angelina@sagaflix.com",
+      "status": "approved",
+      "tastes": "romance",
+      "password": "Angel"
+    },
+    {
+      "id": "29381028",
+      "bio": "",
+      "name": "Eline",
+      "role": "curator",
+      "about": "",
+      "email": "eline@eline.com",
+      "avatar": "/uploads/1780855888058-538357179.jpg",
+      "location": "",
+      "password": "123",
+      "curatorRole": "revisor",
+      "permissions": {
+        "cms_edit": true,
+        "cms_clues": false,
+        "cms_pages": true,
+        "cms_posts": false,
+        "cms_events": false,
+        "manage_team": false,
+        "cms_chapters": true,
+        "view_authors": true,
+        "approve_books": false,
+        "cms_locations": false,
+        "send_messages": false,
+        "cms_characters": false,
+        "dashboard_access": false,
+        "cms_organizations": false,
+        "notifications_access": true,
+        "manage_review_requests": true
+      },
+      "writingStyle": ""
+    },
+    {
+      "id": "59135305",
+      "age": "15",
+      "name": "Angelina",
+      "role": "reader",
+      "email": "angel.pessoal07@gmail.com",
+      "status": "approved",
+      "tastes": [
+        "romance"
+      ],
+      "password": "Angelina*12"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "audit_1780854357117668",
+      "date": "07/06/2026, 14:45:57",
+      "action": "Criação de Curador",
+      "details": "Adicionou o curador \"Eline\" (eline@eline.com) à equipe",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780855536177781",
+      "date": "07/06/2026, 15:05:36",
+      "action": "Edição de Curador",
+      "details": "Editou dados do curador \"Eline\" (eline@eline.com) - Perfil: revisor",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780855896280134",
+      "date": "07/06/2026, 15:11:36",
+      "action": "Configurações Pessoais",
+      "details": "Atualizou seus dados pessoais (Nome, E-mail, Avatar ou Bio)",
+      "curatorId": "29381028",
+      "curatorName": "Eline"
+    },
+    {
+      "id": "audit_1780856052984525",
+      "date": "07/06/2026, 15:14:12",
+      "action": "Edição de Curador",
+      "details": "Editou dados do curador \"Eline\" (eline@eline.com) - Perfil: revisor",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780857205805573",
+      "date": "07/06/2026, 15:33:25",
+      "action": "Aprovação de Livro",
+      "details": "Aprovou a publicação do livro \"Saga Rengaw\"",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780861994691119",
+      "date": "07/06/2026, 16:53:14",
+      "action": "Aprovação de Livro",
+      "details": "Aprovou a publicação do livro \"O rei e o menino\"",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780889524723551",
+      "date": "08/06/2026, 00:32:04",
+      "action": "Pedido Aceito",
+      "details": "Aceitou o pedido de revisão do autor \"Wagner (Autor)\" para o livro \"Saga Rengaw\" (Voltou para Rascunho)",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780889536643191",
+      "date": "08/06/2026, 00:32:16",
+      "action": "Alteração de Status",
+      "details": "Reverteu o livro \"O rei e o menino\" para rascunho",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780927266012869",
+      "date": "08/06/2026, 11:01:06",
+      "action": "Envio de Mensagem",
+      "details": "Enviou mensagem para \"Wagner (Autor)\": \"teste\"",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    },
+    {
+      "id": "audit_1780929149769697",
+      "date": "08/06/2026, 11:32:29",
+      "action": "Resposta de Chamado",
+      "details": "Respondeu ao chamado \"Grana\" de Wagner (Autor)",
+      "curatorId": "admin",
+      "curatorName": "Curadoria Sagaflix"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_178080675866010",
+      "date": "07/06/2026, 01:32:38",
+      "read": true,
+      "type": "request",
+      "action": "Pediu alteração",
+      "bookId": "book_1780804538190",
+      "details": "{\"what\":\"novo personagem\",\"why\":\"esqueci de acrescentar antes\",\"impact\":\"pequeno\"}",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1780807479676349",
+      "date": "07/06/2026, 01:44:39",
+      "read": true,
+      "type": "log",
+      "action": "Criou registro",
+      "bookId": "book_1780804538190",
+      "details": "Testando log (chapter)",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178088947437121",
+      "date": "08/06/2026, 00:31:14",
+      "read": true,
+      "type": "request",
+      "action": "Pediu alteração",
+      "bookId": "book_1780778689319",
+      "details": "{\"what\":\"tudo\",\"why\":\"publiquei errado\",\"impact\":\"tudo\"}",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1780889494643276",
+      "date": "08/06/2026, 00:31:34",
+      "read": true,
+      "type": "request",
+      "action": "Pediu alteração",
+      "bookId": "book_1780778689319",
+      "details": "{\"what\":\"tudo\",\"why\":\"tudo\",\"impact\":\"tudo\"}",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "1780927266006",
+      "date": "08/06/2026, 11:01:06",
+      "read": true,
+      "type": "message",
+      "action": "Nova Mensagem da Curadoria",
+      "userId": "82490517",
+      "details": "teste"
+    },
+    {
+      "id": "notif_1780929149769306",
+      "date": "08/06/2026, 11:32:29",
+      "read": false,
+      "type": "message",
+      "action": "Resposta de Suporte",
+      "userId": "82490517",
+      "details": "O(A) curador(a) Curadoria Sagaflix respondeu ao chamado de suporte \"Grana\":\n\n\"resolvido\""
+    }
+  ],
+  "authorRequests": [],
+  "supportTickets": [
+    {
+      "id": "ticket_1780928782644108",
+      "status": "open",
+      "message": "teste de envio de autor para curadoria",
+      "replies": [],
+      "subject": "livro",
+      "authorId": "82490517",
+      "category": "curator",
+      "createdAt": "08/06/2026, 11:26:22",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "ticket_1780928803851190",
+      "status": "open",
+      "message": "teste de autor para financeiro",
+      "replies": [
+        {
+          "id": "reply_1780929149768930",
+          "message": "resolvido",
+          "senderId": "admin",
+          "createdAt": "08/06/2026, 11:32:29",
+          "senderName": "Curadoria Sagaflix"
+        }
+      ],
+      "subject": "Grana",
+      "authorId": "82490517",
+      "category": "financial",
+      "createdAt": "08/06/2026, 11:26:43",
+      "authorName": "Wagner (Autor)"
+    }
+  ]
+}

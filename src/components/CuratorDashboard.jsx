@@ -164,7 +164,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   // REDIRECIONAMENTO DE ABAS POR PERMISSÕES
   useEffect(() => {
     const perms = getCuratorPermissions(currentUser);
-    const tabs = ['dashboard', 'autores', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'equipe'];
+    const tabs = ['dashboard', 'autores', 'leitores', 'novos_pedidos', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'gamificacao', 'equipe'];
     
     const isAllowed = (tab) => {
       if (tab === 'dashboard') return perms.dashboard_access;
@@ -177,6 +177,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       if (tab === 'equipe') return perms.manage_team;
       if (tab === 'leitores') return perms.view_authors;
       if (tab === 'novos_pedidos') return perms.approve_books;
+      if (tab === 'gamificacao') return perms.dashboard_access; // Mesma permissão do hasAccess
       return false;
     };
 
