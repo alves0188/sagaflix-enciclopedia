@@ -2625,13 +2625,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os títulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
               <button className="btn-primary" onClick={() => {
-                const name = window.prompt("Nome do novo Título:");
-                if (!name) return;
-                const description = window.prompt("Descrição curta do Título:");
-                const rule = window.prompt("Regra para ganhar este título:");
-                const icon = window.prompt("Ícone (Emoji ou URL de Imagem):", "🏆");
-                const newBadge = { id: 'bdg_' + Date.now(), name, description: description || '', rule: rule || '', icon: icon || '🏆' };
-                onUpdateData({ ...db, gamificationBadges: [...(db.gamificationBadges || []), newBadge] });
+                setBadgeForm({ id: '', name: '', description: '', rule: '', icon: '🏆' });
+                setEditingBadge(true);
               }}>+ Novo Título</button>
             </div>
             
@@ -2660,19 +2655,61 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                       </div>
                       <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                         <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => {
-                          const name = window.prompt("Nome do Título:", badge.name);
-                          if (!name) return;
-                          const description = window.prompt("Descrição:", badge.description);
-                          const rule = window.prompt("Regra:", badge.rule);
-                          const icon = window.prompt("Ícone (Emoji ou URL):", badge.icon);
-                          const updatedBadge = { ...badge, name, description: description || '', rule: rule || '', icon: icon || '🏆' };
-                          const newBadges = db.gamificationBadges.map(b => b.id === badge.id ? updatedBadge : b);
-                          onUpdateData({ ...db, gamificationBadges: newBadges });
+                          setBadgeForm({ ...badge });
+                          setEditingBadge(true);
                         }}>Editar</button>
+                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }} onClick={() => {
+                          if (window.confirm(`Tem certeza que deseja excluir o título "${badge.name}"?`)) {
+                             const newBadges = (db.gamificationBadges || []).filter(b => b.id !== badge.id);
+                             onUpdateData({ ...db, gamificationBadges: newBadges });
+                          }
+                        }}>Excluir</button>
                       </div>
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {editingBadge && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'var(--bg-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px', border: '1px solid var(--border-color)' }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)' }}>{badgeForm.id ? 'Editar Título' : 'Novo Título'}</h3>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do Título</label>
+                    <input type="text" className="input-field" value={badgeForm.name || ''} onChange={e => setBadgeForm({...badgeForm, name: e.target.value})} placeholder="Ex: Leitor Ávido" />
+                  </div>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Descrição</label>
+                    <textarea className="input-field" value={badgeForm.description || ''} onChange={e => setBadgeForm({...badgeForm, description: e.target.value})} placeholder="Parabéns, você leu 10 livros..." style={{ minHeight: '80px' }}></textarea>
+                  </div>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Diretriz/Regra (Informativo)</label>
+                    <input type="text" className="input-field" value={badgeForm.rule || ''} onChange={e => setBadgeForm({...badgeForm, rule: e.target.value})} placeholder="Ex: Ler 10 livros" />
+                  </div>
+
+                  <div style={{ marginBottom: '2rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Ícone (Emoji ou URL da Imagem)</label>
+                    <input type="text" className="input-field" value={badgeForm.icon || ''} onChange={e => setBadgeForm({...badgeForm, icon: e.target.value})} placeholder="Ex: 🏆 ou https://link.com/img.png" />
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                    <button className="btn-secondary" onClick={() => setEditingBadge(false)}>Cancelar</button>
+                    <button className="btn-primary" onClick={() => {
+                       if (!badgeForm.name) return alert('O nome é obrigatório!');
+                       let newBadges;
+                       if (badgeForm.id) {
+                          newBadges = (db.gamificationBadges || []).map(b => b.id === badgeForm.id ? badgeForm : b);
+                       } else {
+                          newBadges = [...(db.gamificationBadges || []), { ...badgeForm, id: 'bdg_' + Date.now() }];
+                       }
+                       onUpdateData({ ...db, gamificationBadges: newBadges });
+                       setEditingBadge(false);
+                    }}>Salvar Título</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
