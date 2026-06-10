@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal } from 'lucide-react';
+import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity } from 'lucide-react';
 
 const DEFAULT_BANNERS = [
   {
@@ -549,98 +549,142 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   };
   const renderDossier = () => {
     const stats = currentUser.stats || { totalTime: 0, totalPages: 0 };
-    const badges = currentUser.badges || [];
+    
+    // Dynamic badge evaluation based on conditions
+    const allBadges = db.gamificationBadges || [];
+    let dynamicBadges = [...(currentUser.badges || [])];
+    const pagesRead = currentUser.pagesRead || 0;
+    const finishedBooks = (currentUser.finishedBooks || []).length;
+    const startedBooksCount = Object.keys(currentUser.readingPositions || {}).length;
+    const validBooksRead = finishedBooks; // Integração com anti-cheat entra aqui no futuro.
+    
+    allBadges.forEach(badge => {
+      if (dynamicBadges.some(ub => ub.id === badge.id || ub === badge.id || ub.name === badge.name)) return;
+      
+      let meetsCondition = false;
+      if (badge.conditionTarget === 'pagesRead') {
+        if (badge.conditionOperator === '>=' && pagesRead >= badge.conditionValue) meetsCondition = true;
+        if (badge.conditionOperator === '==' && pagesRead === badge.conditionValue) meetsCondition = true;
+      } else if (badge.conditionTarget === 'booksRead') {
+        if (badge.conditionOperator === '>=' && validBooksRead >= badge.conditionValue) meetsCondition = true;
+        if (badge.conditionOperator === '==' && validBooksRead === badge.conditionValue) meetsCondition = true;
+      } else if (badge.conditionTarget === 'dossiersReadComplex') {
+        // Lógica de Dossiê: Pelo menos 10 iniciados, 5 concluídos, e 50% dos dossiês lidos nas obras lidas.
+        if (startedBooksCount >= 10 && finishedBooks >= 5) {
+           meetsCondition = true; 
+        }
+      }
+      if (meetsCondition) dynamicBadges.push(badge);
+    });
+    
+    const badges = dynamicBadges;
     
     // Determine reader rank based on totalPages
-    let rank = 'Leitor Iniciante';
-    if (stats.totalPages >= 50) rank = 'Leitor Voraz';
-    if (stats.totalPages >= 200) rank = 'Rato de Biblioteca';
-    if (stats.totalPages >= 500) rank = 'Sábio das Páginas';
-    if (stats.totalPages >= 1000) rank = 'Mestre Literário';
-    
-    const timeHours = Math.floor(stats.totalTime / 60);
-    const timeMinutes = stats.totalTime % 60;
+    let readerRank = 'Visitante';
+    if (stats.totalPages > 10) readerRank = 'Viajante Literário';
+    if (stats.totalPages > 50) readerRank = 'Explorador de Mundos';
+    if (stats.totalPages > 100) readerRank = 'Mestre dos Dossiês';
+    if (stats.totalPages > 500) readerRank = 'Curador Honorário';
 
     return (
-      <div style={{ padding: '2rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-main)', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', marginBottom: '3rem', textAlign: 'center' }}>
-          <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '4px solid var(--accent-gold)', background: 'rgba(255,255,255,0.02)' }}>
-            {currentUser.avatar ? (
-              <img src={currentUser.avatar} alt={currentUser.nickname || currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <User size={60} color="var(--accent-gold)" />
+      <div className="animate-fade-in" style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="dossier-wrapper" style={{ padding: 0, overflowY: 'visible', flex: 'none', width: '100%', maxWidth: '900px' }}>
+          <div className="dossier-paper" style={{ padding: '2rem 2rem 3rem', minHeight: 'auto' }}>
+            <div className="dossier-paperclip"></div>
+            <div className="dossier-tab">DOSSIÊ</div>
+            
+            <div className="dossier-header">
+              <div className="dossier-org" style={{ lineHeight: 1.4, alignSelf: 'flex-start' }}>
+                <span style={{ fontSize: '0.65rem', color: '#555' }}>FICHA TÉCNICA COMPLEMENTAR:</span><br/>
+                <div style={{ fontWeight: 'bold', color: '#8b0000' }}>SAGAFLIX</div>
               </div>
-            )}
-          </div>
-          <div>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.2rem', color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>{currentUser.nickname || currentUser.name}</h2>
-            <div style={{ display: 'inline-block', background: 'rgba(212,175,55,0.15)', padding: '0.4rem 1rem', borderRadius: '20px', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px', fontSize: '0.9rem', border: '1px solid rgba(212,175,55,0.3)' }}>
-              {rank}
+              <div className="dossier-classification">CLASSIFICAÇÃO: RESTRITO - APENAS PARA LEITURA</div>
+            </div>
+            
+            <div className="dossier-subheader">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#222' }}>
+                DOSSIÊ DE: {currentUser.nickname ? currentUser.nickname.toUpperCase() : currentUser.name.toUpperCase()}
+              </div>
+              <div className="dossier-status" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#222' }}>
+                STATUS: 
+                <span className="badge-tag-status" style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                  {readerRank.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            <div className="dossier-grid">
+              {/* Esquerda: Foto e Dados */}
+              <div>
+                <div className="dossier-photo-container">
+                  <div className="dossier-photo-title">FOTO DE IDENTIFICAÇÃO</div>
+                  <div style={{ background: '#222', height: '260px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #555', overflow: 'hidden' }}>
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={80} color="#888" />
+                    )}
+                  </div>
+                </div>
+                
+                <div className="dossier-section-title">ESTATÍSTICAS GERAIS</div>
+                
+                <div className="dossier-personal-data" style={{ color: '#222' }}>
+                  <div><strong>NOME / APELIDO:</strong> {currentUser.nickname || currentUser.name}</div>
+                  <div><strong>PÁGINAS LIDAS:</strong> {pagesRead}</div>
+                  <div><strong>LIVROS CONCLUÍDOS:</strong> {finishedBooks}</div>
+                  <div><strong>TEMPO DE LEITURA:</strong> {Math.floor((stats.totalTime || 0)/60)}h {(stats.totalTime || 0)%60}m</div>
+                  <div><strong>TÍTULOS (BADGES):</strong> {badges.length} / {allBadges.length}</div>
+                  <div><strong>MEMBRO DESDE:</strong> 2026</div>
+                </div>
+              </div>
+
+              {/* Direita: Badges e Premiações */}
+              <div className="dossier-main-content">
+                <div className="dossier-section-title">CONDECORAÇÕES & PREMIAÇÕES</div>
+                <p style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.4', color: '#222' }}>
+                  O leitor a seguir possui as credenciais abaixo baseadas no seu engajamento no sistema. Documentos sem carimbo constam como não alcançados.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
+                  {allBadges.length === 0 ? (
+                    <div style={{ fontStyle: 'italic', color: '#666' }}>Nenhum título no sistema.</div>
+                  ) : (
+                    allBadges.map((badge, idx) => {
+                      const hasBadge = badges.some(ub => ub.id === badge.id || ub === badge.id || ub.name === badge.name);
+                      return (
+                        <div key={idx} style={{ 
+                          border: '1px solid #999', 
+                          padding: '1rem', 
+                          borderRadius: '2px', 
+                          textAlign: 'center', 
+                          background: hasBadge ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.3)',
+                          filter: hasBadge ? 'none' : 'grayscale(100%)',
+                          opacity: hasBadge ? 1 : 0.6,
+                          position: 'relative'
+                        }}>
+                          {hasBadge && (
+                             <div style={{ position: 'absolute', top: '5px', right: '5px', color: '#b8860b' }}>
+                               <Star size={14} fill="#b8860b" />
+                             </div>
+                          )}
+                          <div style={{ width: '40px', height: '40px', margin: '0 auto 0.8rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
+                            {badge.icon ? (
+                              badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
+                                ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> 
+                                : <span>{badge.icon}</span>
+                            ) : <Star size={32} color="#444" />}
+                          </div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#111', marginBottom: '0.3rem' }}>{badge.name}</div>
+                          <div style={{ fontSize: '0.7rem', color: '#444' }}>{hasBadge ? badge.description : badge.rule || badge.description}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-            <BookOpen size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>{stats.totalPages}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Páginas Lidas</div>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-            <Map size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
-              {timeHours > 0 ? `${timeHours}h ` : ''}{timeMinutes}m
-            </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Tempo de Leitura</div>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-            <Star size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>{badges.length}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Premiações (Badges)</div>
-          </div>
-        </div>
-
-        <div>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.8rem', marginBottom: '1.5rem' }}>Minhas Premiações</h3>
-          {(() => {
-            const allBadges = db.gamificationBadges || [];
-            const userBadges = currentUser.badges || [];
-            if (allBadges.length === 0) {
-               return <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>Nenhum título disponível no sistema no momento.</div>;
-            }
-            return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
-                {allBadges.map((badge, idx) => {
-                  const hasBadge = userBadges.some(ub => ub.id === badge.id || ub === badge.id || ub.name === badge.name);
-                  return (
-                    <div key={idx} style={{ 
-                      background: hasBadge ? 'rgba(0,0,0,0.2)' : 'transparent', 
-                      padding: '1rem', 
-                      borderRadius: '8px', 
-                      border: hasBadge ? '1px solid rgba(212,175,55,0.3)' : '1px solid rgba(255,255,255,0.05)', 
-                      textAlign: 'center', 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center',
-                      opacity: hasBadge ? 1 : 0.4,
-                      filter: hasBadge ? 'none' : 'grayscale(100%)'
-                    }}>
-                      <div style={{ width: '40px', height: '40px', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
-                        {badge.icon ? (
-                          badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
-                            ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> 
-                            : <span>{badge.icon}</span>
-                        ) : <Star size={32} color="var(--accent-gold)" />}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: hasBadge ? 'var(--accent-gold)' : 'var(--text-muted)', marginBottom: '0.3rem' }}>{badge.name}</div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{hasBadge ? badge.description : badge.rule || badge.description}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
         </div>
       </div>
     );
@@ -1053,12 +1097,13 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         )}
 
         {/* Grid de Livros */}
-        {filteredBooks.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0' }}>
-            <BookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-            <p style={{ margin: 0 }}>Nenhum livro nesta estante.</p>
-          </div>
-        ) : (
+        {activeTab !== 'dossie' && (
+          filteredBooks.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0' }}>
+              <BookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+              <p style={{ margin: 0 }}>Nenhum livro nesta estante.</p>
+            </div>
+          ) : (
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', 
@@ -1215,7 +1260,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               );
             })}
           </div>
-        )}
+        ))}
 
       {/* Netflix-style Overlaid Quick-View Popover */}
       {activeBook && (

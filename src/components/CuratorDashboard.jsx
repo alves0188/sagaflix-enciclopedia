@@ -2611,12 +2611,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         </div>
 
         {/* Sub-abas */}
-        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', flexWrap: 'wrap' }}>
           <button onClick={() => setGamificacaoSubTab('badges')} style={subTabStyle(gamificacaoSubTab === 'badges')}>
             <Award size={16} /> Gestão de Títulos (Badges)
           </button>
           <button onClick={() => setGamificacaoSubTab('ranking')} style={subTabStyle(gamificacaoSubTab === 'ranking')}>
             <TrendingUp size={16} /> Top 100 Leitores
+          </button>
+          <button onClick={() => setGamificacaoSubTab('config')} style={subTabStyle(gamificacaoSubTab === 'config')}>
+            <ShieldAlert size={16} /> Anti-Fraude (Anti-Cheat)
           </button>
         </div>
 
@@ -2686,8 +2689,34 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   </div>
                   
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Diretriz/Regra (Informativo)</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Diretriz/Regra (Informativo para o Leitor)</label>
                     <input type="text" className="input-field" value={badgeForm.rule || ''} onChange={e => setBadgeForm({...badgeForm, rule: e.target.value})} placeholder="Ex: Ler 10 livros" />
+                  </div>
+
+                  <div style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)' }}>Construtor de Regra (Automático)</h4>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Alvo da Métrica</label>
+                        <select className="input-field" value={badgeForm.conditionTarget || ''} onChange={e => setBadgeForm({...badgeForm, conditionTarget: e.target.value})}>
+                          <option value="">(Nenhum / Manual)</option>
+                          <option value="pagesRead">Páginas Lidas</option>
+                          <option value="booksRead">Livros Lidos (Validados)</option>
+                          <option value="dossiersReadComplex">Dossiês Lidos (Regra Complexa)</option>
+                        </select>
+                      </div>
+                      <div style={{ width: '130px' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Condição</label>
+                        <select className="input-field" value={badgeForm.conditionOperator || '>='} onChange={e => setBadgeForm({...badgeForm, conditionOperator: e.target.value})}>
+                          <option value=">=">Maior/Igual a</option>
+                          <option value="==">Igual a</option>
+                        </select>
+                      </div>
+                      <div style={{ width: '100px' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Valor</label>
+                        <input type="number" className="input-field" value={badgeForm.conditionValue || 0} onChange={e => setBadgeForm({...badgeForm, conditionValue: parseInt(e.target.value) || 0})} />
+                      </div>
+                    </div>
                   </div>
 
                   <div style={{ marginBottom: '2rem' }}>
@@ -2712,6 +2741,29 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {gamificacaoSubTab === 'config' && (
+          <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', maxWidth: '600px' }}>
+            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Configuração Anti-Fraude (Anti-Cheat)</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: '1.5' }}>
+              Para evitar que leitores simplesmente pulem as páginas rapidamente para ganhar títulos de "X livros lidos", o sistema exige um tempo mínimo de leitura baseado na quantidade de palavras.
+            </p>
+
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontWeight: 'bold' }}>Tolerância de Leitura Rápida (%)</label>
+              <input 
+                type="number" 
+                className="input-field" 
+                value={db.antiCheatMargin || 40} 
+                onChange={e => onUpdateData({ ...db, antiCheatMargin: parseInt(e.target.value) || 40 })} 
+                style={{ width: '150px' }}
+              />
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                Ex: Se a média de leitura de um livro for de 5 horas, configurar 40% significa que a leitura só será validada para os prêmios se o usuário passar no mínimo 2 horas lendo.
+              </p>
+            </div>
           </div>
         )}
 
