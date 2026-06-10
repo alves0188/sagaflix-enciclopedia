@@ -605,7 +605,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.8rem', marginBottom: '1.5rem' }}>Minhas Premiações</h3>
           {(() => {
             const allBadges = db.gamificationBadges || [];
-            const userBadges = effectiveUser.badges || [];
+            const userBadges = currentUser.badges || [];
             if (allBadges.length === 0) {
                return <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>Nenhum título disponível no sistema no momento.</div>;
             }

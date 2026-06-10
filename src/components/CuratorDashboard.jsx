@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
-import { uploadImage } from '../lib/supabaseClient';
+import { supabase, uploadImage } from '../lib/supabaseClient';
 
 const ROLE_PRESETS = {
   admin: {
