@@ -180,6 +180,30 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
     setFormData({ ...formData, connections: newConns });
   };
 
+  const addAuthorNote = () => {
+    if (isReadOnly) return;
+    setHasChanges(true);
+    setFormData({ 
+      ...formData, 
+      authorNotes: [...(formData.authorNotes || []), { id: Date.now().toString(), title: '', content: '', isSecret: false }] 
+    });
+  };
+
+  const updateAuthorNote = (index, key, val) => {
+    if (isReadOnly) return;
+    setHasChanges(true);
+    const newNotes = [...(formData.authorNotes || [])];
+    newNotes[index][key] = val;
+    setFormData({ ...formData, authorNotes: newNotes });
+  };
+
+  const removeAuthorNote = (index) => {
+    if (isReadOnly) return;
+    setHasChanges(true);
+    const newNotes = (formData.authorNotes || []).filter((_, i) => i !== index);
+    setFormData({ ...formData, authorNotes: newNotes });
+  };
+
   const handleBack = () => {
     if (hasChanges && !isReadOnly) {
       if (window.confirm("Você tem alterações não salvas. Deseja realmente sair sem salvar?")) {
@@ -223,21 +247,85 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
         {!isReadOnly && (
           <>
             <button className="btn-secondary" onClick={addCustomField} style={{ width: '100%', marginBottom: '0.5rem', justifyContent: 'center' }}>+ Novo Campo Dinâmico</button>
-            {!isClue && <button className="btn-secondary" onClick={addConnection} style={{ width: '100%', marginBottom: '2rem', justifyContent: 'center' }}>+ Nova Conexão</button>}
+            {!isClue && <button className="btn-secondary" onClick={addConnection} style={{ width: '100%', marginBottom: '0.5rem', justifyContent: 'center' }}>+ Nova Conexão</button>}
+            <button className="btn-secondary" onClick={addAuthorNote} style={{ width: '100%', marginBottom: '2rem', justifyContent: 'center' }}>+ Nova Nota do Autor</button>
           </>
         )}
 
         <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
-          <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR (SECRETO)</label>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.2 }}>Estas anotações não aparecerão no Dossiê do leitor final.</p>
-          <textarea 
-            name="privateNotes" 
-            value={formData.privateNotes || ''} 
-            onChange={handleChange} 
-            disabled={isReadOnly}
-            style={{ width: '100%', background: 'rgba(255, 100, 100, 0.05)', border: '1px solid rgba(255, 100, 100, 0.3)', color: '#fff', padding: '0.8rem', minHeight: '150px', borderRadius: '4px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', resize: 'vertical', opacity: isReadOnly ? 0.7 : 1 }} 
-            placeholder={isReadOnly ? "Sem anotações privadas." : "Segredos, ideias futuras, pontos a trabalhar..."}
-          ></textarea>
+          <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR</label>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.2 }}>Essas notas aparecerão em uma aba especial no dossiê. Notas secretas exigirão pedido de acesso.</p>
+          
+          {/* Conversor de Notas Antigas (Compatibilidade) */}
+          {formData.privateNotes && (!formData.authorNotes || formData.authorNotes.length === 0) && (
+            <div style={{ width: '100%', background: 'rgba(255, 100, 100, 0.05)', border: '1px solid rgba(255, 100, 100, 0.3)', color: '#fff', padding: '0.8rem', minHeight: '80px', borderRadius: '4px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', marginBottom: '1rem', whiteSpace: 'pre-wrap' }}>
+              <strong>NOTA ANTIGA (Migre para uma nova nota!):</strong><br/><br/>
+              {formData.privateNotes}
+            </div>
+          )}
+
+          {(formData.authorNotes || []).map((note, idx) => (
+            <div key={note.id || idx} style={{ background: note.isSecret ? 'rgba(255, 100, 100, 0.05)' : 'rgba(212, 175, 55, 0.05)', border: `1px solid ${note.isSecret ? 'rgba(255, 100, 100, 0.3)' : 'rgba(212, 175, 55, 0.3)'}`, padding: '0.8rem', borderRadius: '4px', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+              <input 
+                value={note.title || ''} 
+                onChange={e => updateAuthorNote(idx, 'title', e.target.value)} 
+                disabled={isReadOnly} 
+                placeholder="Título da Nota (Ex: Paixão Secreta)" 
+                style={{ 
+                  width: '100%', 
+                  fontWeight: 'bold', 
+                  color: note.isSecret ? '#ff7777' : 'var(--accent-gold)',
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '0.6rem',
+                  borderRadius: '4px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '0.95rem',
+                  outline: 'none'
+                }} 
+              />
+              <textarea 
+                value={note.content || ''} 
+                onChange={e => updateAuthorNote(idx, 'content', e.target.value)} 
+                disabled={isReadOnly} 
+                placeholder="Conteúdo da nota..." 
+                style={{ 
+                  width: '100%', 
+                  minHeight: '100px',
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  padding: '0.6rem',
+                  borderRadius: '4px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '0.9rem',
+                  resize: 'vertical',
+                  outline: 'none'
+                }} 
+              />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                <label style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={note.isSecret || false} 
+                    onChange={e => updateAuthorNote(idx, 'isSecret', e.target.checked)} 
+                    disabled={isReadOnly} 
+                  />
+                  <span>É um segredo? (Pedir Acesso)</span>
+                </label>
+                {!isReadOnly && (
+                  <button onClick={() => removeAuthorNote(idx)} style={{ background: 'none', border: 'none', color: '#ff7777', cursor: 'pointer' }}>
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {(!formData.authorNotes || formData.authorNotes.length === 0) && !formData.privateNotes && (
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+              Nenhuma nota criada.
+            </div>
+          )}
         </div>
 
         <div style={{ flexShrink: 0, paddingBottom: '2rem' }}>

@@ -21,6 +21,7 @@ const DEFAULT_LEGENDS = {
 
 export default function BookIdeasBoard({ book, onUpdateBook }) {
   const [showLegends, setShowLegends] = useState(false);
+  const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
 
   const ideas = book.ideas || [];
   const ideaLegends = { ...DEFAULT_LEGENDS, ...(book.ideaLegends || {}) };
@@ -32,8 +33,29 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       text: '',
       color: '#FFE082' // Default amarelo
     };
-    const updatedIdeas = [...ideas, newIdea];
+    const updatedIdeas = [newIdea, ...ideas];
     onUpdateBook({ ...book, ideas: updatedIdeas });
+  };
+
+  const handleDragStart = (idx) => {
+    setDraggedIdeaIdx(idx);
+  };
+
+  const handleDrop = (idx) => {
+    if (draggedIdeaIdx === null || draggedIdeaIdx === idx) return;
+    
+    const updatedIdeas = [...ideas];
+    const draggedItem = updatedIdeas[draggedIdeaIdx];
+    
+    updatedIdeas.splice(draggedIdeaIdx, 1);
+    updatedIdeas.splice(idx, 0, draggedItem);
+    
+    onUpdateBook({ ...book, ideas: updatedIdeas });
+    setDraggedIdeaIdx(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
   };
 
   const handleUpdateIdeaTitle = (id, newTitle) => {
@@ -65,9 +87,9 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0.5rem', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0 }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Painel de Ideias: {book.title}
         </h2>
         
@@ -75,11 +97,17 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
           <button 
             onClick={() => setShowLegends(!showLegends)} 
             className="btn-secondary" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.2rem', fontSize: '0.9rem' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem' }}
           >
-            {showLegends ? <ChevronUp size={16} /> : <ChevronDown size={16} />} Legendas das Cores
+            {showLegends ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 
+            Legendas das Cores
           </button>
-          <button onClick={handleAddIdea} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          
+          <button 
+            onClick={handleAddIdea} 
+            className="btn-primary" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem' }}
+          >
             <Plus size={16} /> Nova Ideia
           </button>
         </div>
@@ -109,11 +137,12 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
 
       {/* Mural de Cortiça Corkboard */}
       <div style={{ 
+        flex: 1,
         background: 'radial-gradient(circle, #2d2e33 0%, #151619 100%)', 
         border: '1px solid var(--border-color)', 
         borderRadius: '16px', 
         padding: '2.5rem', 
-        minHeight: '600px',
+        overflowY: 'auto',
         boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.6)'
       }}>
         {ideas.length === 0 ? (
@@ -134,6 +163,10 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
               return (
                 <div 
                   key={idea.id} 
+                  draggable
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(idx)}
                   style={{ 
                     background: idea.color,
                     color: '#1e1e24',
@@ -145,8 +178,10 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     flexDirection: 'column',
                     height: '240px',
                     position: 'relative',
+                    cursor: 'grab',
                     borderTop: '15px solid rgba(0,0,0,0.05)', // visual tape block
-                    transition: 'transform 0.2s, box-shadow 0.2s'
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    opacity: draggedIdeaIdx === idx ? 0.5 : 1
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = `scale(1.03) rotate(0deg)`;

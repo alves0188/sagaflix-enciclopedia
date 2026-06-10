@@ -1,33 +1,47 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon } from 'lucide-react';
 
 export default function CustomEditor({ value, onChange, disabled, placeholder }) {
-  const [content, setContent] = useState(value || '');
   const editorRef = useRef(null);
+  
+  // Guardamos o HTML atual para não acionar o onChange à toa e para saber se o value mudou de fora
+  const lastHtml = useRef(value || '');
 
+  // Sincroniza estado inicial no mount
   useEffect(() => {
-    if (value !== content) {
-      setContent(value || '');
-      if (editorRef.current && editorRef.current.innerHTML !== value) {
-        editorRef.current.innerHTML = value || '';
-      }
+    if (editorRef.current && editorRef.current.innerHTML !== (value || '')) {
+      editorRef.current.innerHTML = value || '';
+      lastHtml.current = value || '';
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Atualiza o DOM apenas se o value mudar externamente (ex: trocar de sessão ou livro)
+  useEffect(() => {
+    if (editorRef.current && value !== lastHtml.current) {
+      editorRef.current.innerHTML = value || '';
+      lastHtml.current = value || '';
     }
   }, [value]);
 
   const handleInput = () => {
     if (editorRef.current) {
-      const newHtml = editorRef.current.innerHTML;
-      setContent(newHtml);
-      onChange(newHtml);
+      const html = editorRef.current.innerHTML;
+      if (html !== lastHtml.current) {
+        lastHtml.current = html;
+        onChange(html);
+      }
     }
   };
 
-  const execCommand = (command, value = null) => {
+  const execCommand = (command, val = null) => {
     if (disabled) return;
-    document.execCommand(command, false, value);
+    document.execCommand(command, false, val);
     if (editorRef.current) {
       editorRef.current.focus();
     }
+    // Dispara o input manualmente para capturar mudanças de formatação
+    handleInput();
   };
 
   const handleImageInsert = () => {
@@ -45,7 +59,10 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
     borderBottom: '1px solid var(--border-color)',
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
-    pointerEvents: disabled ? 'none' : 'auto'
+    pointerEvents: disabled ? 'none' : 'auto',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
   };
 
   const btnStyle = {
@@ -61,7 +78,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
   };
 
   return (
-    <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-color)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-color)', display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px' }}>
       <div style={toolbarStyle}>
         <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
         <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
@@ -83,8 +100,9 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
         ref={editorRef}
         contentEditable={!disabled}
         onInput={handleInput}
+        onBlur={handleInput}
         style={{
-          minHeight: '200px',
+          flex: 1,
           padding: '1rem',
           outline: 'none',
           color: 'var(--text-main)',
@@ -93,8 +111,9 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
           lineHeight: '1.6',
           overflowY: 'auto'
         }}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
         data-placeholder={placeholder}
+        // Sem dangerouslySetInnerHTML aqui para evitar conflitos pesados do React 
+        // O useEffect inicializa e gerencia as atualizações de HTML
       />
       
       {/* Basic placeholder styling using css */}

@@ -1,11 +1,45 @@
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Lock, X, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 
-export default function DetailModal({ item, events, onClose, bookTitle }) {
+export default function DetailModal({ item, events, onClose, bookTitle, onRequestAccess, db, currentUser, onUpdateData }) {
   const [isNoteLifted, setIsNoteLifted] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
   const isClue = item.type === 'pista';
+
+  const handleFeedback = (noteId, type) => {
+    if (!currentUser || !onUpdateData) return;
+    const newDb = { ...db };
+    if (!newDb.noteFeedback) newDb.noteFeedback = [];
+    
+    const existingIndex = newDb.noteFeedback.findIndex(f => f.noteId === noteId && f.userId === currentUser.id);
+    if (existingIndex !== -1) {
+      if (newDb.noteFeedback[existingIndex].type === type) {
+        // toggle off
+        newDb.noteFeedback.splice(existingIndex, 1);
+      } else {
+        // switch
+        newDb.noteFeedback[existingIndex].type = type;
+      }
+    } else {
+      newDb.noteFeedback.push({
+        id: 'fb_' + Date.now() + Math.random(),
+        noteId,
+        userId: currentUser.id,
+        type,
+        timestamp: new Date().toISOString()
+      });
+    }
+    onUpdateData(newDb);
+  };
+
+  const getNoteFeedbackStats = (noteId) => {
+    const feedbackList = db?.noteFeedback || [];
+    const likes = feedbackList.filter(f => f.noteId === noteId && f.type === 'like').length;
+    const dislikes = feedbackList.filter(f => f.noteId === noteId && f.type === 'dislike').length;
+    const userVote = currentUser ? feedbackList.find(f => f.noteId === noteId && f.userId === currentUser.id)?.type : null;
+    return { likes, dislikes, userVote };
+  };
 
   const matchingEvents = (events || []).filter(ev => {
     if (!ev.tags) return false;
@@ -17,33 +51,118 @@ export default function DetailModal({ item, events, onClose, bookTitle }) {
   return (
     <div className="dossier-modal-container">
       
-      {/* Coluna Esquerda: Arquivos Confidenciais */}
+      {/* Coluna Esquerda: Notas do Autor */}
       <div onClick={e => e.stopPropagation()} className="dossier-left-panel">
         
-        <button className="btn-voltar-dossier" onClick={onClose} style={{ marginBottom: '2rem', background: '#333', color: '#fff', border: 'none', padding: '0.8rem 1rem', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', borderRadius: '4px' }}>
-          <ArrowLeft size={18} /> FECHAR DOSSIÊ
-        </button>
+        <h2 style={{ fontSize: '1.2rem', margin: '0 0 1.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Notas do Autor</h2>
 
-        <h2 style={{ fontSize: '1.2rem', margin: '0 0 1.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Arquivos Confidenciais</h2>
-
-        {item.privateNotes ? (
-          <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
-            <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR (SECRETO)</label>
-            <div style={{ width: '100%', background: 'rgba(255, 100, 100, 0.05)', border: '1px solid rgba(255, 100, 100, 0.3)', color: '#fff', padding: '0.8rem', borderRadius: '4px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', marginTop: '0.5rem', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-              {item.privateNotes}
-            </div>
+        {(!item.authorNotes || item.authorNotes.length === 0) && !item.privateNotes ? (
+          <div style={{ marginBottom: '2rem', flexShrink: 0, color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+            Nenhuma nota registrada para este dossiê.
           </div>
         ) : (
-          <div style={{ marginBottom: '2rem', flexShrink: 0, color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
-            Nenhuma nota secreta registrada para este dossiê.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Compatibilidade com nota antiga */}
+            {item.privateNotes && (!item.authorNotes || item.authorNotes.length === 0) && (
+              <div style={{ flexShrink: 0 }}>
+                <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR (SECRETO)</label>
+                <div style={{ width: '100%', background: 'rgba(255, 100, 100, 0.05)', border: '1px solid rgba(255, 100, 100, 0.3)', color: '#fff', padding: '0.8rem', borderRadius: '4px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', marginTop: '0.5rem', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                  {item.privateNotes}
+                </div>
+              </div>
+            )}
+
+            {/* Novas Notas */}
+            {item.authorNotes && item.authorNotes.map(note => {
+              const req = db?.noteRequests?.find(r => r.noteId === note.id && r.userId === currentUser?.id);
+              const hasAccess = req?.status === 'approved';
+              
+              if (!note.isSecret || hasAccess) {
+                const stats = getNoteFeedbackStats(note.id);
+                return (
+                  <div key={note.id} style={{ flexShrink: 0 }}>
+                    <label style={{ fontSize: '0.8rem', color: note.isSecret ? '#ff7777' : 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                      {note.title || (note.isSecret ? 'NOTA SECRETA (LIBERADA)' : 'NOTA PÚBLICA')}
+                    </label>
+                    <div style={{ width: '100%', background: note.isSecret ? 'rgba(255, 100, 100, 0.05)' : 'rgba(212, 175, 55, 0.05)', border: `1px solid ${note.isSecret ? 'rgba(255, 100, 100, 0.3)' : 'rgba(212, 175, 55, 0.3)'}`, color: '#fff', padding: '0.8rem', borderRadius: '4px 4px 0 0', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', marginTop: '0.5rem', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                      {note.content}
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', background: note.isSecret ? 'rgba(255, 100, 100, 0.1)' : 'rgba(212, 175, 55, 0.1)', border: `1px solid ${note.isSecret ? 'rgba(255, 100, 100, 0.3)' : 'rgba(212, 175, 55, 0.3)'}`, borderTop: 'none', borderRadius: '0 0 4px 4px', padding: '0.5rem 0.8rem', alignItems: 'center' }}>
+                      <button 
+                        onClick={() => handleFeedback(note.id, 'like')}
+                        style={{ background: 'none', border: 'none', color: stats.userVote === 'like' ? '#4CAF50' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                        <ThumbsUp size={16} /> {stats.likes > 0 && stats.likes}
+                      </button>
+                      <button 
+                        onClick={() => handleFeedback(note.id, 'dislike')}
+                        style={{ background: 'none', border: 'none', color: stats.userVote === 'dislike' ? '#f44336' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}>
+                        <ThumbsDown size={16} /> {stats.dislikes > 0 && stats.dislikes}
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Nota Secreta (Sem acesso)
+              const isPending = req?.status === 'pending';
+              const isRejected = req?.status === 'rejected';
+
+              return (
+                <div key={note.id} style={{ flexShrink: 0 }}>
+                  <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold', textTransform: 'uppercase' }}>{note.title || 'NOTA SECRETA'}</label>
+                  <div 
+                    onClick={() => onRequestAccess && onRequestAccess(note.id)}
+                    style={{ 
+                      width: '100%', 
+                      background: 'rgba(0, 0, 0, 0.3)', 
+                      border: isRejected ? '1px dashed #ff4444' : (isPending ? '1px dashed #ffaa00' : '1px dashed #555'), 
+                      color: isRejected ? '#ff4444' : (isPending ? '#ffaa00' : '#888'), 
+                      padding: '0.8rem', 
+                      borderRadius: '4px', 
+                      fontFamily: 'Inter, sans-serif', 
+                      fontSize: '0.9rem', 
+                      marginTop: '0.5rem', 
+                      cursor: isPending || isRejected ? 'default' : 'pointer', 
+                      textAlign: 'center', 
+                      transition: 'all 0.2s ease' 
+                    }}
+                    onMouseOver={e => { 
+                      if (!isPending && !isRejected) {
+                        e.currentTarget.style.color = '#fff'; 
+                        e.currentTarget.style.borderColor = '#ff7777'; 
+                        e.currentTarget.style.background = 'rgba(255, 100, 100, 0.1)'; 
+                      }
+                    }}
+                    onMouseOut={e => { 
+                      e.currentTarget.style.color = isRejected ? '#ff4444' : (isPending ? '#ffaa00' : '#888'); 
+                      e.currentTarget.style.borderColor = isRejected ? '#ff4444' : (isPending ? '#ffaa00' : '#555'); 
+                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)'; 
+                    }}
+                  >
+                    {isPending ? (
+                      <><Lock size={16} /> ⏳ Acesso Solicitado (Aguardando Aprovação)</>
+                    ) : isRejected ? (
+                      <><X size={16} /> Acesso Recusado pelo Autor (Clique para tentar novamente)</>
+                    ) : (
+                      <><Lock size={16} /> Conteúdo Restrito (Pedir Acesso)</>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Coluna Direita: O Papel Dossiê */}
       <div className="dossier-wrapper" onClick={onClose}>
-        <div className="dossier-paper" onClick={e => e.stopPropagation()}>
+        <div className="dossier-paper" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
           
+          {/* Botão Fechar no Topo Direito */}
+          <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#333', color: '#fff', border: 'none', padding: '0.5rem 1rem', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', zIndex: 10 }}>
+            FECHAR ARQUIVOS
+          </button>
+
           {/* Paperclip */}
           <div className="dossier-paperclip"></div>
           

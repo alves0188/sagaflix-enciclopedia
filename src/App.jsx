@@ -159,6 +159,23 @@ export default function App() {
       const { data: result, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
       if (error) throw error;
       const data = result.data;
+      
+      // Injeta o prêmio "Detetive do Ano" se não existir
+      if (!data.gamificationBadges) data.gamificationBadges = [];
+      if (!data.gamificationBadges.find(b => b.name === 'Detetive do ano')) {
+        data.gamificationBadges.push({
+          id: 'bdg_detetive_ano',
+          name: 'Detetive do ano',
+          description: 'Mestre da investigação: solicitou e teve acesso aprovado a mais de 100 notas secretas de autores.',
+          icon: '🕵️‍♂️',
+          conditionTarget: 'secretNotesApproved',
+          conditionOperator: '>=',
+          conditionValue: 100,
+          color: '#FFCC80'
+        });
+        await supabase.from('sagaflix_db').update({ data: data }).eq('id', 1);
+      }
+
       setDb(data);
       
       const saved = localStorage.getItem('sagaflix_user');

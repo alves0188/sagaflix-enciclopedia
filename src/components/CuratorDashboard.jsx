@@ -2703,6 +2703,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                           <option value="pagesRead">Páginas Lidas</option>
                           <option value="booksRead">Livros Lidos (Validados)</option>
                           <option value="dossiersReadComplex">Dossiês Lidos (Regra Complexa)</option>
+                          <option value="secretNotesApproved">Notas Secretas Aprovadas</option>
                         </select>
                       </div>
                       <div style={{ width: '130px' }}>

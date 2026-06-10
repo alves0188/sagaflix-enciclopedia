@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -37,6 +37,29 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     ...editorConfig,
     readonly: isReadOnly
   };
+
+  // Auto-save logic
+  const autoSaveTimeoutRef = useRef(null);
+  useEffect(() => {
+    if (!editingItem || editingItem === 'new' || isReadOnly) return;
+    if (Object.keys(formData).length === 0) return;
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      const listKey = getListKey(formData.type);
+      
+      const currentItem = (data[listKey] || []).find(i => i.id === formData.id);
+      if (JSON.stringify(currentItem) === JSON.stringify(formData)) return;
+
+      const updatedList = (data[listKey] || []).map(item => item.id === formData.id ? formData : item);
+      onUpdate({ ...data, [listKey]: updatedList });
+    }, 2000);
+
+    return () => clearTimeout(autoSaveTimeoutRef.current);
+  }, [formData, editingItem, isReadOnly, data, onUpdate]);
 
   const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
   const canEditChapter = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
@@ -98,12 +121,30 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     }
   };
 
+  const moveToTrash = (itemType, itemData, parentId = null) => {
+    const trashItem = {
+      id: 'trash_' + Date.now() + Math.floor(Math.random() * 1000),
+      itemType,
+      itemData,
+      parentId,
+      deletedAt: new Date().toISOString()
+    };
+    const updatedBook = {
+      ...currentBook,
+      trash: [...(currentBook.trash || []), trashItem]
+    };
+    onUpdateBook(updatedBook);
+  };
+
   const handleDelete = (id, type) => {
     if (isReadOnly) return;
-    if (window.confirm('Tem certeza que deseja excluir?')) {
+    if (window.confirm('Tem certeza que deseja excluir? Ele será movido para a Lixeira.')) {
       const listKey = getListKey(type);
-      const updatedList = (data[listKey] || []).filter(item => item.id !== id);
       const deletedItem = (data[listKey] || []).find(item => item.id === id);
+      if (deletedItem) {
+        moveToTrash(type, deletedItem);
+      }
+      const updatedList = (data[listKey] || []).filter(item => item.id !== id);
       
       if (onLogChange && deletedItem) {
         const typeNames = { chapters: 'capítulo', characters: 'personagem', locations: 'local', organizations: 'organização', clues: 'complemento', items: 'item', events: 'evento/tag', posts: 'notícia/post' };
@@ -284,9 +325,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
   const handleRemoveGlobalPage = (globalIdx) => {
     if (isReadOnly) return;
-    const newPages = formData.pages.filter((_, i) => i !== globalIdx);
-    setFormData({ ...formData, pages: newPages });
-    setActivePageIdxWithinSubtheme(Math.max(0, activePageIdxWithinSubtheme - 1));
+    if (window.confirm('Tem certeza que deseja excluir esta sessão inteira? Ela será movida para a Lixeira.')) {
+      const deletedPage = formData.pages[globalIdx];
+      if (deletedPage) {
+        moveToTrash('session', deletedPage, formData.id);
+      }
+
+      const newPages = formData.pages.filter((_, i) => i !== globalIdx);
+      setFormData({ ...formData, pages: newPages });
+      setActivePageIdxWithinSubtheme(Math.max(0, activePageIdxWithinSubtheme - 1));
+    }
   };
 
   const handleSubthemeNameChange = (newName) => {
@@ -318,6 +366,138 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
       alert('Avaliação removida com sucesso!');
     }
+  };
+
+  const handleRestoreFromTrash = (trashItem) => {
+    if (isReadOnly) return;
+    if (trashItem.itemType === 'session') {
+      const parentChapter = (data.chapters || []).find(c => c.id === trashItem.parentId);
+      if (!parentChapter) {
+        alert('O capítulo dessa sessão foi excluído. Restaure o capítulo primeiro.');
+        return;
+      }
+      const updatedChapter = { ...parentChapter, pages: [...(parentChapter.pages || []), trashItem.itemData] };
+      const updatedChapters = (data.chapters || []).map(c => c.id === updatedChapter.id ? updatedChapter : c);
+      onUpdate({ ...data, chapters: updatedChapters });
+    } else {
+      const listKey = getListKey(trashItem.itemType);
+      const updatedList = [...(data[listKey] || []), trashItem.itemData];
+      onUpdate({ ...data, [listKey]: updatedList });
+    }
+    
+    const updatedTrash = (currentBook.trash || []).filter(t => t.id !== trashItem.id);
+    onUpdateBook({ ...currentBook, trash: updatedTrash });
+    alert('Item restaurado com sucesso!');
+  };
+
+  const handleDeletePermanently = (id) => {
+    if (isReadOnly) return;
+    if (window.confirm('Tem certeza que deseja excluir DEFINITIVAMENTE? Esta ação não pode ser desfeita.')) {
+      const updatedTrash = (currentBook.trash || []).filter(t => t.id !== id);
+      onUpdateBook({ ...currentBook, trash: updatedTrash });
+    }
+  };
+
+  const renderTrashTab = () => {
+    const trashItems = currentBook?.trash || [];
+    return (
+      <div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Lixeira</h2>
+        {trashItems.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia.</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Tipo</th>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Nome / Título</th>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Data de Exclusão</th>
+                <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trashItems.map((item) => (
+                <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{item.itemType === 'session' ? 'Sessão' : item.itemType}</td>
+                  <td style={{ padding: '1rem' }}>{item.itemData?.name || item.itemData?.title || 'Sem título'}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{new Date(item.deletedAt).toLocaleString()}</td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <button onClick={() => handleRestoreFromTrash(item)} style={{ background: 'rgba(76, 175, 80, 0.1)', border: 'none', color: '#4caf50', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '4px', marginRight: '0.5rem' }}>Restaurar</button>
+                    <button onClick={() => handleDeletePermanently(item.id)} style={{ background: 'rgba(255, 68, 68, 0.1)', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '4px' }}>Excluir Definitivamente</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  };
+
+  const handleApproveNote = (noteId) => {
+    const updatedNotes = (data.notes || []).map(n => n.id === noteId ? { ...n, status: 'accepted' } : n);
+    onUpdate({ ...data, notes: updatedNotes });
+  };
+
+  const handleRejectNote = (noteId) => {
+    const updatedNotes = (data.notes || []).map(n => n.id === noteId ? { ...n, status: 'rejected' } : n);
+    onUpdate({ ...data, notes: updatedNotes });
+  };
+
+  const renderNotesTab = () => {
+    const notes = data.notes || [];
+    const pendingNotes = notes.filter(n => n.status === 'pending');
+    const acceptedNotes = notes.filter(n => n.status === 'accepted');
+
+    return (
+      <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Notas dos Leitores</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Aprove ou rejeite comentários feitos pelos leitores em trechos do livro.</p>
+        </div>
+
+        {pendingNotes.length === 0 ? (
+          <div style={{ padding: '3rem', textAlign: 'center', opacity: 0.5, border: '1px dashed var(--border-color)', borderRadius: '8px' }}>
+            Nenhuma nota pendente de aprovação.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {pendingNotes.map(n => (
+              <div key={n.id} style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', borderLeft: '4px solid #ff9800' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div style={{ fontWeight: 'bold' }}>{n.userName} <span style={{ opacity: 0.5, fontSize: '0.8rem', fontWeight: 'normal' }}>- {new Date(n.createdAt).toLocaleDateString()}</span></div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => handleApproveNote(n.id)} style={{ padding: '0.4rem 0.8rem', background: '#4caf50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Aceitar</button>
+                    <button onClick={() => handleRejectNote(n.id)} style={{ padding: '0.4rem 0.8rem', background: '#f44336', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>Rejeitar</button>
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.5rem', fontStyle: 'italic' }}>
+                  Trecho de referência: Capítulo {n.chapterId}, Subtema: {n.subthemeStr}
+                </div>
+                <div style={{ fontSize: '1rem', lineHeight: '1.5' }}>"{n.text}"</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {acceptedNotes.length > 0 && (
+          <div style={{ marginTop: '2rem' }}>
+            <h2 style={{ fontSize: '1.3rem', fontFamily: "'Playfair Display', serif", borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Notas Aprovadas</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {acceptedNotes.map(n => (
+                <div key={n.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '4px solid #4caf50' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 'bold' }}>{n.userName}</div>
+                    <div style={{ opacity: 0.7, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Heart size={14} /> {n.likes?.length || 0} curtidas</div>
+                  </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>{n.text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderReviewsTab = () => {
@@ -589,6 +769,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Lightbulb size={18} /> Painel de Ideias
           </button>
         )}
+        <button style={navItemStyle(activeList === 'notes')} onClick={() => {setActiveList('notes'); setEditingItem(null);}}>
+            <MessageSquare size={18} /> Notas dos Leitores
+        </button>
+        <button style={navItemStyle(activeList === 'trash')} onClick={() => {setActiveList('trash'); setEditingItem(null);}}>
+            <Trash2 size={18} /> Lixeira
+        </button>
         
         <div style={{ flex: 1 }}></div>
         {currentBook?.status !== 'draft' && !isReadOnly && (
@@ -609,6 +795,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
+        ) : activeList === 'notes' ? (
+          renderNotesTab()
+        ) : activeList === 'trash' ? (
+          renderTrashTab()
         ) : activeList === 'ideias' ? (
           <BookIdeasBoard 
             book={currentBook} 
@@ -851,7 +1041,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 2: Center (Editor de Texto) */}
-            <div style={{ flex: 1, backgroundColor: 'var(--bg-color)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <div style={{ flex: 1, backgroundColor: 'var(--bg-color)', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto' }}>
               
               {uniqueSubthemes.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhum subtema configurado.</div>
@@ -903,7 +1093,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                     </div>
 
-                    <div style={{ flex: 1, padding: '0 3rem 3rem 3rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                    <div style={{ padding: '0 3rem', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
@@ -913,53 +1103,47 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         placeholder="Escreva a sessão do capítulo aqui..."
                       />
                     </div>
+
+                    <div style={{ padding: '2rem 3rem 3rem 3rem', marginTop: '1rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
+                      <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
+                        <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
+                        {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
+                        
+                        {!isReadOnly ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
+                            <label className="btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '0.8rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {uploading ? 'Enviando...' : <><Upload size={16} /> Fazer Upload da Imagem</>}
+                              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePageImageUpload(e, activePage.globalIdx)} />
+                            </label>
+                            <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>OU COLE UMA URL</div>
+                            <input type="text" value={activePage.image || ''} onChange={(e) => handlePageChange(activePage.globalIdx, 'image', e.target.value)} className="form-input" placeholder="https://..." style={{ padding: '0.8rem', fontSize: '0.85rem' }} />
+                          </div>
+                        ) : (
+                          activePage.image && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.5rem' }}>Link: {activePage.image}</div>
+                        )}
+                      </div>
+
+                      {!isReadOnly && (
+                        <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end' }}>
+                          <button onClick={() => {
+                            handleRemoveGlobalPage(activePage.globalIdx);
+                          }} style={{ width: '100%', background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', border: '1px solid rgba(255, 68, 68, 0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                            <Trash2 size={18} /> Excluir Sessão Atual
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 );
               })()}
             </div>
 
-            {/* COLUMN 3: Right (Imagem e Ações) */}
-            <div style={{ width: '340px', borderLeft: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '2.5rem', gap: '2rem', overflowY: 'auto' }}>
-              
-              {uniqueSubthemes.length > 0 && activeSubthemePages.length > 0 && (() => {
-                const activePage = activeSubthemePages[activePageIdxWithinSubtheme];
-                if (!activePage) return null;
-
-                return (
-                  <>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
-                    
-                    <div style={formFieldStyle}>
-                      <label style={{ fontSize: '0.95rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
-                      {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '250px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
-                      
-                      {!isReadOnly ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-                          <label className="btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '0.8rem', justifyContent: 'center' }}>
-                            {uploading ? 'Enviando...' : <><Upload size={18} /> Fazer Upload da Imagem</>}
-                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePageImageUpload(e, activePage.globalIdx)} />
-                          </label>
-                          <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.8rem' }}>OU COLE UMA URL</div>
-                          <input type="text" value={activePage.image || ''} onChange={(e) => handlePageChange(activePage.globalIdx, 'image', e.target.value)} className="form-input" placeholder="https://..." style={{ padding: '0.8rem', fontSize: '0.9rem' }} />
-                        </div>
-                      ) : (
-                        activePage.image && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.5rem' }}>Link: {activePage.image}</div>
-                      )}
-                    </div>
-
-                    {!isReadOnly && (
-                      <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,68,68,0.2)', paddingTop: '2rem' }}>
-                        <button onClick={() => {
-                          handleRemoveGlobalPage(activePage.globalIdx);
-                        }} style={{ width: '100%', background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', border: '1px solid rgba(255, 68, 68, 0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
-                          <Trash2 size={18} /> Excluir Sessão Atual
-                        </button>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-
+            {/* COLUMN 3: Right (Ideias) */}
+            <div style={{ width: '420px', borderLeft: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden' }}>
+              {currentBook && (
+                <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
+              )}
             </div>
 
           </div>

@@ -29,8 +29,42 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
   const handleUpdateBook = (newBookProps) => {
     const newDb = { ...db };
-    newDb.books[bookIndex] = { ...newDb.books[bookIndex], ...newBookProps };
+    newDb.books[bookIndex] = { ...currentBook, ...newBookProps };
     onUpdateData(newDb);
+  };
+
+  const handleRequestNoteAccess = (noteId) => {
+    const newDb = { ...db };
+    if (!newDb.noteRequests) newDb.noteRequests = [];
+    
+    // Verifica se já existe um pedido
+    const exists = newDb.noteRequests.find(r => r.noteId === noteId && r.userId === currentUser.id && r.bookId === bookId);
+    if (!exists) {
+      newDb.noteRequests.push({
+        id: Date.now().toString(),
+        noteId,
+        userId: currentUser.id,
+        userName: currentUser.name || currentUser.nickname,
+        bookId,
+        bookTitle: currentBook.title,
+        itemId: selectedItem.id,
+        itemType: selectedItem.type,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+      onUpdateData(newDb);
+      alert('Solicitação de acesso enviada ao autor com sucesso!');
+    } else {
+      if (exists.status === 'pending') {
+        alert('Você já possui uma solicitação pendente para esta nota.');
+      } else if (exists.status === 'rejected') {
+        exists.status = 'pending';
+        exists.retryCount = (exists.retryCount || 0) + 1;
+        exists.createdAt = new Date().toISOString();
+        onUpdateData(newDb);
+        alert('Sua solicitação foi reenviada ao autor!');
+      }
+    }
   };
 
   const handleLogChange = (action, details, type = 'log', extraData = {}) => {
@@ -374,7 +408,16 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
       {/* Modais */}
       {selectedItem && (
-        <DetailModal item={selectedItem} bookTitle={currentBook?.title} events={universe.posts || []} onClose={() => setSelectedItem(null)} />
+        <DetailModal 
+          item={selectedItem} 
+          bookTitle={currentBook?.title} 
+          events={universe.posts || []} 
+          onClose={() => setSelectedItem(null)} 
+          onRequestAccess={handleRequestNoteAccess}
+          db={db}
+          currentUser={currentUser}
+          onUpdateData={onUpdateData}
+        />
       )}
       {selectedAuthor && (
         <AuthorModal author={selectedAuthor} db={db} onClose={() => setSelectedAuthor(null)} />

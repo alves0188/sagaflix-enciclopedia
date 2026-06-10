@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 
 const COLORS = [
@@ -23,6 +23,7 @@ const DEFAULT_LEGENDS = {
 export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
+  const [noteRequestTab, setNoteRequestTab] = useState('pending');
   
   // Filtros de Livros
   const [searchText, setSearchText] = useState('');
@@ -143,6 +144,25 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     const totalStars = allPublishedBooks.reduce((acc, curr) => acc + (curr.ratings || []).reduce((sum, r) => sum + r.stars, 0), 0);
     const globalAverageRating = totalRatingsCount > 0 ? (totalStars / totalRatingsCount).toFixed(1) : '0.0';
 
+    // Cálculo total de curtidas nas notas do autor
+    let totalNoteLikes = 0;
+    const feedbackList = db.noteFeedback || [];
+    authorBooks.forEach(book => {
+      if (!book.universe) return;
+      const types = ['characters', 'locations', 'organizations', 'items'];
+      types.forEach(t => {
+        if (book.universe[t]) {
+          book.universe[t].forEach(item => {
+            if (item.authorNotes) {
+              item.authorNotes.forEach(note => {
+                totalNoteLikes += feedbackList.filter(f => f.noteId === note.id && f.type === 'like').length;
+              });
+            }
+          });
+        }
+      });
+    });
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Estúdio Analytics</h2>
@@ -167,6 +187,22 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
           <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              <Star size={18} /> Avaliação Média
+            </div>
+            <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{globalAverageRating}</h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baseado em {totalRatingsCount} reviews</span>
+          </div>
+
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              <ThumbsUp size={18} /> Relevância de Notas
+            </div>
+            <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{totalNoteLikes}</h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Curtidas totais em notas no dossiê</span>
+          </div>
+
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <TrendingUp size={18} /> Status de Obras
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{pendingCount}</h3>
@@ -722,6 +758,186 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     );
   };
 
+  const handleApproveNoteAccess = (reqId) => {
+    const newDb = { ...db };
+    const req = newDb.noteRequests.find(r => r.id === reqId);
+    if (req) {
+      req.status = 'approved';
+      onUpdateData(newDb);
+    }
+  };
+
+  const handleRejectNoteAccess = (reqId) => {
+    const newDb = { ...db };
+    const req = newDb.noteRequests.find(r => r.id === reqId);
+    if (req) {
+      req.status = 'rejected';
+      onUpdateData(newDb);
+    }
+  };
+
+  const renderSolicitacoesNotas = () => {
+    // Pegar apenas os livros que pertencem a este autor
+    const myBooks = db.books.filter(b => b.authorId === effectiveUser.id).map(b => b.id);
+    const requests = (db.noteRequests || []).filter(r => r.status === noteRequestTab && myBooks.includes(r.bookId));
+    
+    return (
+      <div className="animate-fade-in">
+        <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem' }}>Solicitações de Notas Secretas</h2>
+        
+        {/* Abas de Navegação Interna */}
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+          <button 
+            onClick={() => setNoteRequestTab('pending')}
+            style={{ background: 'none', border: 'none', color: noteRequestTab === 'pending' ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: noteRequestTab === 'pending' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
+            Pendentes
+          </button>
+          <button 
+            onClick={() => setNoteRequestTab('approved')}
+            style={{ background: 'none', border: 'none', color: noteRequestTab === 'approved' ? '#4CAF50' : 'var(--text-muted)', fontWeight: noteRequestTab === 'approved' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
+            Aprovados
+          </button>
+          <button 
+            onClick={() => setNoteRequestTab('rejected')}
+            style={{ background: 'none', border: 'none', color: noteRequestTab === 'rejected' ? '#f44336' : 'var(--text-muted)', fontWeight: noteRequestTab === 'rejected' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
+            Recusados
+          </button>
+          <button 
+            onClick={() => setNoteRequestTab('ranking')}
+            style={{ background: 'none', border: 'none', color: noteRequestTab === 'ranking' ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: noteRequestTab === 'ranking' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem', marginLeft: 'auto' }}>
+            <Activity size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '0.3rem' }} />
+            Métricas de Notas
+          </button>
+        </div>
+
+        {noteRequestTab === 'ranking' ? (
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ThumbsUp size={20} color="var(--accent-gold)" /> Notas Mais Avaliadas
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+              {(() => {
+                const authorNotes = [];
+                const feedbackList = db.noteFeedback || [];
+                
+                db.books.filter(b => b.authorId === effectiveUser.id).forEach(book => {
+                  if (!book.universe) return;
+                  const types = ['characters', 'locations', 'organizations', 'items'];
+                  types.forEach(t => {
+                    if (book.universe[t]) {
+                      book.universe[t].forEach(item => {
+                        if (item.authorNotes) {
+                          item.authorNotes.forEach(note => {
+                            const likes = feedbackList.filter(f => f.noteId === note.id && f.type === 'like').length;
+                            const dislikes = feedbackList.filter(f => f.noteId === note.id && f.type === 'dislike').length;
+                            if (likes > 0 || dislikes > 0) {
+                              authorNotes.push({
+                                ...note,
+                                bookTitle: book.title,
+                                itemType: t,
+                                itemName: item.name || item.title,
+                                likes,
+                                dislikes
+                              });
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                });
+                
+                authorNotes.sort((a, b) => b.likes - a.likes);
+                
+                if (authorNotes.length === 0) {
+                  return <p style={{ color: 'var(--text-muted)' }}>Suas notas ainda não receberam avaliações.</p>;
+                }
+                
+                return authorNotes.map((note, idx) => (
+                  <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
+                    <div style={{ fontSize: '0.8rem', color: note.isSecret ? '#ff7777' : 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                      {note.isSecret ? 'NOTA SECRETA' : 'NOTA PÚBLICA'}
+                    </div>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff' }}>{note.title || 'Sem Título'}</h4>
+                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Em: {note.itemName} ({note.bookTitle})
+                    </p>
+                    <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#4CAF50', fontWeight: 'bold' }}>
+                        <ThumbsUp size={16} /> {note.likes}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f44336', fontWeight: 'bold' }}>
+                        <ThumbsDown size={16} /> {note.dislikes}
+                      </div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        ) : requests.length === 0 ? (
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Key size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+            <p>Nenhuma solicitação nesta aba no momento.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {requests.map(req => {
+              const book = db.books.find(b => b.id === req.bookId);
+              let noteTitle = 'Nota Secreta';
+              if (book?.universe) {
+                const types = ['characters', 'locations', 'organizations', 'items'];
+                for (const t of types) {
+                  if (book.universe[t]) {
+                    const item = book.universe[t].find(i => i.id === req.itemId);
+                    if (item && item.authorNotes) {
+                      const note = item.authorNotes.find(n => n.id === req.noteId);
+                      if (note) noteTitle = note.title;
+                    }
+                  }
+                }
+              }
+
+              return (
+                <div key={req.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem', position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>{req.userName}</h3>
+                    {req.retryCount > 0 && noteRequestTab === 'pending' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255, 170, 0, 0.1)', color: '#ffaa00', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }} title="Já foi recusado antes">
+                        <RefreshCw size={12} /> {req.retryCount}x
+                      </div>
+                    )}
+                  </div>
+                  <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Livro: {req.bookTitle}</p>
+                  
+                  <div style={{ padding: '0.8rem', background: 'rgba(255, 100, 100, 0.05)', border: '1px dashed rgba(255, 100, 100, 0.3)', borderRadius: '6px', marginBottom: '1.5rem' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#ff7777', fontWeight: 'bold', marginBottom: '0.3rem' }}>PEDINDO ACESSO À NOTA:</div>
+                    <div style={{ color: '#fff', fontSize: '0.9rem' }}>{noteTitle}</div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    {noteRequestTab === 'pending' && (
+                      <>
+                        <button className="btn-primary" style={{ flex: 1, background: '#4CAF50' }} onClick={() => handleApproveNoteAccess(req.id)}>Aprovar</button>
+                        <button className="btn-secondary" style={{ flex: 1, color: '#f44336', borderColor: 'rgba(244,67,54,0.3)' }} onClick={() => handleRejectNoteAccess(req.id)}>Recusar</button>
+                      </>
+                    )}
+                    {noteRequestTab === 'approved' && (
+                      <button className="btn-secondary" style={{ flex: 1, color: '#f44336', borderColor: 'rgba(244,67,54,0.3)' }} onClick={() => handleRejectNoteAccess(req.id)}>Revogar Acesso (Recusar)</button>
+                    )}
+                    {noteRequestTab === 'rejected' && (
+                      <button className="btn-primary" style={{ flex: 1, background: '#4CAF50' }} onClick={() => handleApproveNoteAccess(req.id)}>Reverter (Aprovar)</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="author-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
       
@@ -754,6 +970,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <button onClick={() => setActiveTab('dashboard')} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
         <button onClick={() => setActiveTab('livros')} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Meus Livros</button>
         <button onClick={() => setActiveTab('ideias')} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
+        <button onClick={() => setActiveTab('solicitacoes_notas')} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
         <button onClick={() => setActiveTab('suporte')} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
       </div>
 
@@ -762,6 +979,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'livros' && renderBooks()}
         {activeTab === 'ideias' && renderIdeas()}
+        {activeTab === 'solicitacoes_notas' && renderSolicitacoesNotas()}
         {activeTab === 'suporte' && renderSuporte()}
       </div>
 

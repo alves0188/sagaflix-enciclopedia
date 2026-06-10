@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send } from 'lucide-react';
 
 const cleanChapterTitle = (title) => {
   if (!title) return '';
@@ -17,6 +17,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const book = db?.books?.find(b => b.id === bookId);
   const data = book?.universe || {};
   const rawChapters = data?.chapters || [];
+  const notes = data?.notes || [];
 
   const processedRawChapters = rawChapters.map((ch, idx) => {
     const chapterNum = idx + 1;
@@ -67,8 +68,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const virtualChapters = [
     {
       isVirtual: true,
-      virtualType: 'cover',
-      title: 'Capa',
+      virtualType: 'book_info',
+      title: 'O Livro',
       pages: [
         {
           subtheme: 'Capa Oficial',
@@ -80,14 +81,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             </div>
           `,
           image: book?.cover
-        }
-      ]
-    },
-    {
-      isVirtual: true,
-      virtualType: 'author',
-      title: 'Sobre o Autor',
-      pages: [
+        },
         {
           subtheme: 'Sobre o Autor',
           text: `
@@ -107,14 +101,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             </div>
           `,
           image: bookAuthor?.avatar
-        }
-      ]
-    },
-    {
-      isVirtual: true,
-      virtualType: 'synopsis',
-      title: 'Sinopse',
-      pages: [
+        },
         {
           subtheme: 'Sinopse',
           text: `
@@ -160,7 +147,62 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const [totalBookPages, setTotalBookPages] = useState(1);
 
   const textContainerRef = useRef(null);
+  const readerWrapperRef = useRef(null);
   const measurerRefs = useRef({});
+
+  // Comments State
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [activeParagraphIdx, setActiveParagraphIdx] = useState(null);
+  const [newCommentText, setNewCommentText] = useState('');
+
+  const getChapterId = (ch) => ch?.isVirtual ? ch.virtualType : ch?.id;
+
+  const handleSubmitComment = (e) => {
+    e.preventDefault();
+    if (!newCommentText.trim() || !chapter) return;
+
+    const newNote = {
+      id: 'note_' + Date.now(),
+      userId: currentUser?.id || 'anon',
+      userName: currentUser?.name || 'Leitor',
+      userAvatar: currentUser?.avatar || null,
+      chapterId: getChapterId(chapter),
+      subthemeStr: subthemeObj?.subtheme || '',
+      paragraphIdx: activeParagraphIdx,
+      text: newCommentText,
+      status: 'pending',
+      likes: [],
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedUniverse = { ...data, notes: [...notes, newNote] };
+    const updatedBook = { ...book, universe: updatedUniverse };
+    const newDb = { ...db, books: db.books.map(b => b.id === book.id ? updatedBook : b) };
+    
+    onUpdateData(newDb);
+    setNewCommentText('');
+  };
+
+  const handleLikeComment = (noteId) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note || !currentUser) return;
+
+    const hasLiked = note.likes?.includes(currentUser.id);
+    let newLikes = [...(note.likes || [])];
+    
+    if (hasLiked) {
+      newLikes = newLikes.filter(id => id !== currentUser.id);
+    } else {
+      newLikes.push(currentUser.id);
+    }
+
+    const updatedNotes = notes.map(n => n.id === noteId ? { ...n, likes: newLikes } : n);
+    const updatedUniverse = { ...data, notes: updatedNotes };
+    const updatedBook = { ...book, universe: updatedUniverse };
+    const newDb = { ...db, books: db.books.map(b => b.id === book.id ? updatedBook : b) };
+    
+    onUpdateData(newDb);
+  };
 
   // Flatten all subthemes for global pagination (excluding locked chapters)
   const allSubthemes = chapters.reduce((acc, ch, cIdx) => {
@@ -260,6 +302,38 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   // Measure columns and global pages
   useEffect(() => {
     const calculateAll = () => {
+      if (readerWrapperRef.current) {
+        const wrapper = readerWrapperRef.current;
+        wrapper.style.flex = '1';
+        wrapper.style.height = 'auto';
+        
+        const availableHeight = wrapper.clientHeight;
+        const computedStyle = window.getComputedStyle(wrapper);
+        const fontSize = parseFloat(computedStyle.fontSize) || 16;
+        let lineHeight = fontSize * 1.8;
+        if (computedStyle.lineHeight && computedStyle.lineHeight !== 'normal') {
+          lineHeight = parseFloat(computedStyle.lineHeight);
+        }
+        
+        const exactLines = Math.floor(availableHeight / lineHeight);
+        const optimalHeight = Math.max(lineHeight, exactLines * lineHeight);
+        
+        wrapper.style.flex = 'none';
+        wrapper.style.height = `${optimalHeight}px`;
+
+        if (textContainerRef.current) {
+          textContainerRef.current.style.height = `${optimalHeight}px`;
+          textContainerRef.current.style.columnWidth = `${textContainerRef.current.clientWidth}px`;
+        }
+
+        Object.values(measurerRefs.current).forEach(el => {
+          if (el) {
+            el.style.height = `${optimalHeight}px`;
+            el.style.columnWidth = `${el.clientWidth}px`;
+          }
+        });
+      }
+
       const counts = [];
       let total = 0;
       allSubthemes.forEach((sub, i) => {
@@ -394,6 +468,79 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     return groups;
   };
 
+  const getBubbleSvg = (count, goldColor, isHover = false) => {
+    const width = count > 9 ? 36 : count > 0 ? 30 : 26;
+    const color = goldColor.replace('#', '%23');
+    const textHtml = count > 0 
+      ? `<text x="${width / 2 + 4}" y="12.5" font-family="sans-serif" font-size="10" font-weight="bold" fill="%23000" text-anchor="middle">${count}</text>`
+      : `<text x="${width / 2 + 4}" y="13.5" font-family="sans-serif" font-size="12" font-weight="bold" fill="%23000" text-anchor="middle">+</text>`;
+      
+    const opacityAttr = isHover ? 'opacity="0.5"' : '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="18" viewBox="0 0 ${width} 18" ${opacityAttr}>
+      <rect x="0" y="0" width="${width}" height="18" rx="9" fill="${color}" />
+      <g transform="translate(${count === 0 ? 2 : 4}, 3) scale(0.5)">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="%23000" stroke="%23000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      ${textHtml}
+    </svg>`;
+    return `data:image/svg+xml;charset=utf-8,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E').replace(/\s+/g, ' ')}`;
+  };
+
+  const renderReaderBody = (htmlString, chObj, subObj) => {
+    if (!htmlString) return null;
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+    const nodes = Array.from(doc.body.childNodes);
+    const chId = getChapterId(chObj);
+    const subStr = subObj?.subtheme || '';
+    
+    return nodes.map((node, pIdx) => {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === '') return null;
+      
+      const nodeHtml = node.outerHTML || node.textContent;
+      if (node.nodeName.toLowerCase() === 'p' && (node.innerHTML === '<br>' || node.textContent.trim() === '')) {
+        return <div key={pIdx} dangerouslySetInnerHTML={{ __html: nodeHtml }} />;
+      }
+      
+      const paragraphNotes = notes.filter(n => 
+        n.chapterId === chId && 
+        n.subthemeStr === subStr && 
+        n.paragraphIdx === pIdx &&
+        (n.status === 'accepted' || n.userId === currentUser?.id)
+      );
+      
+      const hasNotes = paragraphNotes.length > 0;
+      return (
+        <div 
+          key={pIdx} 
+          className={`reader-paragraph-wrapper ${hasNotes ? 'has-notes' : 'no-notes'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveParagraphIdx(pIdx);
+            setIsCommentsOpen(true);
+          }}
+          style={{ 
+            cursor: 'pointer', 
+            display: 'block', 
+            paddingRight: '35px',
+            breakInside: 'auto',
+            '--bubble-svg': `url("${getBubbleSvg(paragraphNotes.length, themeColors.gold)}")`,
+            '--bubble-svg-empty-hover': `url("${getBubbleSvg(0, themeColors.gold, true)}")`
+          }}
+        >
+          <div dangerouslySetInnerHTML={{ __html: nodeHtml }} 
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setActiveParagraphIdx(pIdx);
+                 setIsCommentsOpen(true);
+               }}
+               style={{ display: 'block', width: '100%' }} />
+        </div>
+      );
+    });
+  };
+
 
 
   return (
@@ -429,7 +576,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             {chapter && (
               <>
                 <div style={{ fontWeight: 'bold', fontSize: '1rem', color: themeColors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {chapter.isVirtual ? chapter.title : `Capítulo ${String(activeChapterIdx - 2).padStart(2, '0')}`}
+                  {chapter.isVirtual ? chapter.title : `Capítulo ${String(activeChapterIdx - virtualChapters.length + 1).padStart(2, '0')}`}
                 </div>
                 <div style={{ fontSize: '0.9rem', color: themeColors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {!chapter.isVirtual && chapter.title} {subthemeObj?.subtheme && !chapter.isVirtual ? `- ${subthemeObj.subtheme}` : ''}
@@ -511,7 +658,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {ch.isVirtual ? ch.title : `Cap. ${String(idx - 2).padStart(2, '0')} - ${ch.title || 'Sem título'}`}
+                      {ch.isVirtual ? ch.title : `Cap. ${String(idx - virtualChapters.length + 1).padStart(2, '0')} - ${ch.title || 'Sem título'}`}
                     </span>
                     {locked && (
                       <span style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.2rem', color: themeColors.gold, fontWeight: 'bold' }}>
@@ -554,48 +701,60 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
           overflow: 'hidden', position: 'relative'
         }}>
-          <div style={{ flex: 1, width: '100%', maxWidth: '800px', display: 'flex', overflow: 'hidden', padding: isMobile ? '1.2rem 1rem' : '2rem 1rem', position: 'relative' }}>
+          <div style={{ flex: 1, width: '100%', maxWidth: '800px', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: isMobile ? '1.2rem 1rem' : '2rem 1rem', position: 'relative' }}>
             
-            {/* The Sliding Container */}
             <div 
-              ref={textContainerRef}
-              style={{
-                height: '100%',
+              ref={readerWrapperRef} 
+              style={{ 
                 width: '100%',
-                columnWidth: '100%',
-                columnGap: '2rem',
-                transform: `translateX(calc(${activeColumnIdx} * -100% - ${activeColumnIdx} * 2rem))`,
-                transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+                minWidth: 0,
+                flex: 1, 
+                position: 'relative', 
+                overflow: 'hidden',
                 fontSize: `${zoom}%`,
-                lineHeight: '1.9',
-                fontFamily: "'Merriweather', 'Georgia', serif",
-                textAlign: 'justify'
+                lineHeight: '1.8',
+                fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif"
               }}
             >
-              {subthemeObj ? (
-                <div>
-
-                  
-                  {subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
-                    <h2 style={{ 
-                       fontFamily: "'Playfair Display', serif", 
-                       color: themeColors.gold, 
-                       marginBottom: '2rem', 
-                       marginTop: activeSubthemeIdx === 0 ? '0' : '2rem',
-                       fontSize: activeSubthemeIdx === 0 ? '1.8rem' : '2.2rem',
-                       textTransform: activeSubthemeIdx === 0 ? 'uppercase' : 'none'
-                    }}>
-                      {subthemeObj.subtheme}
-                    </h2>
-                  )}
-                  
-                  <div className="reader-body" dangerouslySetInnerHTML={{ __html: (subthemeObj.text || '').replace(/(<p>(\s|&nbsp;|<br\/?\s*>)*<\/p>)+$/, '') }} />
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', marginTop: '4rem', opacity: 0.5, fontSize: '1.2rem' }}>
-                  O livro ainda não começou a ser escrito.
-                </div>
-              )}
+              {/* The Sliding Container */}
+              <div 
+                ref={textContainerRef}
+                style={{
+                  height: '100%',
+                  width: '100%',
+                  columnWidth: '100%',
+                  columnGap: '2rem',
+                  columnFill: 'auto',
+                  transform: `translateX(calc(${activeColumnIdx} * -100% - ${activeColumnIdx} * 2rem))`,
+                  transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+                  textAlign: 'justify'
+                }}
+              >
+                {subthemeObj ? (
+                  <div>
+                    {subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
+                      <h2 style={{ 
+                         fontFamily: "'Playfair Display', serif", 
+                         color: themeColors.gold, 
+                         marginBottom: '2rem', 
+                         marginTop: activeSubthemeIdx === 0 ? '0' : '2rem',
+                         fontSize: activeSubthemeIdx === 0 ? '1.8rem' : '2.2rem',
+                         textTransform: activeSubthemeIdx === 0 ? 'uppercase' : 'none'
+                      }}>
+                        {subthemeObj.subtheme}
+                      </h2>
+                    )}
+                    
+                    <div className={`reader-body ${chapter?.isVirtual ? 'is-virtual' : ''}`}>
+                      {renderReaderBody((subthemeObj.text || '').replace(/(<p>(\s|&nbsp;|<br\/?\s*>)*<\/p>)+$/, ''), chapter, subthemeObj)}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', marginTop: '4rem', opacity: 0.5, fontSize: '1.2rem' }}>
+                    O livro ainda não começou a ser escrito.
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Hidden measurers for global pagination */}
@@ -612,9 +771,10 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                       width: '100%',
                       columnWidth: '100%',
                       columnGap: '2rem',
+                      columnFill: 'auto',
                       fontSize: `${zoom}%`,
-                      lineHeight: '1.9',
-                      fontFamily: "'Merriweather', 'Georgia', serif",
+                      lineHeight: '1.8',
+                      fontFamily: "'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif",
                       textAlign: 'justify',
                       position: 'absolute', top: 0, left: 0
                     }}
@@ -632,7 +792,9 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                         {sub.subtheme}
                       </h2>
                     )}
-                    <div className="reader-body" dangerouslySetInnerHTML={{ __html: (sub.text || '').replace(/(<p>(\s|&nbsp;|<br\/?\s*>)*<\/p>)+$/, '') }} />
+                    <div className={`reader-body ${chapterObj?.isVirtual ? 'is-virtual' : ''}`}>
+                      {renderReaderBody((sub.text || '').replace(/(<p>(\s|&nbsp;|<br\/?\s*>)*<\/p>)+$/, ''), chapterObj, sub)}
+                    </div>
                   </div>
                 );
               })}
@@ -719,7 +881,141 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           )}
         </div>
 
-      </div>
+        {/* Floating Comments Sidebar */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: isMobile ? '100%' : '350px',
+          backgroundColor: themeColors.panelBg,
+          borderLeft: `1px solid ${themeColors.border}`,
+          zIndex: 50,
+          boxShadow: '-5px 0 20px rgba(0,0,0,0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          transform: isCommentsOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s ease',
+          pointerEvents: isCommentsOpen ? 'auto' : 'none',
+          opacity: isCommentsOpen ? 1 : 0
+        }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: `1px solid ${themeColors.border}` }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: themeColors.text, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <MessageSquare size={18} color={themeColors.gold} /> Comentários
+              </h3>
+              <button onClick={() => setIsCommentsOpen(false)} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {(() => {
+                const activeNotes = notes.filter(n => 
+                  n.chapterId === getChapterId(chapter) && 
+                  n.subthemeStr === (subthemeObj?.subtheme || '') && 
+                  n.paragraphIdx === activeParagraphIdx &&
+                  (n.status === 'accepted' || n.userId === currentUser?.id)
+                );
+                
+                if (activeNotes.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', color: themeColors.text, opacity: 0.5, marginTop: '2rem' }}>
+                      <MessageSquare size={32} style={{ opacity: 0.5, marginBottom: '1rem' }} />
+                      <p>Nenhum comentário neste trecho ainda. Seja o primeiro!</p>
+                    </div>
+                  );
+                }
+                
+                return activeNotes.map(n => (
+                  <div key={n.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                      {n.userAvatar ? (
+                        <img src={n.userAvatar} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: themeColors.gold, color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                          {n.userName?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '600', color: themeColors.gold }}>{n.userName}</div>
+                        <div style={{ fontSize: '0.7rem', color: themeColors.text, opacity: 0.5 }}>
+                          {new Date(n.createdAt).toLocaleDateString()} {n.status === 'pending' ? '(Em aprovação)' : ''}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ 
+                      fontSize: '0.9rem', 
+                      color: themeColors.text, 
+                      lineHeight: '1.5',
+                      padding: '0.8rem',
+                      background: 'rgba(0,0,0,0.1)',
+                      borderRadius: '8px',
+                      borderLeft: `2px solid ${themeColors.gold}`
+                    }}>
+                      {n.text}
+                    </div>
+                    
+                    {n.status === 'accepted' && (
+                      <div style={{ display: 'flex', gap: '1rem', paddingLeft: '0.5rem' }}>
+                        <button 
+                          onClick={() => handleLikeComment(n.id)}
+                          style={{ 
+                            background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                            color: n.likes?.includes(currentUser?.id) ? '#ff4b4b' : themeColors.text,
+                            opacity: n.likes?.includes(currentUser?.id) ? 1 : 0.6,
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          <Heart size={14} fill={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'none'} color={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'currentColor'} /> 
+                          {n.likes?.length || 0}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ));
+              })()}
+            </div>
+            
+            <div style={{ padding: '1rem', borderTop: `1px solid ${themeColors.border}`, background: 'rgba(0,0,0,0.1)' }}>
+              <form onSubmit={handleSubmitComment} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  placeholder="Escreva um comentário..." 
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  style={{ 
+                    flex: 1, 
+                    background: 'transparent', 
+                    border: `1px solid ${themeColors.border}`, 
+                    borderRadius: '20px', 
+                    padding: '0.6rem 1rem',
+                    color: themeColors.text,
+                    outline: 'none',
+                    fontSize: '0.9rem'
+                  }} 
+                />
+                <button type="submit" disabled={!newCommentText.trim()} style={{ 
+                  background: themeColors.gold, 
+                  border: 'none', 
+                  width: '36px', 
+                  height: '36px', 
+                  borderRadius: '50%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  cursor: newCommentText.trim() ? 'pointer' : 'not-allowed',
+                  opacity: newCommentText.trim() ? 1 : 0.5
+                }}>
+                  <Send size={16} color="#000" style={{ marginLeft: '-2px' }} />
+                </button>
+              </form>
+              <div style={{ fontSize: '0.7rem', color: themeColors.text, opacity: 0.5, textAlign: 'center', marginTop: '0.5rem' }}>
+                Seu comentário será enviado ao autor(a).
+              </div>
+            </div>
+          </div>
+        </div>
 
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
@@ -781,8 +1077,20 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           }
         }
 
-        .reader-body p { margin-bottom: 1.5rem; }
-        .reader-body p:last-child { margin-bottom: 0; }
+          .reader-body *:not(.reader-chapter-header-page):not(.reader-chapter-header-page *):not(.reader-cover-page):not(.reader-cover-page *):not(.reader-author-page):not(.reader-author-page *):not(.reader-synopsis-page):not(.reader-synopsis-page *) {
+            font-family: 'Roboto', 'Inter', sans-serif !important;
+            font-weight: 400;
+          }
+          .reader-body strong, .reader-body b, .reader-body strong *, .reader-body b * {
+            font-weight: 700 !important;
+          }
+        .reader-body p { 
+          margin: 0;
+          padding-bottom: 1.5rem; 
+        }
+        .reader-body p:last-child { 
+          padding-bottom: 0; 
+        }
         .reader-body blockquote {
           border-left: 3px solid ${themeColors.gold};
           padding-left: 1rem;
@@ -790,7 +1098,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           font-style: italic;
           opacity: 0.8;
         }
-        .reader-body > p:first-of-type::first-letter {
+        .reader-body:not(.is-virtual) .reader-paragraph-wrapper:first-child p:first-of-type::first-letter {
           font-size: 3.5em;
           float: left;
           line-height: 0.8;
@@ -798,6 +1106,20 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           color: ${themeColors.gold};
           font-family: 'Playfair Display', serif;
           font-weight: bold;
+        }
+
+        .reader-paragraph-wrapper.has-notes {
+          background-image: var(--bubble-svg);
+          background-position: right 0px top 5px;
+          background-repeat: no-repeat;
+        }
+        .reader-paragraph-wrapper.no-notes {
+          background-position: right 0px top 5px;
+          background-repeat: no-repeat;
+          transition: background-image 0.2s;
+        }
+        .reader-paragraph-wrapper.no-notes:hover {
+          background-image: var(--bubble-svg-empty-hover);
         }
       `}} />
     </div>

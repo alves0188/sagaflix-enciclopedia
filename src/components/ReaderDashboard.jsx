@@ -573,6 +573,14 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         if (startedBooksCount >= 10 && finishedBooks >= 5) {
            meetsCondition = true; 
         }
+      } else if (badge.conditionTarget === 'secretNotesApproved') {
+        let approvedNotes = 0;
+        (db.books || []).forEach(b => {
+           const universeNotes = b.universe?.notes || [];
+           approvedNotes += universeNotes.filter(n => n.userId === currentUser.id && n.status === 'accepted').length;
+        });
+        if (badge.conditionOperator === '>=' && approvedNotes >= badge.conditionValue) meetsCondition = true;
+        if (badge.conditionOperator === '==' && approvedNotes === badge.conditionValue) meetsCondition = true;
       }
       if (meetsCondition) dynamicBadges.push(badge);
     });
