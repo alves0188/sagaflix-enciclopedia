@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search } from 'lucide-react';
+import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard } from 'lucide-react';
 import AdminPanel from './AdminPanel';
+import AuthorDashboard from './AuthorDashboard';
 import { uploadImage } from '../lib/supabaseClient';
 
 const ROLE_PRESETS = {
@@ -111,6 +112,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [dashTab, setDashTab] = useState('geral');
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [viewingAuthorDashId, setViewingAuthorDashId] = useState(null);
   
   const [msgTarget, setMsgTarget] = useState('all');
   const [msgText, setMsgText] = useState('');
@@ -141,6 +143,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [editingBanner, setEditingBanner] = useState(null);
   const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '' });
   const [bannerUploading, setBannerUploading] = useState(false);
+
+  // ESTADOS DA GAMIFICAÇÃO
+  const [gamificacaoSubTab, setGamificacaoSubTab] = useState('badges');
+  const [editingBadge, setEditingBadge] = useState(null);
+  const [badgeForm, setBadgeForm] = useState({ id: '', name: '', description: '', icon: '', minPages: 0 });
+  const [badgeUploading, setBadgeUploading] = useState(false);
 
   useEffect(() => {
     if (focusAuthorId) {
@@ -291,242 +299,114 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   };
 
   const renderBanners = () => {
-    const bannersList = db.banners || [];
-
     return (
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '2rem', color: 'var(--text-main)', maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gerenciamento de Banners</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.2rem 0 0 0' }}>Estes banners aparecem rotacionando no topo da estante dos leitores recomendando obras ou ideias.</p>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>Banners da Vitrine</h2>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Gerencie os destaques no topo do painel do leitor.</p>
           </div>
-          {!editingBanner && (
-            <button className="btn-primary" onClick={handleNewBanner} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <UserPlus size={16} /> Novo Banner
-            </button>
-          )}
+          <button onClick={() => {
+            setEditingBanner(true);
+            setBannerFormData({ id: 'bn_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler' });
+          }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus size={18} /> Novo Banner
+          </button>
         </div>
 
-        {editingBanner ? (
-          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem', marginBottom: '2rem' }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0, marginBottom: '1.5rem' }}>
-              {editingBanner === 'new' ? 'Adicionar Novo Banner' : 'Editar Banner'}
-            </h3>
-            
-            <form onSubmit={handleSaveBanner} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Título do Banner *</label>
-                  <input 
-                    type="text" 
-                    value={bannerFormData.title} 
-                    onChange={e => setBannerFormData({ ...bannerFormData, title: e.target.value })} 
-                    className="form-input" 
-                    placeholder="Ex: Descubra o mistério do Jardim das Flores" 
-                    required 
-                  />
+        {editingBanner && (
+          <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '2rem', animation: 'fadeIn 0.3s ease' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>{bannerFormData.id.startsWith('bn_') ? 'Novo Banner' : 'Editar Banner'}</h3>
+            <div style={{ display: 'flex', gap: '2rem' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Título</label>
+                  <input type="text" value={bannerFormData.title} onChange={e => setBannerFormData({...bannerFormData, title: e.target.value})} className="form-input" placeholder="Ex: Lançamento do Ano" style={{ width: '100%' }} />
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Descrição / Mensagem *</label>
-                  <textarea 
-                    value={bannerFormData.description} 
-                    onChange={e => setBannerFormData({ ...bannerFormData, description: e.target.value })} 
-                    className="form-input" 
-                    placeholder="Ex: Uma nova obra de suspense e mistério acaba de ser publicada. Comece a ler hoje mesmo!" 
-                    rows="3"
-                    style={{ resize: 'vertical' }}
-                    required 
-                  />
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Descrição</label>
+                  <textarea value={bannerFormData.description} onChange={e => setBannerFormData({...bannerFormData, description: e.target.value})} className="form-input" placeholder="Breve texto sobre o banner" style={{ width: '100%', height: '80px', resize: 'none' }} />
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Texto do Botão (Ação)</label>
-                    <input 
-                      type="text" 
-                      value={bannerFormData.actionText} 
-                      onChange={e => setBannerFormData({ ...bannerFormData, actionText: e.target.value })} 
-                      className="form-input" 
-                      placeholder="Ex: Ler Agora" 
-                    />
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Ação (Link ou ID do Livro)</label>
+                    <input type="text" value={bannerFormData.actionUrl} onChange={e => setBannerFormData({...bannerFormData, actionUrl: e.target.value})} className="form-input" placeholder="Ex: book_12345" style={{ width: '100%' }} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Link de Destino / URL do Livro</label>
-                    <input 
-                      type="text" 
-                      value={bannerFormData.actionUrl} 
-                      onChange={e => setBannerFormData({ ...bannerFormData, actionUrl: e.target.value })} 
-                      className="form-input" 
-                      placeholder="Ex: book_1780778689319" 
-                    />
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do Botão</label>
+                    <input type="text" value={bannerFormData.actionText} onChange={e => setBannerFormData({...bannerFormData, actionText: e.target.value})} className="form-input" placeholder="Ex: Começar a Ler" style={{ width: '100%' }} />
                   </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Imagem do Banner *</label>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <input 
-                      type="text" 
-                      value={bannerFormData.imageUrl} 
-                      onChange={e => setBannerFormData({ ...bannerFormData, imageUrl: e.target.value })} 
-                      className="form-input" 
-                      placeholder="URL da Imagem (Ex: https://images.unsplash.com/...)" 
-                      style={{ flex: 1 }}
-                    />
-                    <div style={{ position: 'relative' }}>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleBannerImageUpload} 
-                        style={{ display: 'none' }} 
-                        id="banner-file-input" 
-                      />
-                      <label 
-                        htmlFor="banner-file-input" 
-                        className="btn-secondary" 
-                        style={{ display: 'inline-block', padding: '0.8rem 1.2rem', cursor: 'pointer', margin: 0 }}
-                      >
-                        {bannerUploading ? 'Enviando...' : 'Fazer Upload'}
-                      </label>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', lineHeight: '1.4' }}>
-                    💡 <strong>Medida sugerida:</strong> Proporção <strong>4:1</strong> (Ex: <strong>1400x350px</strong> ou <strong>1200x300px</strong>). Dê preferência a artes com o foco centralizado ou à direita.
-                  </span>
                 </div>
               </div>
-
-              {/* Coluna da Direita: Preview Visual */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Prévia do Banner</span>
-                
-                <div style={{ 
-                  position: 'relative', 
-                  width: '100%', 
-                  height: '240px', 
-                  borderRadius: '12px', 
-                  overflow: 'hidden', 
-                  border: '1px solid var(--border-color)',
-                  background: '#1a1c20',
-                  display: 'flex',
-                  alignItems: 'flex-end'
-                }}>
+              
+              <div style={{ width: '300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Imagem (Paisagem recomendada)</label>
+                <div style={{ flex: 1, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>
                   {bannerFormData.imageUrl ? (
-                    <img 
-                      src={bannerFormData.imageUrl} 
-                      alt="Preview" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} 
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
+                    <>
+                      <img src={bannerFormData.imageUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0}>
+                        <label style={{ cursor: 'pointer', color: '#fff', background: 'var(--accent-gold)', padding: '0.5rem 1rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Upload size={16} /> Trocar Imagem
+                          <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleUploadBannerImage(e.target.files[0])} disabled={bannerUploading} />
+                        </label>
+                      </div>
+                    </>
                   ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', gap: '0.5rem', position: 'absolute' }}>
-                      <Image size={48} color="rgba(255,255,255,0.1)" />
-                      <span>Sem Imagem</span>
-                    </div>
+                    <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                      {bannerUploading ? <div className="loading-spinner" style={{ width: '24px', height: '24px', borderTopColor: 'var(--accent-gold)' }}></div> : <Image size={32} opacity={0.5} />}
+                      <span style={{ fontSize: '0.9rem' }}>{bannerUploading ? 'Enviando...' : 'Fazer Upload'}</span>
+                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleUploadBannerImage(e.target.files[0])} disabled={bannerUploading} />
+                    </label>
                   )}
-
-                  {/* Dark gradient overlay for readability */}
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    right: 0, 
-                    bottom: 0, 
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)',
-                    zIndex: 1
-                  }}></div>
-
-                  <div style={{ position: 'relative', zIndex: 2, padding: '1.5rem', width: '100%', boxSizing: 'border-box' }}>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif", textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                      {bannerFormData.title || 'Título da Recomendação'}
-                    </h4>
-                    <p style={{ margin: '0 0 1rem 0', color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem', lineBreak: 'anywhere', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                      {bannerFormData.description || 'Uma descrição curta para atrair os leitores...'}
-                    </p>
-                    <button type="button" className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.75rem', pointerEvents: 'none' }}>
-                      {bannerFormData.actionText || 'Ler Agora'}
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn-secondary" onClick={() => setEditingBanner(null)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-primary" disabled={bannerUploading}>
-                    Salvar Banner
-                  </button>
                 </div>
               </div>
-            </form>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
-            {bannersList.map(banner => (
-              <div 
-                key={banner.id} 
-                style={{ 
-                  background: 'var(--card-bg)', 
-                  border: '1px solid var(--border-color)', 
-                  borderRadius: '12px', 
-                  overflow: 'hidden', 
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <div style={{ position: 'relative', height: '160px', background: '#111' }}>
-                  {banner.imageUrl ? (
-                    <img src={banner.imageUrl} alt={banner.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Image size={32} color="rgba(255,255,255,0.05)" />
-                    </div>
-                  )}
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: 0, left: 0, right: 0, bottom: 0, 
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)' 
-                  }}></div>
-                  <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', right: '1rem' }}>
-                    <h4 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>{banner.title}</h4>
-                  </div>
-                </div>
-                <div style={{ padding: '1.2rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <p style={{ margin: '0 0 1.5rem 0', fontSize: '0.85rem', color: 'var(--text-muted)', flex: 1, lineHeight: '1.4' }}>
-                    {banner.description}
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
-                    <button className="btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem' }} onClick={() => handleEditBanner(banner)}>
-                      Editar
-                    </button>
-                    <button 
-                      className="btn-secondary" 
-                      style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', color: '#ff4444', borderColor: 'rgba(255, 68, 68, 0.2)' }}
-                      onClick={() => handleDeleteBanner(banner.id)}
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {bannersList.length === 0 && (
-              <div style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', borderRadius: '12px', padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                <Image size={48} color="var(--accent-gold)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <h3>Nenhum banner personalizado cadastrado</h3>
-                <p style={{ fontSize: '0.9rem', maxWidth: '400px', margin: '0.5rem auto 1.5rem auto' }}>
-                  A vitrine do leitor exibirá os banners padrão recomendados. Crie um novo banner para personalizar o topo da estante!
-                </p>
-                <button className="btn-primary" onClick={handleNewBanner}>
-                  Criar Primeiro Banner
-                </button>
-              </div>
-            )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+              <button onClick={() => setEditingBanner(null)} className="btn-secondary">Cancelar</button>
+              <button onClick={handleSaveBanner} className="btn-primary" disabled={bannerUploading || !bannerFormData.title || !bannerFormData.imageUrl}>
+                <Save size={16} /> Salvar Banner
+              </button>
+            </div>
           </div>
         )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+          {(db.banners || []).map((banner, idx) => (
+            <div key={banner.id} style={{ display: 'flex', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+              <div style={{ width: '300px', height: '160px', flexShrink: 0, position: 'relative' }}>
+                <img src={banner.imageUrl} alt={banner.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', background: 'rgba(0,0,0,0.7)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', color: '#fff', fontWeight: 'bold' }}>
+                  Ordem: {idx + 1}
+                </div>
+              </div>
+              <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', fontSize: '1.2rem' }}>{banner.title}</h3>
+                <p style={{ margin: '0 0 1rem 0', color: 'var(--text-muted)', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{banner.description}</p>
+                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
+                  <span style={{ color: 'var(--accent-gold)' }}>Ação: {banner.actionUrl}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Botão: {banner.actionText}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderLeft: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)', justifyContent: 'center', gap: '0.5rem' }}>
+                <button onClick={() => setEditingBanner(banner)} style={{ background: 'none', border: 'none', color: '#2196F3', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }} title="Editar">
+                  <Edit size={18} />
+                </button>
+                <button onClick={() => handleDeleteBanner(banner.id)} style={{ background: 'none', border: 'none', color: '#F44336', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }} title="Excluir">
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          ))}
+          {(!db.banners || db.banners.length === 0) && (
+            <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border-color)', color: 'var(--text-muted)' }}>
+              <Image size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+              <p>Nenhum banner cadastrado. Os banners padrão serão exibidos para os leitores.</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -1433,6 +1313,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     if (tab === 'mensagens') return perms.send_messages;
     if (tab === 'banners') return perms.manage_banners;
     if (tab === 'equipe') return perms.manage_team;
+    if (tab === 'gamificacao') return perms.dashboard_access; // Curadores com acesso ao painel podem gerenciar
     return false;
   };
 
@@ -1827,6 +1708,21 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   };
 
+  // ========== VIEW: AUTHOR DASHBOARD (Sobrepõe tudo) ==========
+  if (viewingAuthorDashId) {
+    return (
+      <AuthorDashboard 
+        db={db}
+        onUpdateData={onUpdateData}
+        currentUser={currentUser}
+        onSelectBook={setSelectedBook}
+        onOpenNewBook={() => {}}
+        forceUserId={viewingAuthorDashId}
+        onCloseForceView={() => setViewingAuthorDashId(null)}
+      />
+    );
+  }
+
   // ========== VIEW: CMS DO LIVRO (Sobrepõe tudo) ==========
   if (selectedBook) {
     const handleUpdateUniverse = (newUniverse) => {
@@ -1910,6 +1806,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <ArrowLeft size={16} /> Voltar
           </button>
           <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Perfil: {selectedAuthor.name}</h2>
+          <button onClick={() => setViewingAuthorDashId(selectedAuthor.id)} className="btn-primary" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <LayoutDashboard size={16} /> Acessar Dashboard do Autor
+          </button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '300px 2fr 1.5fr', gap: '2rem', flex: 1, overflowY: 'hidden' }}>
@@ -2732,6 +2631,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
         {hasAccess('mensagens') && <button onClick={() => setActiveTab('mensagens')} style={navItemStyle(activeTab === 'mensagens')}><MessageSquare size={18}/> Mensagens</button>}
         {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> Gamificação</button>}
         {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
       </div>
 
@@ -2746,6 +2646,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {activeTab === 'revisoes' && hasAccess('revisoes') && renderRevisoes()}
         {activeTab === 'mensagens' && hasAccess('mensagens') && renderMensagens()}
         {activeTab === 'banners' && hasAccess('banners') && renderBanners()}
+        {activeTab === 'gamificacao' && hasAccess('curadoria') && renderGamificacao()}
         {activeTab === 'equipe' && hasAccess('equipe') && renderEquipe()}
       </div>
 

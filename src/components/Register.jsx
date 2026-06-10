@@ -10,6 +10,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
   
   const [formData, setFormData] = useState({
     name: '',
+    nickname: '',
     email: '',
     password: '',
     age: '',
@@ -119,6 +120,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         id: newId,
         role: role,
         name: formData.name,
+        nickname: formData.nickname || formData.name.split(' ')[0],
         email: formData.email,
         password: formData.password,
         age: formData.age,
@@ -236,9 +238,15 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
             </div>
           </div>
 
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nome Completo</label>
-            <input name="name" value={formData.name} onChange={handleChange} type="text" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nome Completo (Apenas para Curadoria)</label>
+              <input name="name" value={formData.name} onChange={handleChange} type="text" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nickname (Público)</label>
+              <input name="nickname" value={formData.nickname} onChange={handleChange} type="text" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+            </div>
           </div>
           
           <div style={{ display: 'flex', gap: '1rem' }}>

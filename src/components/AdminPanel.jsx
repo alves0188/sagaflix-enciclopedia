@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Save, Plus, Trash2, Edit2, ShieldAlert, Upload, Image as ImageIcon, X, ArrowLeft, Book, Star } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye } from 'lucide-react';
+import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
 import PagesConfig from './PagesConfig';
@@ -740,7 +741,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   </div>
                   <div style={formFieldStyle}>
                     <label>Descrição do Evento / Curiosidade</label>
-                    <textarea name="content" value={formData.content || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" rows="5" style={{ opacity: isReadOnly ? 0.7 : 1 }}></textarea>
+                    <CustomEditor 
+                      value={formData.content || ''} 
+                      onChange={(val) => setFormData({...formData, content: val})} 
+                      disabled={isReadOnly} 
+                      placeholder="Escreva o conteúdo do subtema aqui..."
+                    />
                   </div>
                   <div style={formFieldStyle}>
                     <label>Tags (Nomes separados por vírgula)</label>
@@ -886,12 +892,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     </div>
 
                     <div style={{ flex: 1, padding: '0 3rem 3rem 3rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-                      <JoditEditor
+                      <CustomEditor
                         value={activePage.text || ''}
-                        config={localEditorConfig}
-                        onBlur={(newContent) => {
+                        onChange={(newContent) => {
                           if (!isReadOnly) handlePageChange(activePage.globalIdx, 'text', newContent);
                         }}
+                        disabled={isReadOnly}
+                        placeholder="Escreva a sessão do capítulo aqui..."
                       />
                     </div>
                   </>

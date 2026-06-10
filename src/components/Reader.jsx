@@ -180,7 +180,16 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     }
   }, [activeChapterIdx]);
 
-  // Save Bookmark on change
+  // Save Bookmark and Track Metrics on change
+  const timeSpentRef = useRef(0);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      timeSpentRef.current += 1;
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     if (!currentUser || !bookId || !onUpdateData || !db) return;
 
@@ -209,11 +218,39 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       updatedStatus[bookId] = 'reading';
     }
 
+    // Atualiza métricas: +1 página lida, e soma o tempo decorrido desde o último salvamento
+    const stats = currentUser.stats || { totalTime: 0, totalPages: 0 };
+    const newStats = { 
+      ...stats, 
+      totalPages: (stats.totalPages || 0) + 1,
+      totalTime: (stats.totalTime || 0) + timeSpentRef.current 
+    };
+    timeSpentRef.current = 0; // zera o tempo local após salvar no banco
+
     const updatedUser = {
       ...currentUser,
       readingPositions: updatedPositions,
-      readingStatus: updatedStatus
+      readingStatus: updatedStatus,
+      stats: newStats
     };
+
+    // Check for new badges
+    const currentBadges = currentUser.badges || [];
+    let updatedBadges = [...currentBadges];
+    let badgeUnlocked = false;
+    const availableBadges = db.badgesConfig || [];
+    
+    availableBadges.forEach(badge => {
+      const alreadyHas = currentBadges.some(b => b.id === badge.id);
+      if (!alreadyHas && badge.minPages > 0 && newStats.totalPages >= badge.minPages) {
+        updatedBadges.push(badge);
+        badgeUnlocked = true;
+      }
+    });
+
+    if (badgeUnlocked) {
+      updatedUser.badges = updatedBadges;
+    }
 
     const newDb = { ...db };
     newDb.users = newDb.users.map(u => u.id === currentUser.id ? updatedUser : u);

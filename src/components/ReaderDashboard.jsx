@@ -547,6 +547,85 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
       </div>
     );
   };
+  const renderDossier = () => {
+    const stats = currentUser.stats || { totalTime: 0, totalPages: 0 };
+    const badges = currentUser.badges || [];
+    
+    // Determine reader rank based on totalPages
+    let rank = 'Leitor Iniciante';
+    if (stats.totalPages >= 50) rank = 'Leitor Voraz';
+    if (stats.totalPages >= 200) rank = 'Rato de Biblioteca';
+    if (stats.totalPages >= 500) rank = 'Sábio das Páginas';
+    if (stats.totalPages >= 1000) rank = 'Mestre Literário';
+    
+    const timeHours = Math.floor(stats.totalTime / 60);
+    const timeMinutes = stats.totalTime % 60;
+
+    return (
+      <div style={{ padding: '2rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-main)', maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', marginBottom: '3rem', textAlign: 'center' }}>
+          <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '4px solid var(--accent-gold)', background: 'rgba(255,255,255,0.02)' }}>
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt={currentUser.nickname || currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={60} color="var(--accent-gold)" />
+              </div>
+            )}
+          </div>
+          <div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.2rem', color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>{currentUser.nickname || currentUser.name}</h2>
+            <div style={{ display: 'inline-block', background: 'rgba(212,175,55,0.15)', padding: '0.4rem 1rem', borderRadius: '20px', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px', fontSize: '0.9rem', border: '1px solid rgba(212,175,55,0.3)' }}>
+              {rank}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+            <BookOpen size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>{stats.totalPages}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Páginas Lidas</div>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+            <Map size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+              {timeHours > 0 ? `${timeHours}h ` : ''}{timeMinutes}m
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Tempo de Leitura</div>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+            <Star size={32} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '0.5rem' }}>{badges.length}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Premiações (Badges)</div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.8rem', marginBottom: '1.5rem' }}>Minhas Premiações</h3>
+          {badges.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
+              {badges.map((b, idx) => (
+                <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(212,175,55,0.3)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  {b.icon ? (
+                    <img src={b.icon} alt={b.name} style={{ width: '40px', height: '40px', marginBottom: '0.8rem', objectFit: 'contain' }} />
+                  ) : (
+                    <Star size={32} color="var(--accent-gold)" style={{ marginBottom: '0.8rem' }} />
+                  )}
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '0.3rem' }}>{b.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{b.description}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
+              Nenhuma premiação conquistada ainda. Continue lendo para desbloquear!
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="reader-dashboard-container" style={{ 
@@ -581,6 +660,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           <button onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} style={navItemStyle('favoritos')}><Star size={18}/> Minha Lista</button>
           <button onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} style={navItemStyle('lendo')}><Bookmark size={18}/> Lendo</button>
           <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
+          <button onClick={() => { setActiveTab('dossie'); setSelectedBook(null); }} style={navItemStyle('dossie')}><User size={18}/> Meu Dossiê</button>
         </div>
       )}
 
@@ -641,6 +721,16 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             <CheckCircle size={20} />
             <span>Lidos</span>
           </button>
+          <button 
+            onClick={() => { setActiveTab('dossie'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'dossie' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'dossie' ? '600' : '400'
+            }}
+          >
+            <User size={20} />
+            <span>Dossiê</span>
+          </button>
         </div>
       )}
 
@@ -657,8 +747,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         gap: isMobile ? '0' : '2rem'
       }}>
         
-        {/* Top Header para abas que não sejam a Vitrine */}
-        {activeTab !== 'vitrine' && (
+        {/* Top Header para abas que não sejam a Vitrine e não sejam Dossiê */}
+        {activeTab !== 'vitrine' && activeTab !== 'dossie' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize', fontSize: isMobile ? '1.5rem' : '2rem' }}>
               {activeTab === 'favoritos' ? 'Minha Lista (Favoritos)' : activeTab === 'lendo' ? 'Livros Sendo Lidos' : 'Livros Concluídos'}
@@ -674,6 +764,15 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', outline: 'none', width: '100%', fontSize: '0.9rem' }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Top Header para o Dossiê */}
+        {activeTab === 'dossie' && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize', fontSize: isMobile ? '1.5rem' : '2rem' }}>
+              Meu Dossiê de Leitor
+            </h2>
           </div>
         )}
 
@@ -1098,7 +1197,6 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             })}
           </div>
         )}
-      </div>
 
       {/* Netflix-style Overlaid Quick-View Popover */}
       {activeBook && (
@@ -1426,10 +1524,17 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             </div>
 
           </div>
-
         </div>
       )}
 
+        {/* Seção Meu Dossiê */}
+        {activeTab === 'dossie' && (
+          <div style={{ padding: isMobile ? '0 1rem' : '0' }}>
+            {renderDossier()}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

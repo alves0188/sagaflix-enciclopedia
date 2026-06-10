@@ -19,7 +19,7 @@ const DEFAULT_LEGENDS = {
   '#FFCC80': 'Outros'
 };
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook }) {
+export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showLegends, setShowLegends] = useState(false);
   
@@ -33,20 +33,24 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [newTicket, setNewTicket] = useState({ category: 'technical', subject: '', message: '' });
   const [replyText, setReplyText] = useState('');
 
-  const authorBooks = db.books.filter(b => b.authorId === currentUser.id || b.coAuthorId === currentUser.id);
+  // Se a curadoria está visualizando um autor específico
+  const effectiveUserId = forceUserId || currentUser.id;
+  const effectiveUser = db.users.find(u => u.id === effectiveUserId) || currentUser;
+
+  const authorBooks = db.books.filter(b => b.authorId === effectiveUserId || b.coAuthorId === effectiveUserId);
 
   // Carregar dados de Ideias e Legendas do perfil do usuário ativo
-  const ideas = currentUser.ideas || [];
-  const ideaLegends = { ...DEFAULT_LEGENDS, ...(currentUser.ideaLegends || {}) };
+  const ideas = effectiveUser.ideas || [];
+  const ideaLegends = { ...DEFAULT_LEGENDS, ...(effectiveUser.ideaLegends || {}) };
 
   const handleUpdateUserField = (field, value) => {
     const updatedUser = {
-      ...currentUser,
+      ...effectiveUser,
       [field]: value
     };
 
     const newDb = { ...db };
-    newDb.users = newDb.users.map(u => u.id === currentUser.id ? updatedUser : u);
+    newDb.users = newDb.users.map(u => u.id === effectiveUserId ? updatedUser : u);
     onUpdateData(newDb);
   };
 
@@ -865,17 +869,25 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       {/* Sidebar do Autor */}
       <div className="author-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
         
+        {forceUserId && (
+          <div style={{ padding: '0 1.5rem', marginBottom: '1.5rem' }}>
+            <button onClick={onCloseForceView} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(212,175,55,0.1)', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}>
+              Voltar à Curadoria
+            </button>
+          </div>
+        )}
+
         {/* Perfil Header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem', marginBottom: '2.5rem', padding: '0 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '2rem' }}>
           <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
-            {currentUser.avatar ? (
-              <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {effectiveUser.avatar ? (
+              <img src={effectiveUser.avatar} alt={effectiveUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <User size={40} color="var(--accent-gold)" />
             )}
           </div>
-          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{currentUser.name}</h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>ID: {currentUser.id}</span>
+          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{effectiveUser.name}</h3>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>ID: {effectiveUser.id}</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.15)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontWeight: 'bold' }}>Autor Estúdio</span>
         </div>
 
