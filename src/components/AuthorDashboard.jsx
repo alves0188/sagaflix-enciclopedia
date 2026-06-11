@@ -939,7 +939,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   };
 
   return (
-    <div className="author-dashboard-container dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+    <div className="author-dashboard-container dashboard-container">
       
       {/* Overlay do Drawer (Mobile) */}
       <div 
@@ -948,7 +948,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       ></div>
 
       {/* Sidebar do Autor */}
-      <div className={`author-sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
+      <div className={`author-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         
         <div className="mobile-only" style={{ padding: '0 1.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-main)' }}>
@@ -976,11 +976,11 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       <div className="dashboard-main-content" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         
         {/* Mobile Header (Only visible on mobile) */}
-        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', borderRadius: '8px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', gap: '1rem' }}>
           <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }}>
             <Menu size={24} />
           </button>
-          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold', textAlign: 'center', flex: 1, padding: '0 1rem' }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold', textAlign: 'left', flex: 1 }}>
             {activeTab === 'dashboard' ? (
               <>
                 <span style={{ display: 'block', fontSize: '1.1rem', color: 'var(--text-main)' }}>Olá, {effectiveUser.name.split(' ')[0]}.</span>
@@ -990,7 +990,6 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
               <span style={{ fontSize: '1.2rem' }}>Sagaflix Studio</span>
             )}
           </div>
-          <div style={{ width: '24px' }}></div> {/* Spacer para centralizar logo */}
         </div>
 
         {activeTab === 'dashboard' && renderDashboard()}
