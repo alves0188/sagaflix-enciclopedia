@@ -367,7 +367,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
           <div className="dossier-tab">DOSSIÊ</div>
 
           {/* Action Buttons */}
-          <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '1rem', zIndex: 110 }}>
+          <div className="dossier-actions-wrapper">
             <button className="btn-voltar-dossier" onClick={handleBack} style={{ position: 'static', background: '#333', color: '#fff', border: 'none', padding: '0.5rem 1rem', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               VOLTAR
             </button>
@@ -388,8 +388,8 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
           </div>
 
           <div className="dossier-subheader">
-            <div>DOSSIÊ DE: <input name="name" value={formData.name || formData.title || ''} onChange={handleChange} disabled={isReadOnly} placeholder="Nome" style={{ ...inputStyle, width: '300px', textTransform: 'uppercase', fontWeight: 'bold', opacity: isReadOnly ? 0.8 : 1 }} /></div>
-            <div className="dossier-status" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <div style={{ width: '100%' }}>DOSSIÊ DE: <input name="name" value={formData.name || formData.title || ''} onChange={handleChange} disabled={isReadOnly} placeholder="Nome" style={{ ...inputStyle, width: '100%', maxWidth: '300px', textTransform: 'uppercase', fontWeight: 'bold', opacity: isReadOnly ? 0.8 : 1 }} /></div>
+            <div className="dossier-status" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
               STATUS: 
               {isReadOnly ? (
                 <span className="badge-tag-status" style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
@@ -400,7 +400,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                   name="statusTag" 
                   value={formData.statusTag || getDefaultStatusTag(formData.type)} 
                   onChange={handleChange} 
-                  style={{ ...inputStyle, width: '180px', background: '#fff', color: '#000', padding: '0.1rem', height: '24px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #ccc', borderRadius: '4px' }}
+                  style={{ ...inputStyle, width: '100%', maxWidth: '200px', background: '#fff', color: '#000', padding: '0.1rem', height: '24px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #ccc', borderRadius: '4px' }}
                 >
                   {getStatusOptions(formData.type).map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>

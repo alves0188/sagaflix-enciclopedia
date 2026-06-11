@@ -875,14 +875,34 @@ label {
   background: #555;
 }
 
+.dossier-actions-wrapper {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 1rem;
+  z-index: 110;
+}
+
 @media (max-width: 900px) {
   .dossier-grid { grid-template-columns: 1fr; }
   .dossier-paper { padding: 3rem 1.5rem; }
   .dossier-tab { display: none; }
   .dossier-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .dossier-subheader { flex-direction: column; align-items: flex-start; gap: 1rem; }
 }
 
 @media (max-width: 768px) {
+  .dossier-actions-wrapper {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
+  }
+  .dossier-header { margin-top: 0; }
+
   .dossier-modal-container {
     flex-direction: column !important;
     overflow-y: auto !important;
