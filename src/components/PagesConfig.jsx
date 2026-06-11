@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Upload } from 'lucide-react';
+import { Save, Upload, Info, X } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 
 const defaultPages = {
@@ -13,6 +13,7 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
   const [pages, setPages] = useState(universe.pages || defaultPages);
   const [activeTab, setActiveTab] = useState('characters');
   const [uploading, setUploading] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const currentPage = pages[activeTab] || defaultPages[activeTab];
 
@@ -80,15 +81,16 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
   const formFieldStyle = { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' };
 
   return (
-    <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', overflow: 'hidden', height: '100%' }}>
+    <div className="pages-config-container">
       {/* Tabs Menu */}
-      <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column' }}>
+      <div className="pages-config-sidebar">
         <h3 style={{ padding: '1.5rem', margin: 0, borderBottom: '1px solid var(--border-color)', color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>Seções do Universo</h3>
         
         {['characters', 'locations', 'organizations', 'clues'].map(tabKey => (
           <button 
             key={tabKey}
             onClick={() => setActiveTab(tabKey)}
+            className={activeTab === tabKey ? 'active' : ''}
             style={{ 
               background: activeTab === tabKey ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
               color: activeTab === tabKey ? 'var(--accent-gold)' : 'var(--text-muted)',
@@ -103,9 +105,18 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
       </div>
 
       {/* Editor Content */}
-      <div style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--text-main)' }}>Personalizar: {currentPage.title}</h2>
+      <div className="pages-config-main">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--text-main)' }}>Personalizar: {currentPage.title}</h2>
+            <button 
+              onClick={() => setShowTutorial(true)} 
+              title="Ajuda / Tutorial"
+              style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.2rem' }}
+            >
+              <Info size={20} />
+            </button>
+          </div>
           {!isReadOnly && (
             <button className="btn-primary" onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Save size={18} /> Salvar Configurações
@@ -113,26 +124,29 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
           )}
         </div>
 
-        {/* Tutorial Box */}
-        <div style={{ 
-          background: 'rgba(212, 175, 55, 0.05)', 
-          border: '1px solid rgba(212, 175, 55, 0.2)', 
-          borderRadius: '8px', 
-          padding: '1.2rem', 
-          marginBottom: '2rem',
-          fontSize: '0.9rem',
-          lineHeight: 1.5,
-          color: '#e2d4b7'
-        }}>
-          <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>
-            {tut.title}
+        {/* Tutorial Modal */}
+        {showTutorial && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--accent-gold)', borderRadius: '12px', padding: '2rem', maxWidth: '500px', width: '100%', position: 'relative' }}>
+              <button 
+                onClick={() => setShowTutorial(false)}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <X size={24} />
+              </button>
+              <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '1rem', fontSize: '1.2rem', paddingRight: '2rem' }}>
+                {tut.title}
+              </div>
+              <div style={{ fontSize: '1rem', lineHeight: 1.6, color: 'var(--text-main)' }}>
+                <p style={{ margin: '0 0 1rem 0' }}><strong>Para que serve:</strong> {tut.purpose}</p>
+                <p style={{ margin: '0 0 1rem 0' }}><strong>Onde o leitor acessa:</strong> {tut.where}</p>
+                <p style={{ margin: 0, color: 'var(--accent-gold)' }}><strong>Dimensões sugeridas:</strong> {tut.dim}</p>
+              </div>
+            </div>
           </div>
-          <p style={{ margin: '0 0 0.5rem 0' }}><strong>Para que serve:</strong> {tut.purpose}</p>
-          <p style={{ margin: '0 0 0.5rem 0' }}><strong>Onde o leitor acessa:</strong> {tut.where}</p>
-          <p style={{ margin: 0 }}><strong>Dimensões sugeridas:</strong> {tut.dim}</p>
-        </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '3rem' }}>
+        <div className="pages-config-form-split">
           <div style={{ flex: 1 }}>
             <div style={formFieldStyle}>
               <label style={{ color: 'var(--text-muted)' }}>Título da Seção</label>
@@ -155,7 +169,7 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
             </div>
           </div>
 
-          <div style={{ width: '300px' }}>
+          <div className="pages-config-image-container">
             <div style={formFieldStyle}>
               <label style={{ color: 'var(--text-muted)' }}>Imagem de Capa (Aparece na direita)</label>
               {currentPage.image && <img src={currentPage.image} alt="Preview" style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }} />}
