@@ -35,6 +35,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [showMobileIdeas, setShowMobileIdeas] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -1232,7 +1233,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 3: Right (Ideias) */}
-            <div style={{ width: '420px', borderLeft: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden' }}>
+            <div className="desktop-only" style={{ width: '420px', borderLeft: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden' }}>
               {currentBook && (
                 <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
               )}
@@ -1267,6 +1268,58 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setShowRequestModal(false)}>Cancelar</button>
               <button className="btn-primary" onClick={handleSendRequest} style={{ background: '#2196F3' }}>Enviar Pedido</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAB: Floating Action Button (Mobile Only) */}
+      {editingItem !== null && (
+        <div className="mobile-only">
+          <button 
+            onClick={() => setShowMobileIdeas(true)}
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--accent-gold)',
+              color: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              border: 'none',
+              zIndex: 1000,
+              cursor: 'pointer'
+            }}
+          >
+            <Lightbulb size={28} />
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Ideas Modal */}
+      {showMobileIdeas && (
+        <div className="mobile-only" style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          zIndex: 1100,
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: 0, color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>Painel de Ideias</h3>
+            <button onClick={() => setShowMobileIdeas(false)} style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none', color: 'var(--text-main)', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={24} />
+            </button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: '#1a1c20' }}>
+            {currentBook && (
+              <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
+            )}
           </div>
         </div>
       )}
