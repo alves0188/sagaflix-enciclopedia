@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -32,6 +32,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [activePageIdxWithinSubtheme, setActivePageIdxWithinSubtheme] = useState(0);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({ what: '', why: '', impact: '' });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const localEditorConfig = {
     ...editorConfig,
@@ -722,13 +723,36 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const formFieldStyle = { display: 'flex', flexDirection: 'column', gap: '0.5rem' };
 
   return (
-    <div style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)' }}>
+    <div className="dashboard-container" style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)', position: 'relative' }}>
       
+      {/* Botão Mobile para abrir menu (só aparece em telas pequenas - gerido pelo App.css) */}
+      <button 
+        className="mobile-only"
+        onClick={() => setIsSidebarOpen(true)}
+        style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px', display: 'none' }}
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* Overlay escuro quando o menu tá aberto no mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="mobile-only"
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 998, display: 'none' }}
+        />
+      )}
+
       {/* Left Sidebar: CMS Menu */}
-      <div style={{ width: '260px', borderRight: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', padding: '0 1.5rem' }}>
-          <ShieldAlert size={24} color="var(--accent-gold)" />
-          <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 'bold' }}>CMS</h2>
+      <div className={`author-sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ width: '260px', borderRight: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', padding: '0 1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <ShieldAlert size={24} color="var(--accent-gold)" />
+            <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 'bold' }}>CMS</h2>
+          </div>
+          <button className="mobile-only" onClick={() => setIsSidebarOpen(false)} style={{ display: 'none', background: 'none', border: 'none', color: '#fff' }}>
+            <X size={24} />
+          </button>
         </div>
 
         <div style={{ borderBottom: '1px solid var(--border-color)', margin: '0 1.5rem 2rem 1.5rem' }}></div>

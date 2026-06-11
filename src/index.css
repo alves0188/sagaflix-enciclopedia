@@ -884,29 +884,30 @@ label {
 
 @media (max-width: 768px) {
   .dossier-modal-container {
-    flex-direction: column-reverse;
-    overflow-y: auto;
-    height: 100vh;
+    flex-direction: column-reverse !important;
+    overflow-y: auto !important;
+    height: 100vh !important;
+    display: flex !important;
   }
   
   .dossier-left-panel {
-    width: 100%;
-    height: auto;
-    max-height: 40vh;
-    border-right: none;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    border-right: none !important;
     border-bottom: 1px solid var(--border-color);
     padding: 1rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
     flex-shrink: 0;
     position: relative;
   }
   
   .dossier-wrapper {
-    width: 100%;
-    padding: 1rem;
-    height: auto;
-    overflow-y: visible;
-    flex: none;
+    width: 100% !important;
+    padding: 1rem !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    flex: none !important;
   }
   
   .dossier-paper {
