@@ -57,11 +57,11 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [activeTabState, setActiveTabState] = useState(initialActiveTab || 'vitrine');
-  const activeTab = activeTabState;
+  const [localActiveTab, setLocalActiveTab] = useState('vitrine');
+  const activeTab = initialActiveTab || localActiveTab;
   const setActiveTab = (tab) => {
-    setActiveTabState(tab);
     if (onTabChange) onTabChange(tab);
+    else setLocalActiveTab(tab);
   };
   const [searchText, setSearchText] = useState('');
   const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
