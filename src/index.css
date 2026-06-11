@@ -1456,7 +1456,7 @@ select option, select optgroup {
     left: 0;
     right: 0;
     background-color: var(--card-bg);
-    z-index: 1000;
+    z-index: 900;
   }
   .pages-config-sidebar h3 {
     display: none; /* Hide the "Seções do Universo" title to save space on mobile */
