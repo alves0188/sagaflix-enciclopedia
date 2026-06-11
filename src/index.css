@@ -471,10 +471,13 @@ label {
   }
   .nav-links { 
     flex-direction: row; 
-    justify-content: flex-end; 
-    width: auto; 
+    justify-content: flex-start; 
+    width: 100%; 
     gap: 1.5rem; 
     margin-top: 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.5rem;
   }
   .admin-nav-item {
     margin-top: 0;
@@ -549,6 +552,7 @@ label {
   }
   .modal-body { padding: 1.5rem; }
   .modal-body h1 { font-size: 2.2rem; }
+  .dossier-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
 }
 
 
@@ -880,7 +884,7 @@ label {
 
 @media (max-width: 768px) {
   .dossier-modal-container {
-    flex-direction: column;
+    flex-direction: column-reverse;
     overflow-y: auto;
     height: 100vh;
   }

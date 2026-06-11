@@ -136,7 +136,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       )}
 
       {/* Mural de Cortiça Corkboard */}
-      <div style={{ 
+      <div className="corkboard" style={{ 
         flex: 1,
         background: 'radial-gradient(circle, #2d2e33 0%, #151619 100%)', 
         border: '1px solid var(--border-color)', 
@@ -154,7 +154,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '2.5rem' }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '2.5rem' }}>
             {ideas.map((idea, idx) => {
               // Rotação pseudo-aleatória sutil para visual de post-it natural
               const rotations = [-2, -1, 1, 2, -1.5, 1.5];

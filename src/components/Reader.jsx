@@ -1077,13 +1077,18 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           }
         }
 
-          .reader-body *:not(.reader-chapter-header-page):not(.reader-chapter-header-page *):not(.reader-cover-page):not(.reader-cover-page *):not(.reader-author-page):not(.reader-author-page *):not(.reader-synopsis-page):not(.reader-synopsis-page *) {
-            font-family: 'Roboto', 'Inter', sans-serif !important;
-            font-weight: 400;
-          }
-          .reader-body strong, .reader-body b, .reader-body strong *, .reader-body b * {
-            font-weight: 700 !important;
-          }
+        .reader-body {
+          font-family: 'Roboto', 'Inter', sans-serif;
+          font-weight: 400;
+        }
+        .reader-body h1, .reader-body h2, .reader-body h3, .reader-body h4, .reader-body h5, .reader-body h6 {
+          font-family: 'Playfair Display', serif !important;
+          font-weight: normal;
+        }
+        .reader-body strong, .reader-body b {
+          font-weight: 700 !important;
+          font-family: 'Roboto', 'Inter', sans-serif;
+        }
         .reader-body p { 
           margin: 0;
           padding-bottom: 1.5rem; 

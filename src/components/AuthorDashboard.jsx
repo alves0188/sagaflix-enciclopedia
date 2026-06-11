@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 
 const COLORS = [
@@ -22,6 +22,7 @@ const DEFAULT_LEGENDS = {
 
 export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView }) {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
   
@@ -168,49 +169,49 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Estúdio Analytics</h2>
         
         {/* Metrícas Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+        <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <BookOpen size={18} /> Projetos Totais
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{authorBooks.length}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{publishedCount} Publicados | {draftCount} Rascunhos</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4CAF50', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Users size={18} /> Leituras Acumuladas
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{estimatedReads.toLocaleString()}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Somatório estimado de leitores</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Star size={18} /> Avaliação Média
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{globalAverageRating}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baseado em {totalRatingsCount} reviews</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <ThumbsUp size={18} /> Relevância de Notas
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{totalNoteLikes}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Curtidas totais em notas no dossiê</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <TrendingUp size={18} /> Status de Obras
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{pendingCount}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Aguardando Aprovação da Curadoria</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Star size={18} fill="var(--accent-gold)" color="var(--accent-gold)" /> Avaliação Média
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>⭐ {globalAverageRating}</h3>
@@ -273,14 +274,14 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
               onChange={e => setSearchText(e.target.value)}
               style={{ padding: '0.8rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '220px' }}
             />
-            <button className="btn-primary" onClick={onOpenNewBook} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={16} /> NOVO LIVRO
+            <button className="btn-primary fab-button" onClick={onOpenNewBook} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Plus size={16} /> <span>NOVO LIVRO</span>
             </button>
           </div>
         </div>
 
         {/* Filtro por Letra A-Z */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+        <div className="mobile-horizontal-scroll" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
           <button 
             onClick={() => setLetterFilter('')} 
             style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', background: letterFilter === '' ? 'var(--accent-gold)' : 'transparent', color: letterFilter === '' ? '#000' : 'var(--text-main)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -299,7 +300,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
 
         {/* Grid de Livros */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '2rem' }}>
+        <div className="mobile-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '2rem' }}>
           {filteredBooks.map(book => {
             const ratings = book.ratings || [];
             const count = ratings.length;
@@ -552,7 +553,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           <p style={{ margin: 0 }}><strong>Como funciona:</strong> Crie um novo chamado abaixo. A equipe correspondente receberá sua mensagem no painel deles e responderá diretamente aqui. Você receberá notificações no ícone do Sininho no cabeçalho quando houver novidades.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '2rem', flex: 1, minHeight: '500px' }}>
+        <div className="mobile-flex-col" style={{ display: 'flex', gap: '2rem', flex: 1, minHeight: '500px' }}>
           {/* List of tickets */}
           <div style={{ width: '320px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '1.2rem', borderBottom: '1px solid var(--border-color)', fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--text-main)' }}>Seus Chamados</div>
@@ -786,7 +787,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem' }}>Solicitações de Notas Secretas</h2>
         
         {/* Abas de Navegação Interna */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+        <div className="mobile-horizontal-scroll" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
           <button 
             onClick={() => setNoteRequestTab('pending')}
             style={{ background: 'none', border: 'none', color: noteRequestTab === 'pending' ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: noteRequestTab === 'pending' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
@@ -939,11 +940,23 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   };
 
   return (
-    <div className="author-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+    <div className="author-dashboard-container dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
       
+      {/* Overlay do Drawer (Mobile) */}
+      <div 
+        className={`drawer-overlay ${isSidebarOpen ? 'open' : ''} mobile-only`} 
+        onClick={() => setIsSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar do Autor */}
-      <div className="author-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
+      <div className={`author-sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
         
+        <div className="mobile-only" style={{ padding: '0 1.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-main)' }}>
+            <X size={24} />
+          </button>
+        </div>
+
         {forceUserId && (
           <div style={{ padding: '0 1.5rem', marginBottom: '1.5rem' }}>
             <button onClick={onCloseForceView} className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(212,175,55,0.1)', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}>
@@ -967,15 +980,27 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
 
         {/* Links Menu */}
-        <button onClick={() => setActiveTab('dashboard')} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
-        <button onClick={() => setActiveTab('livros')} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Meus Livros</button>
-        <button onClick={() => setActiveTab('ideias')} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
-        <button onClick={() => setActiveTab('solicitacoes_notas')} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
-        <button onClick={() => setActiveTab('suporte')} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
+        <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
+        <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Meus Livros</button>
+        <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
+        <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
+        <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
       </div>
 
       {/* Conteúdo Principal */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)' }}>
+      <div className="dashboard-main-content" style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column' }}>
+        
+        {/* Mobile Header (Only visible on mobile) */}
+        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', borderRadius: '8px' }}>
+          <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center' }}>
+            <Menu size={24} />
+          </button>
+          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold' }}>
+            Sagaflix Studio
+          </div>
+          <div style={{ width: '24px' }}></div> {/* Spacer para centralizar logo */}
+        </div>
+
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'livros' && renderBooks()}
         {activeTab === 'ideias' && renderIdeas()}
