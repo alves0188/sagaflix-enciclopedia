@@ -166,52 +166,51 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Estúdio Analytics</h2>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: '0 0 0 1rem' }}>Estúdio Analytics</h2>
         
-        {/* Metrícas Grid */}
-        <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+        {/* Metricas Grid */}
+        <div className="analytics-grid">
+          <div className="metric-card">
+            <div className="metric-card-title">
               <BookOpen size={18} /> Projetos Totais
             </div>
-            <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{authorBooks.length}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{publishedCount} Publicados | {draftCount} Rascunhos</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4CAF50', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div className="metric-card">
+            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#4CAF50', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Users size={18} /> Leituras Acumuladas
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{estimatedReads.toLocaleString()}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Somatório estimado de leitores</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div className="metric-card">
+            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Star size={18} /> Avaliação Média
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{globalAverageRating}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baseado em {totalRatingsCount} reviews</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div className="metric-card">
+            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <ThumbsUp size={18} /> Relevância de Notas
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{totalNoteLikes}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Curtidas totais em notas no dossiê</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div className="metric-card">
+            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <TrendingUp size={18} /> Status de Obras
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{pendingCount}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Aguardando Aprovação da Curadoria</span>
           </div>
 
-          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+          <div className="metric-card">
+            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.9rem', fontWeight: 'bold' }}>
               <Star size={18} fill="var(--accent-gold)" color="var(--accent-gold)" /> Avaliação Média
             </div>
             <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>⭐ {globalAverageRating}</h3>
@@ -219,7 +218,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           </div>
         </div>
 
-        <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+        <div className="acessos-container">
           <h3 style={{ color: 'var(--accent-gold)', margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>Acessos por Livro</h3>
           {authorBooks.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', margin: 0 }}>Nenhuma obra para analisar.</p>
@@ -965,20 +964,6 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           </div>
         )}
 
-        {/* Perfil Header */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem', marginBottom: '2.5rem', padding: '0 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '2rem' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
-            {effectiveUser.avatar ? (
-              <img src={effectiveUser.avatar} alt={effectiveUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <User size={40} color="var(--accent-gold)" />
-            )}
-          </div>
-          <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{effectiveUser.name}</h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>ID: {effectiveUser.id}</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.15)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontWeight: 'bold' }}>Autor Estúdio</span>
-        </div>
-
         {/* Links Menu */}
         <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Meus Livros</button>
@@ -988,15 +973,22 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       </div>
 
       {/* Conteúdo Principal */}
-      <div className="dashboard-main-content" style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column' }}>
+      <div className="dashboard-main-content" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         
         {/* Mobile Header (Only visible on mobile) */}
-        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', borderRadius: '8px' }}>
-          <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center' }}>
+        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', borderRadius: '8px', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }}>
             <Menu size={24} />
           </button>
-          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold' }}>
-            Sagaflix Studio
+          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold', textAlign: 'center', flex: 1, padding: '0 1rem' }}>
+            {activeTab === 'dashboard' ? (
+              <>
+                <span style={{ display: 'block', fontSize: '1.1rem', color: 'var(--text-main)' }}>Olá, {effectiveUser.name.split(' ')[0]}.</span>
+                <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--accent-gold)' }}>Que mundo vamos criar hoje?</span>
+              </>
+            ) : (
+              <span style={{ fontSize: '1.2rem' }}>Sagaflix Studio</span>
+            )}
           </div>
           <div style={{ width: '24px' }}></div> {/* Spacer para centralizar logo */}
         </div>

@@ -1117,3 +1117,74 @@ select option, select optgroup {
   
 
 }
+
+.dashboard-main-content { padding: 3rem; background: var(--bg-main); }
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.acessos-container {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) { 
+  .dashboard-main-content { 
+    padding: 0 !important; 
+    background: var(--bg-color) !important; 
+  } 
+  
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+
+  .metric-card {
+    padding: 1.5rem 0.5rem;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+  }
+  
+  .metric-card:nth-child(2n) {
+    border-right: none;
+  }
+  
+  .metric-card-title {
+    font-size: 0.8rem !important;
+  }
+  
+  .metric-card h3 {
+    font-size: 1.5rem !important;
+  }
+  
+  .metric-card span {
+    font-size: 0.65rem !important;
+  }
+
+  .acessos-container {
+    padding: 1.5rem 1rem;
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    border-top: 1px solid var(--border-color);
+  }
+}
