@@ -87,8 +87,8 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0.5rem', height: '100%' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem', background: 'var(--card-bg)' }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Painel de Ideias: {book.title}
         </h2>
@@ -96,8 +96,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button 
             onClick={() => setShowLegends(!showLegends)} 
-            className="btn-secondary" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
           >
             {showLegends ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 
             Legendas das Cores
@@ -105,8 +104,8 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
           
           <button 
             onClick={handleAddIdea} 
-            className="btn-primary" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem' }}
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
           >
             <Plus size={16} /> Nova Ideia
           </button>
@@ -139,11 +138,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       <div className="corkboard" style={{ 
         flex: 1,
         background: 'radial-gradient(circle, #2d2e33 0%, #151619 100%)', 
-        border: '1px solid var(--border-color)', 
-        borderRadius: '16px', 
-        padding: '2.5rem', 
-        overflowY: 'auto',
-        boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.6)'
+        padding: '2rem'
       }}>
         {ideas.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)' }}>
@@ -154,11 +149,11 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
             </button>
           </div>
         ) : (
-          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '2.5rem' }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2.5rem' }}>
             {ideas.map((idea, idx) => {
               // Rotação pseudo-aleatória sutil para visual de post-it natural
               const rotations = [-2, -1, 1, 2, -1.5, 1.5];
-              const rotate = rotations[idx % rotations.length];
+              const rotation = rotations[idx % rotations.length];
               
               return (
                 <div 
@@ -170,17 +165,16 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   style={{ 
                     background: idea.color,
                     color: '#1e1e24',
-                    padding: '1.2rem',
-                    borderRadius: '4px',
-                    boxShadow: '5px 5px 15px rgba(0,0,0,0.4)',
-                    transform: `rotate(${rotate}deg)`,
+                    padding: '2rem', 
+                    borderRadius: '2px', 
+                    boxShadow: '4px 6px 15px rgba(0,0,0,0.4), inset -2px -2px 10px rgba(0,0,0,0.1)',
+                    minHeight: '300px',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '240px',
+                    transform: `rotate(${rotation}deg)`,
+                    transition: 'transform 0.2s',
                     position: 'relative',
                     cursor: 'grab',
-                    borderTop: '15px solid rgba(0,0,0,0.05)', // visual tape block
-                    transition: 'transform 0.2s, box-shadow 0.2s',
                     opacity: draggedIdeaIdx === idx ? 0.5 : 1
                   }}
                   onMouseEnter={(e) => {
@@ -189,7 +183,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     e.currentTarget.style.zIndex = 10;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = `scale(1) rotate(${rotate}deg)`;
+                    e.currentTarget.style.transform = `scale(1) rotate(${rotation}deg)`;
                     e.currentTarget.style.boxShadow = '5px 5px 15px rgba(0,0,0,0.4)';
                     e.currentTarget.style.zIndex = 1;
                   }}
@@ -248,15 +242,15 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     style={{ 
                       background: 'transparent',
                       border: 'none',
-                      outline: 'none',
-                      color: '#1e1e24',
-                      fontFamily: "'Playfair Display', serif",
-                      fontSize: '1rem',
+                      borderBottom: '1px solid rgba(0,0,0,0.1)',
+                      width: '100%',
+                      fontSize: '1.3rem',
                       fontWeight: 'bold',
-                      marginBottom: '0.5rem',
-                      borderBottom: '1px dashed rgba(0,0,0,0.15)',
-                      paddingBottom: '0.2rem',
-                      width: '100%'
+                      color: '#1e1e24',
+                      padding: '0 0 0.5rem 0',
+                      marginBottom: '1rem',
+                      outline: 'none',
+                      fontFamily: "'Playfair Display', serif"
                     }}
                   />
 
@@ -269,12 +263,12 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                       flex: 1, 
                       background: 'transparent', 
                       border: 'none', 
-                      resize: 'none', 
-                      outline: 'none', 
+                      width: '100%',
+                      resize: 'none',
+                      fontSize: '1.1rem',
                       color: '#1e1e24',
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.9rem',
-                      lineHeight: '1.4'
+                      outline: 'none',
+                      lineHeight: '1.6'
                     }}
                   />
 
