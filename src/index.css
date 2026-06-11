@@ -1257,11 +1257,68 @@ select option, select optgroup {
   display: none; /* Safári/Chrome */
 }
 
+/* --- Universe View Split Layout --- */
+.custom-split-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+.custom-split-header h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+.custom-split-header .subtitle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+.custom-split-body {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+.custom-split-text {
+  flex: 1;
+}
+.custom-split-cover {
+  width: 280px;
+  flex-shrink: 0;
+  position: relative;
+  aspect-ratio: 2/3;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.custom-split-footer {
+  display: flex;
+  justify-content: flex-start;
+}
+
 @media (max-width: 768px) {
-  .author-books-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .custom-split-layout {
     gap: 1rem;
+  }
+  .custom-split-header h1 {
+    font-size: 2.2rem !important;
+    text-align: left;
+  }
+  .custom-split-header .subtitle {
+    font-size: 1rem !important;
+    text-align: left;
+  }
+  .custom-split-body {
+    gap: 1rem;
+  }
+  .custom-split-cover {
+    width: 140px; /* Reduced cover size for mobile side-by-side */
+    border-radius: 8px;
+  }
+  .custom-split-footer {
+    justify-content: flex-end; /* Button aligns to the right */
   }
 }
 
 
+
+@media (max-width: 768px) { .author-books-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }

@@ -6,6 +6,27 @@ import AdminPanel from './AdminPanel';
 import Reader from './Reader';
 import AuthorModal from './AuthorModal';
 
+const ExpandableText = ({ text, maxLength = 250 }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  if (!text) return null;
+  if (text.length <= maxLength) return <p className="description" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{text}</p>;
+  
+  if (expanded) {
+    return (
+      <p className="description" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
+        {text} <span style={{ color: 'var(--accent-gold)', cursor: 'pointer', fontWeight: 'bold' }} onClick={() => setExpanded(false)}>ver menos</span>
+      </p>
+    );
+  }
+  
+  return (
+    <p className="description" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
+      {text.substring(0, maxLength)}... <span style={{ color: 'var(--accent-gold)', cursor: 'pointer', fontWeight: 'bold' }} onClick={() => setExpanded(true)}>leia mais</span>
+    </p>
+  );
+};
+
 export default function UniverseView({ db, bookId, currentUser, onUpdateData, initialTab, onLeave }) {
   const [activeTab, setActiveTab] = useState(initialTab || 'home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,8 +276,8 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
             {featuredItem ? (
               <>
-                <section className="featured-section">
-                  <div className="featured-info">
+                <section className="custom-split-layout">
+                  <div className="custom-split-header">
                     <h1>{featuredItem.title || featuredItem.name}</h1>
                     <div className="subtitle">
                       {featuredItem.authorObj ? (
@@ -273,50 +294,42 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
                       )}
                       {(featuredItem.category || featuredItem.territory || featuredItem.ageRating) ? ` • ${featuredItem.category || featuredItem.territory} ${featuredItem.ageRating ? '• Classificação: ' + featuredItem.ageRating : ''}` : ''}
                     </div>
+                  </div>
 
-                    {/* Cover visible only on mobile, placed between subtitle and description */}
-                    {featuredItem.image && (
-                      <div className="featured-cover-wrapper show-only-on-mobile" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
-                        <img 
-                          src={featuredItem.image} 
-                          alt="" 
-                          className="featured-cover-blur"
-                        />
-                        <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
-                      </div>
-                    )}
+                  <div className="custom-split-body">
+                    <div className="custom-split-text">
+                      <ExpandableText text={featuredItem.description} />
+                    </div>
 
-                    <p className="description">{featuredItem.description}</p>
-                    <div className="featured-actions">
-                      {showBookCover ? (
-                        <button className="btn-primary" onClick={() => setActiveTab('reader')}>
-                          <BookOpen size={18} /> LER LIVRO
-                        </button>
-                      ) : featuredItem.isSection ? (
-                        <></> // No button for section headers
+                    <div className="custom-split-cover" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
+                      {featuredItem.image ? (
+                        <>
+                          <img 
+                            src={featuredItem.image} 
+                            alt="" 
+                            className="featured-cover-blur"
+                          />
+                          <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
+                        </>
                       ) : (
-                        <button className="btn-primary" onClick={() => setSelectedItem(featuredItem)}>
-                          <BookOpen size={18} /> VER MAIS
-                        </button>
+                        <div style={{ opacity: 0.2, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <BookOpen size={48} />
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Cover visible only on desktop */}
-                  <div className="featured-cover-wrapper hide-on-mobile" onClick={() => !featuredItem.isSection && !showBookCover && setSelectedItem(featuredItem)}>
-                    {featuredItem.image ? (
-                      <>
-                        <img 
-                          src={featuredItem.image} 
-                          alt="" 
-                          className="featured-cover-blur"
-                        />
-                        <img src={featuredItem.image} alt={featuredItem.name || featuredItem.title} className="featured-cover" />
-                      </>
+                  <div className="custom-split-footer">
+                    {showBookCover ? (
+                      <button className="btn-primary" onClick={() => setActiveTab('reader')} style={{ width: 'auto', padding: '0.8rem 1.5rem' }}>
+                        <BookOpen size={18} /> LER LIVRO
+                      </button>
+                    ) : featuredItem.isSection ? (
+                      <></> // No button for section headers
                     ) : (
-                      <div style={{ opacity: 0.2 }}>
-                        <BookOpen size={48} />
-                      </div>
+                      <button className="btn-primary" onClick={() => setSelectedItem(featuredItem)} style={{ width: 'auto', padding: '0.8rem 1.5rem' }}>
+                        <BookOpen size={18} /> VER MAIS
+                      </button>
                     )}
                   </div>
                 </section>
