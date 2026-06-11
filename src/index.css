@@ -604,7 +604,7 @@ label {
 .dossier-paper {
   background-color: #e6e0ce; /* Manila folder color */
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   min-height: 800px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
