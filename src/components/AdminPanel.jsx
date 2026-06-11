@@ -824,7 +824,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       </div>
 
       {/* Center Area: List */}
-      <div className="admin-content-wrapper" style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
+      <div className={`admin-content-wrapper ${editingItem ? 'hide-on-mobile-edit' : ''}`} style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (
@@ -953,7 +953,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       {/* Right Area: Edit Panel (Standard or Dossier) */}
       {editingItem && formData.type !== 'chapter' && (
         formData.type === 'post' || formData.type === 'evento' ? (
-          <div style={{ width: '450px', borderLeft: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', display: 'flex', flexDirection: 'column', height: '100%', boxShadow: '-5px 0 25px rgba(0,0,0,0.5)', zIndex: 10, flexShrink: 0 }}>
+          <div className="admin-edit-panel" style={{ width: '450px', borderLeft: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', display: 'flex', flexDirection: 'column', height: '100%', boxShadow: '-5px 0 25px rgba(0,0,0,0.5)', zIndex: 10, flexShrink: 0 }}>
             
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
               <h2 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Playfair Display', serif" }}>{isReadOnly ? 'Visualizar Registro' : (editingItem === 'new' ? 'Criar Registro' : 'Editar Registro')}</h2>
@@ -1015,8 +1015,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
           </div>
         ) : (
-          <DossierEditor 
-            formData={formData} 
+          <div className="admin-edit-panel" style={{ width: '800px', maxWidth: '100vw', backgroundColor: '#e8e6df', borderLeft: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', height: '100%', zIndex: 10, flexShrink: 0, position: 'relative' }}>
+            <DossierEditor 
+              formData={formData} 
             setFormData={setFormData} 
             onSave={handleSave} 
             onCancel={() => setEditingItem(null)} 
@@ -1025,6 +1026,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             isReadOnly={isReadOnly}
             bookTitle={currentBook?.title}
           />
+          </div>
         )
       )}
 
