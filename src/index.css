@@ -1115,28 +1115,5 @@ select option, select optgroup {
     min-height: calc(100vh - 120px) !important;
   }
   
-  .author-sidebar {
-    width: 100% !important;
-    height: auto !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--border-color) !important;
-    padding: 1rem !important;
-    flex-direction: row !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    align-items: center !important;
-    gap: 1rem !important;
-  }
-  
-  .author-sidebar > div:first-child {
-    display: none !important;
-  }
-  
-  .author-sidebar button {
-    white-space: nowrap !important;
-    border-right: none !important;
-    border-bottom: 3px solid transparent !important;
-    padding: 0.8rem 1.2rem !important;
-    width: auto !important;
-  }
+
 }
