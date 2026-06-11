@@ -138,7 +138,9 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       <div className="corkboard" style={{ 
         flex: 1,
         background: 'radial-gradient(circle, #2d2e33 0%, #151619 100%)', 
-        padding: '2rem'
+        padding: '2.5rem 0',
+        borderRadius: '16px',
+        marginTop: '1.5rem'
       }}>
         {ideas.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)' }}>
