@@ -1082,20 +1082,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           color: 'var(--text-main)'
         }}>
           {/* Header */}
-          <div style={{ padding: '1.5rem 3rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="editor-header-container" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Menu size={24} />
               </button>
-              <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
-                {isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo Capítulo' : 'Editar Capítulo')}
+              <h2 style={{ fontSize: '1.3rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
+                {isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo' : 'Editar Capítulo')}
               </h2>
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="editor-header-buttons" style={{ display: 'flex', gap: '1rem' }}>
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ArrowLeft size={18} /> Voltar
+                <ArrowLeft size={16} /> Voltar
               </button>
-              {!isReadOnly && <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1.1rem' }}><Save size={18} /> Salvar Capítulo</button>}
+              {!isReadOnly && <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>}
             </div>
           </div>
           
@@ -1161,7 +1161,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                 return (
                   <>
-                    <div style={{ padding: '2rem 3rem 0 3rem', flexShrink: 0 }}>
+                    <div className="editor-title-container" style={{ flexShrink: 0 }}>
                       <input 
                         type="text" 
                         value={activeSubthemeStr || ''} 
@@ -1201,7 +1201,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                     </div>
 
-                    <div style={{ padding: '0 3rem', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                    <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
@@ -1212,7 +1212,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       />
                     </div>
 
-                    <div style={{ padding: '2rem 3rem 3rem 3rem', marginTop: '1rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
+                    <div className="editor-footer-container" style={{ marginTop: '1rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
                       <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>

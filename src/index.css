@@ -1373,3 +1373,34 @@ select option, select optgroup {
     left: 0 !important;
   }
 }
+
+/* ================= EDITOR RESPONSIVE PADDINGS ================= */
+.editor-header-container { padding: 1.5rem 3rem; }
+.editor-title-container { padding: 2rem 3rem 0 3rem; }
+.editor-text-container { padding: 0 3rem; }
+.editor-footer-container { padding: 2rem 3rem 3rem 3rem; }
+
+@media (max-width: 768px) {
+  .editor-header-container { 
+    padding: 1rem; 
+    flex-direction: column; 
+    gap: 1rem; 
+    align-items: stretch !important; 
+  }
+  .editor-title-container { padding: 1rem 1rem 0 1rem; }
+  .editor-text-container { padding: 0 1rem; }
+  .editor-footer-container { padding: 1rem 1rem 2rem 1rem; }
+  
+  .editor-header-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .editor-header-buttons button {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.9rem !important;
+    padding: 0.6rem !important;
+  }
+}
