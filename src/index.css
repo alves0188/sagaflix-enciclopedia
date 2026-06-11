@@ -1451,11 +1451,12 @@ select option, select optgroup {
     flex-direction: row;
     overflow-x: auto;
     padding-bottom: 0;
-    order: 2;
-    position: sticky;
+    position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
     background-color: var(--card-bg);
-    z-index: 10;
+    z-index: 1000;
   }
   .pages-config-sidebar h3 {
     display: none; /* Hide the "Seções do Universo" title to save space on mobile */
@@ -1471,6 +1472,7 @@ select option, select optgroup {
   }
   .pages-config-main {
     padding: 1rem;
+    padding-bottom: 80px !important; /* Space for the fixed footer */
     overflow: visible;
     order: 1;
     flex: 1;
