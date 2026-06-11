@@ -1441,14 +1441,21 @@ select option, select optgroup {
     flex-direction: column;
     height: auto;
     min-height: calc(100vh - 120px);
+    position: relative;
   }
   .pages-config-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: none;
+    border-top: 1px solid var(--border-color);
     flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0;
+    order: 2;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--card-bg);
+    z-index: 10;
   }
   .pages-config-sidebar h3 {
     display: none; /* Hide the "Seções do Universo" title to save space on mobile */
@@ -1457,7 +1464,7 @@ select option, select optgroup {
     white-space: nowrap;
     border-left: none !important;
     border-bottom: 4px solid transparent !important;
-    padding: 1rem !important;
+    padding: 1rem 1.2rem !important;
   }
   .pages-config-sidebar button.active {
     border-bottom: 4px solid var(--accent-gold) !important;
@@ -1465,6 +1472,8 @@ select option, select optgroup {
   .pages-config-main {
     padding: 1rem;
     overflow: visible;
+    order: 1;
+    flex: 1;
   }
   .pages-config-form-split {
     flex-direction: column;
