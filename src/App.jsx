@@ -42,6 +42,7 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
@@ -252,6 +253,7 @@ export default function App() {
       location: currentUser.location || '',
       writingStyle: currentUser.writingStyle || ''
     });
+    setIsEditingProfile(false);
     setShowProfileModal(true);
   };
 
@@ -292,7 +294,7 @@ export default function App() {
     setCurrentUser(updatedUser);
     localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
     await handleUpdateData(newDb);
-    setShowProfileModal(false);
+    setIsEditingProfile(false);
     alert('Configurações salvas com sucesso!');
   };
 
@@ -676,12 +678,50 @@ export default function App() {
 
       {showProfileModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
-          <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', width: '550px', maxWidth: '95%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', width: '550px', maxWidth: '95%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '90vh' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>Configurações Pessoais</h3>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>
+                {isEditingProfile ? 'Editar Configurações' : 'Configurações Pessoais'}
+              </h3>
               <button onClick={() => setShowProfileModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             
+            {!isEditingProfile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', overflowY: 'auto', padding: '1rem 0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '120px', height: '120px', borderRadius: '50%', border: '3px solid var(--accent-gold)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={60} color="var(--accent-gold)" />
+                    )}
+                  </div>
+                  <h2 style={{ color: 'var(--text-main)', margin: '0.5rem 0 0 0', fontSize: '1.4rem' }}>{currentUser.name}</h2>
+                  <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>ID: {currentUser.id}</p>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <button 
+                    onClick={() => setIsEditingProfile(true)}
+                    className="btn-primary" 
+                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <Settings size={18} /> Configuração de Conta
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      handleLogout();
+                    }}
+                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'none', border: '1px solid #ff7777', color: '#ff7777', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 119, 119, 0.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  >
+                    <LogOut size={18} /> Sair da Conta
+                  </button>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', overflowY: 'auto', maxHeight: '70vh', paddingRight: '0.5rem' }}>
               
               {/* Avatar Upload */}
@@ -803,24 +843,13 @@ export default function App() {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', flexWrap: 'wrap' }}>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowProfileModal(false);
-                    handleLogout();
-                  }} 
-                  style={{ background: 'none', border: '1px solid #ff7777', color: '#ff7777', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '4px', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 119, 119, 0.1)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                >
-                  <LogOut size={16} /> Sair da Conta
-                </button>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button type="button" className="btn-secondary" onClick={() => setShowProfileModal(false)}>Cancelar</button>
+                <div style={{ display: 'flex', gap: '1rem', width: '100%', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditingProfile(false)}>Cancelar</button>
                   <button type="submit" className="btn-primary">Salvar Alterações</button>
                 </div>
               </div>
             </form>
+            )}
           </div>
         </div>
       )}
