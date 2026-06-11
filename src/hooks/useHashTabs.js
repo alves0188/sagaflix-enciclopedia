@@ -21,14 +21,13 @@ export function useHashTabs(initialTab, validTabs = [], localStorageKey = null) 
     return initialTab;
   });
 
-  // Sync state -> URL Hash
+  // Handle initial mount hash replacement
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (validTabs.includes(activeTab) && hash !== activeTab) {
-      // Use pushState to avoid triggering hashchange event when we update programmatically
-      window.history.pushState(null, '', '#' + activeTab);
+    if (!hash && activeTab) {
+      window.history.replaceState(null, '', '#' + activeTab);
     }
-  }, [activeTab, validTabs]);
+  }, []); // Run once on mount
 
   // Sync URL Hash -> state (Back button)
   useEffect(() => {
@@ -42,7 +41,6 @@ export function useHashTabs(initialTab, validTabs = [], localStorageKey = null) 
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    // popstate is also needed sometimes when pushState is used
     window.addEventListener('popstate', handleHashChange);
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
@@ -53,6 +51,8 @@ export function useHashTabs(initialTab, validTabs = [], localStorageKey = null) 
   const setActiveTab = (tab) => {
     if (activeTab !== tab) {
       setActiveTabState(tab);
+      window.history.pushState(null, '', '#' + tab);
+      window.dispatchEvent(new Event('popstate'));
       if (localStorageKey) {
         localStorage.setItem(localStorageKey, tab);
       }
