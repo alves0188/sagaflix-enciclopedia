@@ -1330,3 +1330,46 @@ select option, select optgroup {
 
 @media (max-width: 768px) { .author-books-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
 @media (max-width: 768px) { .admin-content-wrapper { padding: 0 !important; } .admin-content-card { padding: 1.5rem !important; border: none !important; border-radius: 0 !important; } .admin-content-title { font-size: 1.5rem !important; } .admin-btn-new { padding: 0.4rem 0.8rem !important; font-size: 0.8rem !important; } .admin-mobile-menu-btn { display: block !important; } .admin-mobile-overlay { display: block !important; } .admin-mobile-close-btn { display: block !important; } }
+
+/* ================= UTILITY CLASSES FOR RESPONSIVENESS ================= */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ================= EDITOR MOBILE SIDEBAR ================= */
+.editor-mobile-sidebar {
+  width: 320px;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  gap: 2rem;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .editor-mobile-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -100% !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    width: 280px !important;
+    z-index: 1200 !important;
+    transition: left 0.3s ease !important;
+    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+  }
+  
+  .editor-mobile-sidebar.open {
+    left: 0 !important;
+  }
+}

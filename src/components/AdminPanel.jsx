@@ -36,6 +36,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMobileIdeas, setShowMobileIdeas] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -1082,9 +1083,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         }}>
           {/* Header */}
           <div style={{ padding: '1.5rem 3rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
-            <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
-              {isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo Capítulo' : 'Editar Capítulo')}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Menu size={24} />
+              </button>
+              <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
+                {isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo Capítulo' : 'Editar Capítulo')}
+              </h2>
+            </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ArrowLeft size={18} /> Voltar
@@ -1097,7 +1103,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             
             {/* COLUMN 1: Left (Navegação de Subtemas) */}
-            <div style={{ width: '320px', borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', display: 'flex', flexDirection: 'column', padding: '2rem 1.5rem', gap: '2rem', overflowY: 'auto' }}>
+            <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`}>
+              
+              {/* Overlay for mobile sidebar */}
+              {showMobileSidebar && (
+                <div 
+                  className="mobile-only"
+                  onClick={() => setShowMobileSidebar(false)}
+                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: -1 }}
+                />
+              )}
               
               <div style={formFieldStyle}>
                 <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Título do Capítulo</label>
