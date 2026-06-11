@@ -1503,46 +1503,52 @@ select option, select optgroup {
   gap: 0.8rem;
   align-items: center;
 }
-.admin-mobile-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.admin-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
-.admin-mobile-card {
+.admin-list-card {
   display: flex;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 1.2rem;
+  padding: 1.2rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   align-items: center;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
-.admin-mobile-card:active {
+.admin-list-card:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-gold);
+  transform: translateY(-2px);
 }
-.admin-mobile-card img {
-  width: 60px;
-  height: 60px;
+.admin-list-card img {
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
-.admin-mobile-card-content {
+.admin-list-card-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
-.admin-mobile-card-title {
+.admin-list-card-title {
   font-weight: bold;
   font-size: 1.1rem;
-  color: var(--accent-gold);
+  color: var(--text-main);
   margin-bottom: 0.3rem;
+  transition: color 0.2s;
 }
-.admin-mobile-card-desc {
+.admin-list-card:hover .admin-list-card-title {
+  color: var(--accent-gold);
+}
+.admin-list-card-desc {
   color: var(--text-muted);
   font-size: 0.85rem;
 }

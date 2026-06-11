@@ -898,113 +898,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               </div>
             )}
 
-            <table className="desktop-only" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                  {activeList !== 'chapters' && <th style={{ padding: '1rem', fontWeight: '500' }}>Imagem</th>}
-                  <th style={{ padding: '1rem', fontWeight: '500' }}>{activeList === 'posts' || activeList === 'chapters' ? 'Título' : 'Nome / Título'}</th>
-                  <th style={{ padding: '1rem', fontWeight: '500' }}>{activeList === 'posts' ? 'Data' : activeList === 'chapters' ? 'Sessões' : 'Detalhe'}</th>
-                  <th style={{ padding: '1rem', fontWeight: '500', textAlign: 'right' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data[activeList] || []).length === 0 ? (
-                  <tr>
-                    <td colSpan="4" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</td>
-                  </tr>
-                ) : (
-                  (data[activeList] || []).map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      {activeList !== 'chapters' && (
-                        <td style={{ padding: '1rem' }}>
-                          <img src={item.image} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
-                        </td>
-                      )}
-                      <td style={{ padding: '1rem', fontWeight: '500' }}>
-                        <span 
-                          onClick={() => {
-                            if (!canViewChapter && activeList === 'chapters') return;
-                            handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
-                          }} 
-                          style={{ cursor: (!canViewChapter && activeList === 'chapters') ? 'default' : 'pointer', transition: 'color 0.2s', display: 'inline-block' }}
-                          onMouseEnter={(e) => { if(!(!canViewChapter && activeList === 'chapters')) e.target.style.color = 'var(--accent-gold)' }}
-                          onMouseLeave={(e) => { if(!(!canViewChapter && activeList === 'chapters')) e.target.style.color = '' }}
-                          title={(!canViewChapter && activeList === 'chapters') ? '' : 'Clique para visualizar/editar'}
-                        >
-                          {item.title || item.name}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>
-                        {item.type === 'post' ? item.date : 
-                         item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
-                         item.type === 'pista' ? 'Complemento' : item.territory}
-                      </td>
-                      <td style={{ padding: '1rem', textAlign: 'right', position: 'relative' }}>
-                        {isReadOnly ? (
-                          <button style={{ background: 'var(--border-color)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem' }} onClick={() => handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''))}>Visualizar</button>
-                        ) : (
-                          <>
-                            {!(activeList === 'chapters' && !canEditChapter) && (
-                              <button 
-                                style={{ background: 'var(--border-color)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.6rem', borderRadius: '4px' }} 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(openMenuId === item.id ? null : item.id);
-                                }}
-                                title="Ações"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                            )}
-                            
-                            {openMenuId === item.id && (
-                              <div style={{ position: 'absolute', right: '1rem', top: '100%', marginTop: '0.5rem', background: '#22252a', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', zIndex: 100, display: 'flex', flexDirection: 'column', gap: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', minWidth: '180px' }}>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(null);
-                                    handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
-                                  }} 
-                                  style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.8rem', textAlign: 'left', borderRadius: '4px', fontSize: '0.9rem', width: '100%' }}
-                                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                  onMouseOut={e => e.currentTarget.style.background = 'none'}
-                                >
-                                  Editar {activeList === 'chapters' ? 'Capítulo' : 'Registro'}
-                                </button>
-                                {canCreateNew && (
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setOpenMenuId(null);
-                                      handleDelete(item.id, item.type);
-                                    }} 
-                                    style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0.8rem', textAlign: 'left', borderRadius: '4px', fontSize: '0.9rem', width: '100%' }}
-                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)'}
-                                    onMouseOut={e => e.currentTarget.style.background = 'none'}
-                                  >
-                                    Excluir {activeList === 'chapters' ? 'Capítulo' : 'Registro'}
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-
-            {/* Mobile Card List */}
-            <div className="mobile-only admin-mobile-list">
+            {/* Unified Cards Grid for both Mobile and Desktop */}
+            <div className="admin-cards-grid">
               {(data[activeList] || []).length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
               ) : (
                 (data[activeList] || []).map(item => (
                   <div 
                     key={item.id} 
-                    className="admin-mobile-card" 
+                    className="admin-list-card" 
                     onClick={() => {
                       if (!canViewChapter && activeList === 'chapters') return;
                       handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
@@ -1013,14 +915,33 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     {activeList !== 'chapters' && item.image && (
                       <img src={item.image} alt={item.title || item.name} />
                     )}
-                    <div className="admin-mobile-card-content">
-                      <div className="admin-mobile-card-title">{item.title || item.name}</div>
-                      <div className="admin-mobile-card-desc">
+                    <div className="admin-list-card-content">
+                      <div className="admin-list-card-title">{item.title || item.name}</div>
+                      <div className="admin-list-card-desc">
                         {item.type === 'post' ? item.date : 
                          item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
                          item.type === 'pista' ? 'Complemento' : item.territory}
                       </div>
                     </div>
+                    {/* Botões de ação rápida para desktop */}
+                    {!isReadOnly && !(activeList === 'chapters' && !canEditChapter) && (
+                      <div className="desktop-only" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm('Tem certeza que deseja excluir?')) {
+                              handleDelete(item.id, item.type || (activeList === 'chapters' ? 'chapter' : ''));
+                            }
+                          }}
+                          style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', border: 'none', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.2s' }}
+                          title="Excluir"
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,0,0,0.2)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
