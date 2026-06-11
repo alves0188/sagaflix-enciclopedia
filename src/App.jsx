@@ -7,7 +7,7 @@ import CuratorDashboard from './components/CuratorDashboard';
 import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
 import { supabase, uploadImage } from './lib/supabaseClient';
-import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu } from 'lucide-react';
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -42,6 +42,7 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
@@ -537,9 +538,17 @@ export default function App() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
+          {isMobile && currentUser && currentUser.role !== 'reader' && (
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', padding: '0.2rem' }}
+            >
+              <Menu size={24} />
+            </button>
+          )}
           <BookOpen size={isMobile ? 24 : 32} color="var(--accent-gold)" />
           <h1 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
-            Sagaflix {isMobile ? '' : (portalRole === 'curator' ? '- CURADORIA' : portalRole === 'author' ? '- ESTÚDIO' : '')}
+            Sagaflix {portalRole === 'curator' ? 'Curadoria' : portalRole === 'author' ? 'Studio' : ''}
           </h1>
         </div>
 
@@ -618,7 +627,7 @@ export default function App() {
         
         {/* VIEW DO CURADOR (FASE 2) */}
         {currentUser.role === 'curator' && (
-          <CuratorDashboard db={db} onUpdateData={handleUpdateData} currentUser={currentUser} focusAuthorId={focusAuthorId} setFocusAuthorId={setFocusAuthorId} />
+          <CuratorDashboard db={db} onUpdateData={handleUpdateData} currentUser={currentUser} focusAuthorId={focusAuthorId} setFocusAuthorId={setFocusAuthorId} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         )}
 
         {/* VIEW DO AUTOR */}
@@ -631,6 +640,8 @@ export default function App() {
             onTabChange={setAuthorActiveTab}
             onSelectBook={(bookId) => setCurrentBookId(bookId)}
             onOpenNewBook={() => setShowNewBook(true)}
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
           />
         )}
 
