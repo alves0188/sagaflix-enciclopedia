@@ -20,11 +20,10 @@ const DEFAULT_LEGENDS = {
   '#FFCC80': 'Outros'
 };
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange }) {
+export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
   const [localActiveTab, setLocalActiveTab] = useState('dashboard');
   const activeTab = propActiveTab || localActiveTab;
   const setActiveTab = onTabChange || setLocalActiveTab;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
   
@@ -264,21 +263,21 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const renderBooks = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Meus Livros</h2>
-          
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <input 
-              type="text" 
-              placeholder="Pesquisar por título..." 
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              style={{ padding: '0.8rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '220px' }}
-            />
-            <button className="btn-primary fab-button" onClick={onOpenNewBook} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={16} /> <span>NOVO LIVRO</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Meus Livros</h2>
+            <button className="btn-primary" onClick={onOpenNewBook} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+              <Plus size={16} /> <span style={{ fontSize: '0.9rem' }}>NOVO LIVRO</span>
             </button>
           </div>
+          
+          <input 
+            type="text" 
+            placeholder="Pesquisar por título..." 
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            style={{ padding: '0.8rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', width: '100%' }}
+          />
         </div>
 
         {/* Filtro por Letra A-Z */}
@@ -974,23 +973,6 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
       {/* Conteúdo Principal */}
       <div className="dashboard-main-content" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        
-        {/* Mobile Header (Only visible on mobile) */}
-        <div className="mobile-header mobile-only" style={{ marginBottom: '1rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', gap: '1rem' }}>
-          <button onClick={() => setIsSidebarOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }}>
-            <Menu size={24} />
-          </button>
-          <div style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: 'bold', textAlign: 'left', flex: 1 }}>
-            {activeTab === 'dashboard' ? (
-              <>
-                <span style={{ display: 'block', fontSize: '1.1rem', color: 'var(--text-main)' }}>Olá, {effectiveUser.name.split(' ')[0]}.</span>
-                <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--accent-gold)' }}>Que mundo vamos criar hoje?</span>
-              </>
-            ) : (
-              <span style={{ fontSize: '1.2rem' }}>Sagaflix Studio</span>
-            )}
-          </div>
-        </div>
 
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'livros' && renderBooks()}

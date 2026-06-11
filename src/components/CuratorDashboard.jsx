@@ -106,7 +106,7 @@ const getCuratorPermissions = (user) => {
   return { ...preset, ...(user.permissions || {}) };
 };
 
-export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId }) {
+export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
   const permissions = getCuratorPermissions(currentUser);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dashTab, setDashTab] = useState('geral');
