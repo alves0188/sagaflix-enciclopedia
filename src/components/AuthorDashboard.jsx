@@ -401,7 +401,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh', gap: '0' }}>
         {/* Header Section with Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem', borderBottom: '1px solid var(--border-color)', background: 'var(--card-bg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 1rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
           <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Meus Livros:</h3>
           {sortedBooks.length > 0 ? (
             <select

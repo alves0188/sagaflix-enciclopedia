@@ -88,7 +88,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem', background: 'var(--card-bg)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem 1.5rem 0 1.5rem' }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Painel de Ideias: {book.title}
         </h2>
@@ -149,7 +149,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
             </button>
           </div>
         ) : (
-          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2.5rem' }}>
+          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '2.5rem' }}>
             {ideas.map((idea, idx) => {
               // Rotação pseudo-aleatória sutil para visual de post-it natural
               const rotations = [-2, -1, 1, 2, -1.5, 1.5];
@@ -165,10 +165,10 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   style={{ 
                     background: idea.color,
                     color: '#1e1e24',
-                    padding: '2rem', 
+                    padding: '1.5rem', 
                     borderRadius: '2px', 
                     boxShadow: '4px 6px 15px rgba(0,0,0,0.4), inset -2px -2px 10px rgba(0,0,0,0.1)',
-                    minHeight: '300px',
+                    minHeight: '350px',
                     display: 'flex',
                     flexDirection: 'column',
                     transform: `rotate(${rotation}deg)`,
@@ -244,7 +244,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                       border: 'none',
                       borderBottom: '1px solid rgba(0,0,0,0.1)',
                       width: '100%',
-                      fontSize: '1.3rem',
+                      fontSize: '1.1rem',
                       fontWeight: 'bold',
                       color: '#1e1e24',
                       padding: '0 0 0.5rem 0',
@@ -265,10 +265,10 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                       border: 'none', 
                       width: '100%',
                       resize: 'none',
-                      fontSize: '1.1rem',
+                      fontSize: '0.95rem',
                       color: '#1e1e24',
                       outline: 'none',
-                      lineHeight: '1.6'
+                      lineHeight: '1.5'
                     }}
                   />
 
