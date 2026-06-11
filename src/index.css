@@ -928,7 +928,7 @@ label {
   
   .dossier-wrapper {
     width: 100% !important;
-    padding: 1rem !important;
+    padding: 3.5rem 1rem 1rem 1rem !important;
     height: auto !important;
     overflow-y: visible !important;
     flex: none !important;
