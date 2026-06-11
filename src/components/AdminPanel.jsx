@@ -417,12 +417,6 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         {trashItems.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '1rem', textAlign: 'left' }}>Tipo</th>
-                <th style={{ padding: '1rem', textAlign: 'left' }}>Nome / Título</th>
-                <th style={{ padding: '1rem', textAlign: 'left' }}>Data de Exclusão</th>
                 <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
@@ -848,40 +842,42 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 <span><strong>Atenção:</strong> Como o livro foi enviado, a criação de novos itens e edição de Capítulos estão bloqueados. As demais edições serão logadas para a Curadoria.</span>
               </div>
             )}
-            <div className="admin-content-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-              <h1 className="admin-content-title" style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif" }}>
-                {activeList === 'characters' ? 'Personagens' : 
-                 activeList === 'locations' ? 'Locais' : 
-                 activeList === 'organizations' ? 'Organizações' : 
-                 activeList === 'posts' ? 'Blog / Notícias' : 
-                 activeList === 'events' ? 'Eventos / Ocorrências' : 
-                 activeList === 'chapters' ? 'Capítulos do Livro' : 'Complementos'}
-              </h1>
-              <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                <button className="admin-tutorial-info-btn" onClick={() => setShowTutorialModal(true)} style={{ background: 'none', border: '2px solid var(--accent-gold)', borderRadius: '50%', color: 'var(--accent-gold)', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                  <Info size={16} />
-                </button>
+            <div className="admin-list-header">
+              <div className="admin-list-header-top">
+                <h1 className="admin-content-title" style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: 0 }}>
+                  {activeList === 'characters' ? 'Personagens' : 
+                   activeList === 'locations' ? 'Locais' : 
+                   activeList === 'organizations' ? 'Organizações' : 
+                   activeList === 'posts' ? 'Blog / Notícias' : 
+                   activeList === 'events' ? 'Eventos / Ocorrências' : 
+                   activeList === 'chapters' ? 'Capítulos do Livro' : 'Complementos'}
+                </h1>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button className="admin-tutorial-info-btn" onClick={() => setShowTutorialModal(true)} style={{ background: 'none', border: '2px solid var(--accent-gold)', borderRadius: '50%', color: 'var(--accent-gold)', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                    <Info size={16} />
+                  </button>
+                  <button 
+                    className="mobile-only admin-mobile-menu-btn"
+                    onClick={() => setIsSidebarOpen(true)}
+                    style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Menu size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="admin-list-header-actions">
                 {canCreateNew && !isReadOnly && ['characters', 'locations', 'organizations', 'clues'].includes(activeList) && (
-                  <label className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} title="Dimensões recomendadas: Proporção 2:3 (Ex: 800x1200px)">
-                    {uploading ? 'Enviando...' : <><Upload size={16} /> <span className="desktop-only">Alterar Capa Destaque</span></>}
+                  <label className="btn-secondary" style={{ padding: '0.6rem 1rem', fontSize: '0.9rem', cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }} title="Dimensões recomendadas: Proporção 2:3 (Ex: 800x1200px)">
+                    {uploading ? 'Enviando...' : <><Upload size={16} /> <span>Alterar Capa</span></>}
                     <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFeatureImageUpload(e, activeList)} />
                   </label>
                 )}
                 {canCreateNew && !isReadOnly && (
-                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
-                    <Plus size={16} /> <span style={{ whiteSpace: 'nowrap' }}>Novo Registro</span>
+                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', justifyContent: 'center' }}>
+                    <Plus size={16} /> <span>Novo Registro</span>
                   </button>
                 )}
-                <button 
-                  className="mobile-only admin-mobile-menu-btn"
-                  onClick={() => setIsSidebarOpen(true)}
-                  style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <Menu size={20} />
-                </button>
               </div>
-            </div>
-
             {showTutorialModal && (
               <div className="admin-tutorial-modal-overlay mobile-only" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setShowTutorialModal(false)}>
                 <div style={{ background: 'var(--card-bg)', width: '100%', borderRadius: '8px', padding: '1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
@@ -895,7 +891,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               </div>
             )}
 
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="desktop-only" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)' }}>
                   {activeList !== 'chapters' && <th style={{ padding: '1rem', fontWeight: '500' }}>Imagem</th>}
@@ -992,6 +988,36 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 )}
               </tbody>
             </table>
+
+            {/* Mobile Card List */}
+            <div className="mobile-only admin-mobile-list">
+              {(data[activeList] || []).length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
+              ) : (
+                (data[activeList] || []).map(item => (
+                  <div 
+                    key={item.id} 
+                    className="admin-mobile-card" 
+                    onClick={() => {
+                      if (!canViewChapter && activeList === 'chapters') return;
+                      handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
+                    }}
+                  >
+                    {activeList !== 'chapters' && item.image && (
+                      <img src={item.image} alt={item.title || item.name} />
+                    )}
+                    <div className="admin-mobile-card-content">
+                      <div className="admin-mobile-card-title">{item.title || item.name}</div>
+                      <div className="admin-mobile-card-desc">
+                        {item.type === 'post' ? item.date : 
+                         item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
+                         item.type === 'pista' ? 'Complemento' : item.territory}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

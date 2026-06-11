@@ -1485,3 +1485,83 @@ select option, select optgroup {
     width: 100%;
   }
 }
+
+/* ================= ADMIN LIST RESPONSIVENESS ================= */
+.admin-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+.admin-list-header-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.admin-list-header-actions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+.admin-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.admin-mobile-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-mobile-card:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+.admin-mobile-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+.admin-mobile-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.admin-mobile-card-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+  margin-bottom: 0.3rem;
+}
+.admin-mobile-card-desc {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .admin-list-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .admin-list-header-top {
+    justify-content: space-between;
+  }
+  .admin-list-header-actions {
+    justify-content: space-between;
+  }
+  .admin-list-header-actions > * {
+    flex: 1;
+    justify-content: center;
+  }
+}
