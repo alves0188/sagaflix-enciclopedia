@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -33,6 +33,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({ what: '', why: '', impact: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
 
   const localEditorConfig = {
     ...editorConfig,
@@ -727,9 +728,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       
       {/* Botão Mobile para abrir menu (só aparece em telas pequenas - gerido pelo App.css) */}
       <button 
-        className="mobile-only"
+        className="mobile-only admin-mobile-menu-btn"
         onClick={() => setIsSidebarOpen(true)}
-        style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px', display: 'none' }}
+        style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px' }}
       >
         <Menu size={24} />
       </button>
@@ -737,9 +738,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       {/* Overlay escuro quando o menu tá aberto no mobile */}
       {isSidebarOpen && (
         <div 
-          className="mobile-only"
+          className="mobile-only admin-mobile-overlay"
           onClick={() => setIsSidebarOpen(false)}
-          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 998, display: 'none' }}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 998 }}
         />
       )}
 
@@ -750,7 +751,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <ShieldAlert size={24} color="var(--accent-gold)" />
             <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 'bold' }}>CMS</h2>
           </div>
-          <button className="mobile-only" onClick={() => setIsSidebarOpen(false)} style={{ display: 'none', background: 'none', border: 'none', color: '#fff' }}>
+          <button className="mobile-only admin-mobile-close-btn" onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', border: 'none', color: '#fff' }}>
             <X size={24} />
           </button>
         </div>
@@ -812,7 +813,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       </div>
 
       {/* Center Area: List */}
-      <div style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
+      <div className="admin-content-wrapper" style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (
@@ -829,15 +830,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
           />
         ) : (
-          <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
+          <div className="admin-content-card" style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
             {!canCreateNew && currentUser?.role === 'author' && (
               <div style={{ background: 'rgba(255, 152, 0, 0.1)', border: '1px solid #ff9800', color: '#ff9800', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ShieldAlert size={20} />
                 <span><strong>Atenção:</strong> Como o livro foi enviado, a criação de novos itens e edição de Capítulos estão bloqueados. As demais edições serão logadas para a Curadoria.</span>
               </div>
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-              <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif" }}>
+            <div className="admin-content-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+              <h1 className="admin-content-title" style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif" }}>
                 {activeList === 'characters' ? 'Personagens' : 
                  activeList === 'locations' ? 'Locais' : 
                  activeList === 'organizations' ? 'Organizações' : 
@@ -846,21 +847,39 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                  activeList === 'chapters' ? 'Capítulos do Livro' : 'Complementos'}
               </h1>
               <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                <button className="mobile-only admin-tutorial-info-btn" onClick={() => setShowTutorialModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)' }}>
+                  <Info size={24} />
+                </button>
                 {canCreateNew && !isReadOnly && ['characters', 'locations', 'organizations', 'clues'].includes(activeList) && (
                   <label className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} title="Dimensões recomendadas: Proporção 2:3 (Ex: 800x1200px)">
-                    {uploading ? 'Enviando...' : <><Upload size={16} /> Alterar Capa Destaque</>}
+                    {uploading ? 'Enviando...' : <><Upload size={16} /> <span className="desktop-only">Alterar Capa Destaque</span></>}
                     <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFeatureImageUpload(e, activeList)} />
                   </label>
                 )}
                 {canCreateNew && !isReadOnly && (
-                  <button className="btn-primary" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
                     <Plus size={16} /> Novo Registro
                   </button>
                 )}
               </div>
             </div>
 
-            {renderSectionTutorial(activeList)}
+            <div className="desktop-only">
+              {renderSectionTutorial(activeList)}
+            </div>
+
+            {showTutorialModal && (
+              <div className="admin-tutorial-modal-overlay mobile-only" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setShowTutorialModal(false)}>
+                <div style={{ background: 'var(--card-bg)', width: '100%', borderRadius: '8px', padding: '1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => setShowTutorialModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-main)' }}>
+                    <X size={24} />
+                  </button>
+                  <div style={{ marginTop: '1rem' }}>
+                    {renderSectionTutorial(activeList)}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
