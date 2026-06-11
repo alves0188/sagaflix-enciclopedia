@@ -20,7 +20,7 @@ const DEFAULT_LEGENDS = {
   '#FFCC80': 'Outros'
 };
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
   const [localActiveTab, setLocalActiveTab] = useState('dashboard');
   const activeTab = propActiveTab || localActiveTab;
   const setActiveTab = onTabChange || setLocalActiveTab;
