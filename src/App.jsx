@@ -6,6 +6,7 @@ import Reader from './components/Reader';
 import CuratorDashboard from './components/CuratorDashboard';
 import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
+import NewBookModal from './components/NewBookModal';
 import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu } from 'lucide-react';
 
