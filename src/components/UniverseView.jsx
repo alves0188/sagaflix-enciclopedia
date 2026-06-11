@@ -31,8 +31,12 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
   const [activeTab, setActiveTab] = useState(initialTab || 'home');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const handleCloseDetail = useHashHistory(!!selectedItem, 'dossie', () => setSelectedItem(null));
+  const handleCloseReader = useHashHistory(activeTab === 'reader', 'leitura', () => setActiveTab('home'));
   const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const handleCloseAuthor = useHashHistory(!!selectedAuthor, 'autor', () => setSelectedAuthor(null));
   const [lightboxImage, setLightboxImage] = useState(null);
+  const handleCloseLightbox = useHashHistory(!!lightboxImage, 'imagem', () => setLightboxImage(null));
 
   useEffect(() => {
     setActiveTab(initialTab || 'home');
@@ -247,10 +251,10 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
         {activeTab === 'reader' ? (
           <Reader 
             db={db} 
-            bookId={bookId} 
+            bookId={currentBook.id} 
             currentUser={currentUser} 
             onUpdateData={onUpdateData} 
-            onClose={() => setActiveTab('home')} 
+            onClose={handleCloseReader} 
           />
         ) : activeTab === 'admin' && (currentUser.role === 'author' || currentUser.role === 'curator') ? (
           <AdminPanel 
@@ -425,7 +429,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
           item={selectedItem} 
           bookTitle={currentBook?.title} 
           events={universe.posts || []} 
-          onClose={() => setSelectedItem(null)} 
+          onClose={handleCloseDetail} 
           onRequestAccess={handleRequestNoteAccess}
           db={db}
           currentUser={currentUser}
@@ -433,14 +437,13 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
         />
       )}
       {selectedAuthor && (
-        <AuthorModal author={selectedAuthor} db={db} onClose={() => setSelectedAuthor(null)} />
+        <AuthorModal author={selectedAuthor} db={db} onClose={handleCloseAuthor} />
       )}
       
       {/* Lightbox */}
-      <ImageLightbox 
-        imageUrl={lightboxImage} 
-        onClose={() => setLightboxImage(null)} 
-      />
+      {lightboxImage && (
+        <ImageLightbox image={lightboxImage} onClose={handleCloseLightbox} />
+      )}
     </div>
   );
 }
