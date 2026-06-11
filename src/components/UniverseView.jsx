@@ -277,27 +277,27 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
             {featuredItem ? (
               <>
                 <section className="custom-split-layout">
-                  <div className="custom-split-header">
-                    <h1>{featuredItem.title || featuredItem.name}</h1>
-                    <div className="subtitle">
-                      {featuredItem.authorObj ? (
-                        <span 
-                          onClick={() => setSelectedAuthor(featuredItem.authorObj)} 
-                          style={{ color: 'var(--accent-gold)', textDecoration: 'underline', cursor: 'pointer' }}
-                        >
-                          {featuredItem.author}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--accent-gold)' }}>
-                          {featuredItem.author || featuredItem.role || featuredItem.type}
-                        </span>
-                      )}
-                      {(featuredItem.category || featuredItem.territory || featuredItem.ageRating) ? ` • ${featuredItem.category || featuredItem.territory} ${featuredItem.ageRating ? '• Classificação: ' + featuredItem.ageRating : ''}` : ''}
-                    </div>
-                  </div>
-
                   <div className="custom-split-body">
                     <div className="custom-split-text">
+                      <div className="custom-split-header">
+                        <h1>{featuredItem.title || featuredItem.name}</h1>
+                        <div className="subtitle">
+                          {featuredItem.authorObj ? (
+                            <span 
+                              onClick={() => setSelectedAuthor(featuredItem.authorObj)} 
+                              style={{ color: 'var(--accent-gold)', textDecoration: 'underline', cursor: 'pointer' }}
+                            >
+                              {featuredItem.author}
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--accent-gold)' }}>
+                              {featuredItem.author || featuredItem.role || featuredItem.type}
+                            </span>
+                          )}
+                          {(featuredItem.category || featuredItem.territory || featuredItem.ageRating) ? ` • ${featuredItem.category || featuredItem.territory} ${featuredItem.ageRating ? '• Classificação: ' + featuredItem.ageRating : ''}` : ''}
+                        </div>
+                      </div>
+
                       <ExpandableText text={featuredItem.description} />
                     </div>
 

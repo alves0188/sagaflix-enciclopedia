@@ -1264,9 +1264,12 @@ select option, select optgroup {
   gap: 1.5rem;
   margin-bottom: 4rem;
 }
+.custom-split-header {
+  margin-bottom: 1.5rem;
+}
 .custom-split-header h1 {
   font-size: 3rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.2rem;
   color: var(--text-main);
 }
 .custom-split-header .subtitle {
@@ -1300,11 +1303,12 @@ select option, select optgroup {
     gap: 1rem;
   }
   .custom-split-header h1 {
-    font-size: 2.2rem !important;
+    font-size: 1.6rem !important;
     text-align: left;
+    margin-bottom: 0.2rem !important;
   }
   .custom-split-header .subtitle {
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
     text-align: left;
   }
   .custom-split-body {
@@ -1316,6 +1320,7 @@ select option, select optgroup {
   }
   .custom-split-footer {
     justify-content: flex-end; /* Button aligns to the right */
+    margin-top: 0.5rem;
   }
 }
 
