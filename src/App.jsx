@@ -618,7 +618,7 @@ export default function App() {
       {/* Áreas exclusivas por Perfil */}
       <main style={{ 
         flex: 1, 
-        padding: isMobile ? '0' : '2rem', 
+        padding: isMobile ? '1rem 0.5rem' : '2rem', 
         maxWidth: isMobile ? '100%' : '1800px', 
         margin: '0 auto', 
         width: '100%',
