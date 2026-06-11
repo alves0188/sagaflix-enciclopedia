@@ -417,6 +417,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         {trashItems.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia.</p>
         ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Tipo</th>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Nome / Título</th>
+                <th style={{ padding: '1rem', textAlign: 'left' }}>Data de Exclusão</th>
                 <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
@@ -878,6 +884,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   </button>
                 )}
               </div>
+            </div>
             {showTutorialModal && (
               <div className="admin-tutorial-modal-overlay mobile-only" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1100, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setShowTutorialModal(false)}>
                 <div style={{ background: 'var(--card-bg)', width: '100%', borderRadius: '8px', padding: '1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
