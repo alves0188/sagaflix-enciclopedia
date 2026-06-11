@@ -63,21 +63,9 @@ export default function App() {
     localStorage.setItem('sagaflix_universeTab', tab);
   };
 
-  const [readerActiveTab, setReaderActiveTabState] = useState(() => {
-    try { return localStorage.getItem('sagaflix_readerTab') || 'vitrine'; } catch { return 'vitrine'; }
-  });
-  const setReaderActiveTab = (tab) => {
-    setReaderActiveTabState(tab);
-    localStorage.setItem('sagaflix_readerTab', tab);
-  };
+  const [readerActiveTab, setReaderActiveTab] = useHashTabs('vitrine', ['vitrine', 'favoritos', 'lendo', 'lidos', 'dossie'], 'sagaflix_readerTab');
 
-  const [authorActiveTab, setAuthorActiveTabState] = useState(() => {
-    try { return localStorage.getItem('sagaflix_authorTab') || 'dashboard'; } catch { return 'dashboard'; }
-  });
-  const setAuthorActiveTab = (tab) => {
-    setAuthorActiveTabState(tab);
-    localStorage.setItem('sagaflix_authorTab', tab);
-  };
+  const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte'], 'sagaflix_authorTab');
 
   const [showProfilePassword, setShowProfilePassword] = useState(false);
 

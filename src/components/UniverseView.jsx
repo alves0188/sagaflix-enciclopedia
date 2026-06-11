@@ -5,6 +5,7 @@ import DetailModal from './DetailModal';
 import AdminPanel from './AdminPanel';
 import Reader from './Reader';
 import AuthorModal from './AuthorModal';
+import { useHashHistory } from '../hooks/useHashHistory';
 
 const ExpandableText = ({ text, maxLength = 250 }) => {
   const [expanded, setExpanded] = useState(false);
