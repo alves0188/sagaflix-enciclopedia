@@ -47,6 +47,7 @@ export default function App() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
+  const [viewRoleOverride, setViewRoleOverride] = useState(null);
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
     try { return localStorage.getItem('sagaflix_universeTab') || 'home'; } catch { return 'home'; }
   });
@@ -96,6 +97,8 @@ export default function App() {
   let portalRole = 'reader';
   if (path.startsWith('/curador')) portalRole = 'curator';
   if (path.startsWith('/autor')) portalRole = 'author';
+
+  const viewRole = viewRoleOverride || (currentUser ? currentUser.role : null);
 
   const handleVerifyEmail = async (token) => {
     try {
@@ -466,7 +469,9 @@ export default function App() {
 
   // Se o usuário logou, garantir que ele está no portal certo
   // (Ex: Um leitor não pode logar na URL /curador)
-  if (currentUser.role !== portalRole) {
+  const isAuthorOnReaderPortal = currentUser.role === 'author' && portalRole === 'reader';
+  
+  if (currentUser.role !== portalRole && !isAuthorOnReaderPortal) {
     return (
       <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
         <h2>Acesso Negado</h2>
@@ -477,7 +482,7 @@ export default function App() {
   }
 
   // Se um livro estiver aberto, mostra o Universo
-  if (currentBookId && currentUser.role !== 'curator') {
+  if (currentBookId && viewRole !== 'curator') {
     return (
       <UniverseView 
         db={db} 
@@ -549,7 +554,7 @@ export default function App() {
           )}
           <BookOpen size={isMobile ? 24 : 32} color="var(--accent-gold)" />
           <h1 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
-            Sagaflix {portalRole === 'curator' ? 'Curadoria' : portalRole === 'author' ? 'Studio' : ''}
+            Sagaflix {viewRole === 'curator' ? 'Curadoria' : viewRole === 'author' ? 'Studio' : ''}
           </h1>
         </div>
 
@@ -627,12 +632,12 @@ export default function App() {
       }}>
         
         {/* VIEW DO CURADOR (FASE 2) */}
-        {currentUser.role === 'curator' && (
+        {viewRole === 'curator' && (
           <CuratorDashboard db={db} onUpdateData={handleUpdateData} currentUser={currentUser} focusAuthorId={focusAuthorId} setFocusAuthorId={setFocusAuthorId} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         )}
 
         {/* VIEW DO AUTOR */}
-        {currentUser.role === 'author' && (
+        {viewRole === 'author' && (
           <AuthorDashboard 
             db={db} 
             onUpdateData={handleUpdateData} 
@@ -647,7 +652,7 @@ export default function App() {
         )}
 
         {/* VIEW DO LEITOR (VITRINE) */}
-        {currentUser.role === 'reader' && (
+        {viewRole === 'reader' && (
           <ReaderDashboard 
             db={db} 
             currentUser={currentUser} 
@@ -724,6 +729,20 @@ export default function App() {
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  
+                  {currentUser.role === 'author' && (
+                    <button 
+                      onClick={() => {
+                        setViewRoleOverride(viewRole === 'author' ? 'reader' : 'author');
+                        setShowProfileModal(false);
+                      }}
+                      className="btn-primary" 
+                      style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                    >
+                      <User size={18} /> {viewRole === 'author' ? 'Mudar para Conta de Leitor' : 'Voltar para o Estúdio (Autor)'}
+                    </button>
+                  )}
+
                   <button 
                     onClick={() => setIsEditingProfile(true)}
                     className="btn-primary" 
