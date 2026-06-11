@@ -1243,7 +1243,33 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         </div>
       )}
 
-
+      {/* FAB: Floating Action Button (Mobile Only) */}
+      {editingItem && formData.type === 'chapter' && (
+        <div className="mobile-only">
+          <button 
+            onClick={() => setShowMobileIdeas(true)}
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--accent-gold)',
+              color: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              border: 'none',
+              zIndex: 1000,
+              cursor: 'pointer'
+            }}
+          >
+            <Lightbulb size={28} />
+          </button>
+        </div>
+      )}
 
       {/* Mobile Ideas Modal */}
       {showMobileIdeas && (
