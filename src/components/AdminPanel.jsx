@@ -34,6 +34,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [requestData, setRequestData] = useState({ what: '', why: '', impact: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const localEditorConfig = {
     ...editorConfig,
@@ -884,7 +891,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '1rem', fontWeight: '500' }}>{activeList === 'chapters' ? '' : 'Imagem'}</th>
+                  {activeList !== 'chapters' && <th style={{ padding: '1rem', fontWeight: '500' }}>Imagem</th>}
                   <th style={{ padding: '1rem', fontWeight: '500' }}>{activeList === 'posts' || activeList === 'chapters' ? 'Título' : 'Nome / Título'}</th>
                   <th style={{ padding: '1rem', fontWeight: '500' }}>{activeList === 'posts' ? 'Data' : activeList === 'chapters' ? 'Sessões' : 'Detalhe'}</th>
                   <th style={{ padding: '1rem', fontWeight: '500', textAlign: 'right' }}>Ações</th>
@@ -898,11 +905,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 ) : (
                   (data[activeList] || []).map(item => (
                     <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '1rem' }}>
-                        {activeList !== 'chapters' && (
+                      {activeList !== 'chapters' && (
+                        <td style={{ padding: '1rem' }}>
                           <img src={item.image} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
-                        )}
-                      </td>
+                        </td>
+                      )}
                       <td style={{ padding: '1rem', fontWeight: '500' }}>
                         <span 
                           onClick={() => {
@@ -922,16 +929,53 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                          item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
                          item.type === 'pista' ? 'Complemento' : item.territory}
                       </td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      <td style={{ padding: '1rem', textAlign: 'right', position: 'relative' }}>
                         {isReadOnly ? (
                           <button style={{ background: 'var(--border-color)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem' }} onClick={() => handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''))}>Visualizar</button>
                         ) : (
                           <>
                             {!(activeList === 'chapters' && !canEditChapter) && (
-                              <button style={{ background: 'var(--border-color)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', marginRight: '0.5rem', padding: '0.5rem', borderRadius: '4px' }} onClick={() => handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''))} title="Editar"><Edit2 size={16} /></button>
+                              <button 
+                                style={{ background: 'var(--border-color)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.6rem', borderRadius: '4px' }} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(openMenuId === item.id ? null : item.id);
+                                }}
+                                title="Ações"
+                              >
+                                <Edit2 size={16} />
+                              </button>
                             )}
-                            {canCreateNew && (
-                              <button style={{ background: 'rgba(255, 68, 68, 0.1)', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0.5rem', borderRadius: '4px' }} onClick={() => handleDelete(item.id, item.type)} title="Excluir"><Trash2 size={16} /></button>
+                            
+                            {openMenuId === item.id && (
+                              <div style={{ position: 'absolute', right: '1rem', top: '100%', marginTop: '0.5rem', background: '#22252a', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', zIndex: 100, display: 'flex', flexDirection: 'column', gap: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', minWidth: '180px' }}>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(null);
+                                    handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
+                                  }} 
+                                  style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.8rem', textAlign: 'left', borderRadius: '4px', fontSize: '0.9rem', width: '100%' }}
+                                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                  onMouseOut={e => e.currentTarget.style.background = 'none'}
+                                >
+                                  Editar {activeList === 'chapters' ? 'Capítulo' : 'Registro'}
+                                </button>
+                                {canCreateNew && (
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(null);
+                                      handleDelete(item.id, item.type);
+                                    }} 
+                                    style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0.8rem', textAlign: 'left', borderRadius: '4px', fontSize: '0.9rem', width: '100%' }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'none'}
+                                  >
+                                    Excluir {activeList === 'chapters' ? 'Capítulo' : 'Registro'}
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </>
                         )}
