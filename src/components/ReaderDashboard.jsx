@@ -595,9 +595,9 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     if (stats.totalPages > 500) readerRank = 'Curador Honorário';
 
     return (
-      <div className="animate-fade-in dossier-container-mobile" style={{ padding: isMobile ? '1rem' : '2rem', display: 'flex', justifyContent: 'center' }}>
+      <div className="animate-fade-in dossier-container-mobile" style={{ padding: isMobile ? '1rem 0' : '2rem', display: 'flex', justifyContent: 'center' }}>
         <div className="dossier-wrapper" style={{ padding: 0, overflowY: 'visible', flex: 'none', width: '100%', maxWidth: '900px' }}>
-          <div className="dossier-paper" style={{ padding: isMobile ? '1.5rem 1rem 2rem 1rem' : '3rem 4rem 4rem 4rem', minHeight: 'auto' }}>
+          <div className="dossier-paper" style={{ padding: isMobile ? '2.5rem 1rem 2rem 1rem' : '3rem 4rem 4rem 4rem', minHeight: 'auto', width: '100%' }}>
             <div className="dossier-paperclip"></div>
             <div className="dossier-tab">DOSSIÊ</div>
             
@@ -1601,7 +1601,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
         {/* Seção Meu Dossiê */}
         {activeTab === 'dossie' && (
-          <div style={{ padding: isMobile ? '0 1rem' : '0' }}>
+          <div style={{ padding: 0 }}>
             {renderDossier()}
           </div>
         )}
