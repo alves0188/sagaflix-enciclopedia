@@ -7,6 +7,7 @@ import PagesConfig from './PagesConfig';
 import SynopsisConfig from './SynopsisConfig';
 import BookIdeasBoard from './BookIdeasBoard';
 import { uploadImage } from '../lib/supabaseClient';
+import { useHashHistory } from '../hooks/useHashHistory';
 
 const editorConfig = {
   readonly: false,
@@ -26,6 +27,7 @@ const editorConfig = {
 export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly = false, restrictedTabs = null }) {
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
   const [editingItem, setEditingItem] = useState(null);
+  const handleCloseEdit = useHashHistory(!!editingItem, 'editando', () => setEditingItem(null));
   const [formData, setFormData] = useState({});
   const [uploading, setUploading] = useState(false);
   const [activeSubthemeStr, setActiveSubthemeStr] = useState('');
@@ -164,7 +166,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
 
       onUpdate({ ...data, [listKey]: updatedList });
-      if (editingItem === id) setEditingItem(null);
+      if (editingItem === id) handleCloseEdit();
     }
   };
 

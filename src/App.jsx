@@ -9,6 +9,7 @@ import ReaderDashboard from './components/ReaderDashboard';
 import NewBookModal from './components/NewBookModal';
 import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu } from 'lucide-react';
+import { useHashHistory } from './hooks/useHashHistory';
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -37,12 +38,16 @@ export default function App() {
     else localStorage.removeItem('sagaflix_bookId');
   };
 
+  const handleCloseBook = useHashHistory(!!currentBookId, 'livro', () => setCurrentBookId(null));
+
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showNewBook, setShowNewBook] = useState(false);
   const [authView, setAuthView] = useState('login'); 
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const handleCloseProfileModal = useHashHistory(showProfileModal, 'perfil', () => setShowProfileModal(false));
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
@@ -221,6 +226,33 @@ export default function App() {
     if (isVerificationRoute && verificationToken) {
       handleVerifyEmail(verificationToken);
     }
+
+    // Supabase Realtime Subscription
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'sagaflix_db', filter: 'id=eq.1' },
+        (payload) => {
+          if (payload.new && payload.new.data) {
+            setDb(payload.new.data);
+            setCurrentUser(prevUser => {
+              if (!prevUser) return null;
+              const latestUser = payload.new.data.users.find(u => u.id === prevUser.id);
+              if (latestUser) {
+                localStorage.setItem('sagaflix_user', JSON.stringify(latestUser));
+                return latestUser;
+              }
+              return prevUser;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleUpdateData = async (newData) => {
@@ -490,7 +522,7 @@ export default function App() {
         currentUser={currentUser} 
         onUpdateData={handleUpdateData} 
         initialTab={initialUniverseTab}
-        onLeave={() => setCurrentBookId(null)} 
+        onLeave={handleCloseBook} 
       />
     );
   }
@@ -711,7 +743,7 @@ export default function App() {
               <h3 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>
                 {isEditingProfile ? 'Editar Configurações' : 'Configurações Pessoais'}
               </h3>
-              <button onClick={() => setShowProfileModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={handleCloseProfileModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             
             {!isEditingProfile ? (
@@ -734,7 +766,7 @@ export default function App() {
                     <button 
                       onClick={() => {
                         setViewRoleOverride(viewRole === 'author' ? 'reader' : 'author');
-                        setShowProfileModal(false);
+                        handleCloseProfileModal();
                       }}
                       className="btn-primary" 
                       style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
@@ -752,7 +784,7 @@ export default function App() {
                   </button>
                   <button 
                     onClick={() => {
-                      setShowProfileModal(false);
+                      handleCloseProfileModal();
                       handleLogout();
                     }}
                     style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'none', border: '1px solid #ff7777', color: '#ff7777', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}
