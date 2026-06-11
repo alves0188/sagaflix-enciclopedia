@@ -733,14 +733,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   return (
     <div className="dashboard-container" style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)', position: 'relative' }}>
       
-      {/* Botão Mobile para abrir menu (só aparece em telas pequenas - gerido pelo App.css) */}
-      <button 
-        className="mobile-only admin-mobile-menu-btn"
-        onClick={() => setIsSidebarOpen(true)}
-        style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px' }}
-      >
-        <Menu size={24} />
-      </button>
+      {/* Botão Mobile para abrir menu nas outras abas */}
+      {!['characters', 'locations', 'organizations', 'posts', 'events', 'chapters', 'clues'].includes(activeList) && (
+        <button 
+          className="mobile-only admin-mobile-menu-btn"
+          onClick={() => setIsSidebarOpen(true)}
+          style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px' }}
+        >
+          <Menu size={24} />
+        </button>
+      )}
 
       {/* Overlay escuro quando o menu tá aberto no mobile */}
       {isSidebarOpen && (
@@ -854,8 +856,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                  activeList === 'chapters' ? 'Capítulos do Livro' : 'Complementos'}
               </h1>
               <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                <button className="mobile-only admin-tutorial-info-btn" onClick={() => setShowTutorialModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)' }}>
-                  <Info size={24} />
+                <button className="admin-tutorial-info-btn" onClick={() => setShowTutorialModal(true)} style={{ background: 'none', border: '2px solid var(--accent-gold)', borderRadius: '50%', color: 'var(--accent-gold)', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                  <Info size={16} />
                 </button>
                 {canCreateNew && !isReadOnly && ['characters', 'locations', 'organizations', 'clues'].includes(activeList) && (
                   <label className="btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} title="Dimensões recomendadas: Proporção 2:3 (Ex: 800x1200px)">
@@ -864,15 +866,18 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   </label>
                 )}
                 {canCreateNew && !isReadOnly && (
-                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
-                    <Plus size={16} /> Novo Registro
+                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                    <Plus size={16} /> <span style={{ whiteSpace: 'nowrap' }}>Novo Registro</span>
                   </button>
                 )}
+                <button 
+                  className="mobile-only admin-mobile-menu-btn"
+                  onClick={() => setIsSidebarOpen(true)}
+                  style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Menu size={20} />
+                </button>
               </div>
-            </div>
-
-            <div className="desktop-only">
-              {renderSectionTutorial(activeList)}
             </div>
 
             {showTutorialModal && (
