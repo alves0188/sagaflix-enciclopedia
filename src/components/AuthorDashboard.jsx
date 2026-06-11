@@ -399,54 +399,52 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     const activeBookForIdeas = sortedBooks.find(b => b.id === selectedIdeaBookId) || sortedBooks[0];
 
     return (
-      <div style={{ display: 'flex', height: '100%', minHeight: '80vh', gap: '2rem' }}>
-        {/* Left Sidebar for Books */}
-        <div style={{ width: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderRight: '1px solid var(--border-color)', paddingRight: '1rem', flexShrink: 0 }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Meus Livros</h3>
-          {sortedBooks.map(book => {
-            const isActive = activeBookForIdeas?.id === book.id;
-            return (
-              <button
-                key={book.id}
-                onClick={() => setSelectedIdeaBookId(book.id)}
-                style={{
-                  padding: '0.8rem 1rem',
-                  background: isActive ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                  color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)',
-                  border: 'none',
-                  borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  borderRadius: '0 4px 4px 0',
-                  transition: 'all 0.2s ease',
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-                title={book.title}
-              >
-                {book.title}
-              </button>
-            );
-          })}
-          {sortedBooks.length === 0 && (
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum livro publicado.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh', gap: '1.5rem', padding: '1rem' }}>
+        {/* Header Section with Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+          <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Meus Livros:</h3>
+          {sortedBooks.length > 0 ? (
+            <select
+              value={selectedIdeaBookId || activeBookForIdeas?.id || ''}
+              onChange={(e) => setSelectedIdeaBookId(e.target.value)}
+              style={{
+                padding: '0.6rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--card-bg)',
+                color: 'var(--accent-gold)',
+                fontSize: '1rem',
+                minWidth: '250px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                outline: 'none'
+              }}
+            >
+              {sortedBooks.map(book => (
+                <option key={book.id} value={book.id}>
+                  {book.title}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum livro publicado.</span>
           )}
         </div>
 
-        {/* Right Area for BookIdeasBoard */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Board Area */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center' }}>
           {activeBookForIdeas ? (
-            <BookIdeasBoard 
-              book={activeBookForIdeas} 
-              onUpdateBook={(updatedBook) => {
-                const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
-                onUpdateData(newDb);
-              }} 
-            />
+            <div style={{ width: '100%' }}>
+              <BookIdeasBoard 
+                book={activeBookForIdeas} 
+                onUpdateBook={(updatedBook) => {
+                  const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                  onUpdateData(newDb);
+                }} 
+              />
+            </div>
           ) : (
-            <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
               Crie um livro para começar a ter ideias.
             </div>
           )}
