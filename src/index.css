@@ -1247,3 +1247,21 @@ select option, select optgroup {
   display: none;
 }
 
+.author-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.mobile-horizontal-scroll::-webkit-scrollbar {
+  display: none; /* Safári/Chrome */
+}
+
+@media (max-width: 768px) {
+  .author-books-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+

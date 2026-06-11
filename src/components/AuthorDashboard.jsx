@@ -20,8 +20,10 @@ const DEFAULT_LEGENDS = {
   '#FFCC80': 'Outros'
 };
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView }) {
-  const [activeTab, setActiveTab] = useState('dashboard');
+export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange }) {
+  const [localActiveTab, setLocalActiveTab] = useState('dashboard');
+  const activeTab = propActiveTab || localActiveTab;
+  const setActiveTab = onTabChange || setLocalActiveTab;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
@@ -280,7 +282,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
 
         {/* Filtro por Letra A-Z */}
-        <div className="mobile-horizontal-scroll" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+        <div className="mobile-horizontal-scroll" style={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto', gap: '0.2rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', scrollbarWidth: 'none' }}>
           <button 
             onClick={() => setLetterFilter('')} 
             style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', background: letterFilter === '' ? 'var(--accent-gold)' : 'transparent', color: letterFilter === '' ? '#000' : 'var(--text-main)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -299,7 +301,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
 
         {/* Grid de Livros */}
-        <div className="mobile-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '2rem' }}>
+        <div className="author-books-grid">
           {filteredBooks.map(book => {
             const ratings = book.ratings || [];
             const count = ratings.length;

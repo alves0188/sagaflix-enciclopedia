@@ -62,6 +62,14 @@ export default function App() {
     localStorage.setItem('sagaflix_readerTab', tab);
   };
 
+  const [authorActiveTab, setAuthorActiveTabState] = useState(() => {
+    try { return localStorage.getItem('sagaflix_authorTab') || 'dashboard'; } catch { return 'dashboard'; }
+  });
+  const setAuthorActiveTab = (tab) => {
+    setAuthorActiveTabState(tab);
+    localStorage.setItem('sagaflix_authorTab', tab);
+  };
+
   const [showProfilePassword, setShowProfilePassword] = useState(false);
 
   // Email and password recovery states
@@ -240,6 +248,7 @@ export default function App() {
     localStorage.removeItem('sagaflix_bookId');
     localStorage.removeItem('sagaflix_universeTab');
     localStorage.removeItem('sagaflix_readerTab');
+    localStorage.removeItem('sagaflix_authorTab');
   };
 
   const handleOpenProfileModal = () => {
@@ -618,6 +627,8 @@ export default function App() {
             db={db} 
             onUpdateData={handleUpdateData} 
             currentUser={currentUser} 
+            activeTab={authorActiveTab}
+            onTabChange={setAuthorActiveTab}
             onSelectBook={(bookId) => setCurrentBookId(bookId)}
             onOpenNewBook={() => setShowNewBook(true)}
           />
