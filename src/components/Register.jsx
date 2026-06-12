@@ -127,7 +127,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         tastes: formData.tastes,
         about: formData.about, // Bio do autor
         avatar: formData.avatar, // Foto de perfil
-        status: 'pending_email',
+        status: role === 'author' ? 'pending_approval' : 'pending_email',
         verificationToken
       };
 
@@ -141,7 +141,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
           bookTitle: formData.bookTitle,
           sampleText: formData.sampleText,
           synopsis: formData.synopsis,
-          status: 'pending_email',
+          status: 'pending_approval',
           createdAt: new Date().toISOString()
         });
       }
@@ -164,9 +164,14 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       }
 
       if (role === 'author') {
-        alert('Cadastro enviado! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme seu e-mail para ativar sua conta e enviá-la para análise da curadoria.');
+        // Simulação do E-mail para Autor usando alert (PLANO A)
+        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${newUser.email}\n\nAssunto: Cadastro Recebido\n\nOlá ${newUser.name},\nRecebemos sua solicitação para ser Autor na Sagaflix. Nossos curadores já estão analisando sua amostra de texto. Assim que você for aprovado, enviaremos um novo e-mail de boas-vindas com a liberação de acesso!`);
+        alert('Seu cadastro foi enviado para a Curadoria! Aguarde a aprovação.');
       } else {
-        alert('Cadastro realizado com sucesso! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme seu e-mail para ativar sua conta antes de fazer login.');
+        // Simulação do E-mail para Leitor usando alert (PLANO A)
+        const fakeLink = `${window.location.origin}/#confirmacao/${verificationToken}`;
+        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${newUser.email}\n\nAssunto: Confirme seu E-mail\n\nOlá ${newUser.name},\nBem-vindo à Sagaflix! Para acessar a plataforma, clique no link abaixo para confirmar seu e-mail:\n\n${fakeLink}`);
+        alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
       }
       onNavigateLogin();
 

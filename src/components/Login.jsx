@@ -38,7 +38,7 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
           return;
         }
 
-        if (user.role === 'author' && user.status === 'pending') {
+        if (user.role === 'author' && user.status === 'pending_approval') {
           setError('Sua conta de autor ainda está sob análise da curadoria.');
           return;
         }

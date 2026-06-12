@@ -2606,9 +2606,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       if (error || !dbData) throw error;
       const newDb = dbData.data;
       
+      let userEmail = '';
+      let userName = '';
       const userIndex = newDb.users.findIndex(u => u.id === userId);
       if (userIndex !== -1) {
         newDb.users[userIndex].status = newStatus;
+        userEmail = newDb.users[userIndex].email;
+        userName = newDb.users[userIndex].name;
       }
       
       if (newDb.authorRequests) {
@@ -2619,6 +2623,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       }
 
       await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+
+      if (newStatus === 'active' && userEmail) {
+        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${userEmail}\n\nAssunto: Você foi Aprovado na Sagaflix!\n\nOlá ${userName},\nSeja bem-vindo à Sagaflix! Seu perfil de Autor foi aprovado pela curadoria. Use o seu e-mail e senha cadastrados para acessar a plataforma agora mesmo.`);
+      } else if (newStatus === 'rejected' && userEmail) {
+        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${userEmail}\n\nAssunto: Atualização do seu cadastro na Sagaflix\n\nOlá ${userName},\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.`);
+      }
+
       alert('Status atualizado com sucesso!');
       window.location.reload();
     } catch (err) {

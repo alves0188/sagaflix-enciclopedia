@@ -6,6 +6,7 @@ import Reader from './components/Reader';
 import CuratorDashboard from './components/CuratorDashboard';
 import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
+import EmailConfirmationView from './components/EmailConfirmationView';
 import NewBookModal from './components/NewBookModal';
 import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu } from 'lucide-react';
@@ -43,7 +44,17 @@ export default function App() {
 
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showNewBook, setShowNewBook] = useState(false);
-  const [authView, setAuthView] = useState('login'); 
+  const [authView, setAuthView] = useState(() => {
+    if (window.location.hash.startsWith('#confirmacao/')) return 'confirm_email';
+    return 'login';
+  }); 
+  const [confirmToken, setConfirmToken] = useState(() => {
+    if (window.location.hash.startsWith('#confirmacao/')) {
+      return window.location.hash.replace('#confirmacao/', '');
+    }
+    return null;
+  });
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -481,6 +492,13 @@ export default function App() {
 
   // Fluxo não logado (separado por portal)
   if (!currentUser) {
+    if (authView === 'confirm_email' && confirmToken) {
+      return <EmailConfirmationView token={confirmToken} onConfirm={(user, newDb) => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        handleLogin(user, newDb);
+      }} />;
+    }
+    
     if (authView === 'login') {
       return <Login onLogin={handleLogin} onNavigateRegister={() => setAuthView('register')} portalRole={portalRole} />;
     } else {
