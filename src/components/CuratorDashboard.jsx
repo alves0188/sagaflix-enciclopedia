@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus, Ban } from 'lucide-react';
+import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus, Ban, Download } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import ReaderDashboard from './ReaderDashboard';
@@ -1784,7 +1784,6 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   }
 
-  // ========== VIEW: CMS DO LIVRO (Sobrepõe tudo) ==========
   if (selectedBook) {
     const handleUpdateUniverse = (newUniverse) => {
       const newDb = { ...db };
@@ -1801,6 +1800,46 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       setSelectedBook({ ...selectedBook, ...newBookProps });
     };
 
+    const handleDownloadBackup = () => {
+      if (!selectedBook.universe || !selectedBook.universe.chapters || selectedBook.universe.chapters.length === 0) {
+        alert("Não há capítulos salvos para fazer backup.");
+        return;
+      }
+      let content = `=========================================\n`;
+      content += `LIVRO: ${selectedBook.title}\n`;
+      content += `=========================================\n\n`;
+      if (selectedBook.synopsis) {
+        content += `SINOPSE:\n${selectedBook.synopsis}\n\n`;
+      }
+      
+      const chapters = selectedBook.universe.chapters;
+      chapters.forEach(ch => {
+        content += `\n=========================================\n`;
+        content += `${ch.title || 'Capítulo sem título'}\n`;
+        content += `=========================================\n\n`;
+        
+        if (ch.pages) {
+          ch.pages.forEach(p => {
+            if (p.subtheme && !/^in.cio$/i.test(p.subtheme)) {
+               content += `--- ${p.subtheme} ---\n\n`;
+            }
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = p.text || '';
+            content += tempDiv.innerText + `\n\n`;
+          });
+        }
+      });
+
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Backup_${selectedBook.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     return (
       <div style={{ height: 'calc(100vh - 120px)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '1rem 2rem', background: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1809,6 +1848,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           </button>
           <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>Acessando CMS: {selectedBook.title}</h2>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button onClick={handleDownloadBackup} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}>
+              <Download size={16} /> Exportar Backup (.txt)
+            </button>
             <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{selectedBook.status.toUpperCase()}</strong></span>
             {permissions.approve_books && selectedBook.status === 'pending' && (
               <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: '#4CAF50' }}>
