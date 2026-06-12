@@ -3043,6 +3043,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         )}
       </div>
     );
+  };
+
   const renderReprovados = () => {
     const reprovados = (db.authorRequests || []).filter(r => r.status === 'rejected');
     return (
