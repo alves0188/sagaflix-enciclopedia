@@ -938,8 +938,14 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   };
 
   return (
-    <div className="author-dashboard-container dashboard-container">
+    <div className="author-dashboard-container dashboard-container" style={{ position: 'relative' }}>
       
+      {currentUser?.incompleteProfile && !forceUserId && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: '#ff9800', color: '#fff', padding: '0.8rem', textAlign: 'center', zIndex: 1000, fontWeight: 'bold' }}>
+          ATENÇÃO: Seu perfil está incompleto. Por favor, atualize seus dados básicos na aba de configurações. Caso contrário, a conta poderá ser suspensa.
+        </div>
+      )}
+
       {/* Overlay do Drawer (Mobile) */}
       <div 
         className={`drawer-overlay ${isSidebarOpen ? 'open' : ''} mobile-only`} 

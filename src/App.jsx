@@ -654,7 +654,17 @@ export default function App() {
         
         {/* VIEW DO CURADOR (FASE 2) */}
         {viewRole === 'curator' && (
-          <CuratorDashboard db={db} onUpdateData={handleUpdateData} currentUser={currentUser} focusAuthorId={focusAuthorId} setFocusAuthorId={setFocusAuthorId} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+          <CuratorDashboard 
+            db={db} 
+            onUpdateData={handleUpdateData} 
+            currentUser={currentUser} 
+            focusAuthorId={focusAuthorId} 
+            setFocusAuthorId={setFocusAuthorId} 
+            isSidebarOpen={isSidebarOpen} 
+            setIsSidebarOpen={setIsSidebarOpen}
+            onSelectBook={(bookId) => setCurrentBookId(bookId)}
+            onSelectBookUniverse={(bookId) => setCurrentBookId(bookId)}
+          />
         )}
 
         {/* VIEW DO AUTOR */}

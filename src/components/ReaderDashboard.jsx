@@ -707,9 +707,16 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
       border: isMobile ? 'none' : '1px solid var(--border-color)', 
       borderRadius: isMobile ? '0' : '12px', 
       overflow: isMobile ? 'visible' : 'hidden',
-      paddingBottom: isMobile ? '80px' : '0'
+      paddingBottom: isMobile ? '80px' : '0',
+      position: 'relative'
     }}>
       
+      {currentUser?.incompleteProfile && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: '#ff9800', color: '#fff', padding: '0.8rem', textAlign: 'center', zIndex: 1000, fontWeight: 'bold' }}>
+          ATENÇÃO: Seu perfil está incompleto. Por favor, atualize seus dados básicos na aba de configurações. Caso contrário, a conta poderá ser suspensa.
+        </div>
+      )}
+
       {/* Sidebar do Leitor (Escondida no Mobile) */}
       {!isMobile && (
         <div className="reader-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>

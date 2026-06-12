@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
+import ReaderDashboard from './ReaderDashboard';
 import { supabase, uploadImage } from '../lib/supabaseClient';
 
 const ROLE_PRESETS = {
@@ -106,7 +107,7 @@ const getCuratorPermissions = (user) => {
   return { ...preset, ...(user.permissions || {}) };
 };
 
-export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen, onSelectBook, onSelectBookUniverse }) {
   const permissions = getCuratorPermissions(currentUser);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dashTab, setDashTab] = useState('geral');
@@ -1619,7 +1620,14 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Autores da Plataforma</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Autores da Plataforma</h2>
+            <button className="btn-primary" onClick={() => {
+              setEditingUser(null);
+              setUserFormData({ name: '', email: '', phone: '', role: 'author', avatar: '', bio: '', incompleteProfile: false });
+              setShowUserForm(true);
+            }}>+ Novo Autor</button>
+          </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <input 
               type="text" 
@@ -1702,6 +1710,24 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   <AlertCircle size={14} /> Pedidos Pendentes
                 </div>
               )}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', width: '100%' }}>
+                <button className="btn-secondary" style={{ flex: 1, padding: '0.4rem', fontSize: '0.8rem' }} onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingUser(author);
+                  setUserFormData({ ...author });
+                  setShowUserForm(true);
+                }}>
+                  Editar
+                </button>
+                <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
+                  e.stopPropagation();
+                  if(window.confirm('Tem certeza que deseja deletar este autor?')) {
+                    onUpdateData({ ...db, users: db.users.filter(u => u.id !== author.id) });
+                  }
+                }}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           )})}
         </div>
@@ -2510,12 +2536,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gestão de Leitores</h2>
           <button className="btn-primary" onClick={() => {
-            const name = window.prompt("Nome do novo Leitor:");
-            if (!name) return;
-            const email = window.prompt("E-mail fictício ou real para o leitor:", `${name.replace(/\s+/g, '').toLowerCase()}@sagaflix.com`);
-            const newUser = { id: 'usr_' + Date.now(), name, email: email || '', role: 'reader', avatar: '', status: 'active', registeredAt: new Date().toISOString(), badges: [], readPages: 0 };
-            onUpdateData({ ...db, users: [...(db.users || []), newUser] });
-          }}>+ Novo Perfil Manual</button>
+            setEditingUser(null);
+            setUserFormData({ name: '', email: '', phone: '', role: 'reader', avatar: '', bio: '', incompleteProfile: false });
+            setShowUserForm(true);
+          }}>+ Novo Perfil</button>
         </div>
         <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -2539,9 +2563,23 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                       {leitor.status === 'active' ? 'Ativo' : 'Pendente'}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => alert('Dossiê do Leitor em desenvolvimento')}>
+                  <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => setSelectedReaderDossier(leitor)}>
                       Ver Dossiê
+                    </button>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => {
+                      setEditingUser(leitor);
+                      setUserFormData({ ...leitor });
+                      setShowUserForm(true);
+                    }}>
+                      <Edit3 size={14} />
+                    </button>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={() => {
+                      if(window.confirm('Tem certeza que deseja deletar este leitor?')) {
+                        onUpdateData({ ...db, users: db.users.filter(u => u.id !== leitor.id) });
+                      }
+                    }}>
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -2860,13 +2898,6 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Aprovação de Autores</h2>
-          <button className="btn-primary" onClick={() => {
-            const name = window.prompt("Nome do novo Autor:");
-            if (!name) return;
-            const email = window.prompt("E-mail fictício ou real para o autor:", `${name.replace(/\\s+/g, '').toLowerCase()}@sagaflix.com`);
-            const newUser = { id: 'usr_' + Date.now(), name, email: email || '', role: 'author', avatar: '', status: 'active', registeredAt: new Date().toISOString() };
-            onUpdateData({ ...db, users: [...(db.users || []), newUser] });
-          }}>+ Novo Autor Manual</button>
         </div>
         {pedidos.length === 0 ? (
           <p style={{ color: 'var(--text-muted)' }}>Nenhum autor aguardando aprovação no momento.</p>
@@ -2934,6 +2965,81 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {activeTab === 'gamificacao' && hasAccess('curadoria') && renderGamificacao()}
         {activeTab === 'equipe' && hasAccess('equipe') && renderEquipe()}
       </div>
+
+      {showUserForm && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content" style={{ width: '90%', maxWidth: '500px', padding: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>{editingUser ? 'Editar Usuário' : 'Adicionar Usuário'}</h2>
+              <button onClick={() => setShowUserForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)' }}><X size={20}/></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome*</label>
+                <input type="text" value={userFormData.name} onChange={e => setUserFormData({...userFormData, name: e.target.value})} className="form-input" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>E-mail*</label>
+                <input type="email" value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} className="form-input" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Telefone</label>
+                <input type="text" value={userFormData.phone || ''} onChange={e => setUserFormData({...userFormData, phone: e.target.value})} className="form-input" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Papel (Role)</label>
+                <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value})} className="form-input">
+                  <option value="reader">Leitor</option>
+                  <option value="author">Autor</option>
+                  <option value="curator">Curador</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Biografia (Opcional)</label>
+                <textarea value={userFormData.bio || ''} onChange={e => setUserFormData({...userFormData, bio: e.target.value})} className="form-input" style={{ minHeight: '80px' }}></textarea>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input type="checkbox" id="incomplete" checked={userFormData.incompleteProfile} onChange={e => setUserFormData({...userFormData, incompleteProfile: e.target.checked})} />
+                <label htmlFor="incomplete" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Marcar perfil como incompleto (Para o usuário preencher depois)</label>
+              </div>
+              <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => {
+                if (!userFormData.name || !userFormData.email) {
+                  if (!window.confirm('Nome ou E-mail estão vazios. Deseja forçar a criação com dados incompletos?')) return;
+                }
+                const updatedUsers = [...(db.users || [])];
+                if (editingUser) {
+                  const index = updatedUsers.findIndex(u => u.id === editingUser.id);
+                  if (index > -1) {
+                    updatedUsers[index] = { ...updatedUsers[index], ...userFormData };
+                  }
+                } else {
+                  updatedUsers.push({
+                    id: 'usr_' + Date.now(),
+                    ...userFormData,
+                    status: 'active',
+                    registeredAt: new Date().toISOString(),
+                    badges: [],
+                    readPages: 0
+                  });
+                }
+                onUpdateData({ ...db, users: updatedUsers });
+                setShowUserForm(false);
+              }}>
+                {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedReaderDossier && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'var(--bg-color)', zIndex: 99999, overflowY: 'auto' }}>
+          <button onClick={() => setSelectedReaderDossier(null)} style={{ position: 'fixed', top: '15px', right: '15px', zIndex: 100000, background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <X size={24} />
+          </button>
+          <ReaderDashboard db={db} currentUser={selectedReaderDossier} onUpdateData={onUpdateData} onSelectBook={onSelectBook} onSelectBookUniverse={onSelectBookUniverse} />
+        </div>
+      )}
 
     </div>
   );
