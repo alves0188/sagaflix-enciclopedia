@@ -64,7 +64,7 @@ export default function NewBookModal({ onClose, onSave }) {
         borderRadius: '12px', border: '1px solid var(--accent-gold)', overflow: 'hidden'
       }}>
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>Novo Livro</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>Nova História</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={24} /></button>
         </div>
 
@@ -95,7 +95,7 @@ export default function NewBookModal({ onClose, onSave }) {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Capa do Livro</label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Capa da História</label>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               {formData.cover ? (
                 <img src={formData.cover} alt="Preview" style={{ width: '80px', height: '120px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} />

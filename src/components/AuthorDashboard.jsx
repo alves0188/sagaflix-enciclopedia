@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
+import mammoth from 'mammoth/mammoth.browser.js';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -24,6 +25,12 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [localActiveTab, setLocalActiveTab] = useState('dashboard');
   const activeTab = propActiveTab || localActiveTab;
   const setActiveTab = onTabChange || setLocalActiveTab;
+
+  // Manuscrito import modals
+  const [showCreationChoice, setShowCreationChoice] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
   
@@ -265,9 +272,9 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Meus Livros</h2>
-            <button className="btn-primary" onClick={onOpenNewBook} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
-              <Plus size={16} /> <span style={{ fontSize: '0.9rem' }}>NOVO LIVRO</span>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Minhas Histórias</h2>
+            <button className="btn-primary" onClick={() => setShowCreationChoice(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+              <Plus size={16} /> <span style={{ fontSize: '0.9rem' }}>NOVA HISTÓRIA</span>
             </button>
           </div>
           
@@ -401,7 +408,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh', gap: '0' }}>
         {/* Header Section with Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 1rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Meus Livros:</h3>
+          <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Minhas Histórias:</h3>
           {sortedBooks.length > 0 ? (
             <select
               value={selectedIdeaBookId || activeBookForIdeas?.id || ''}
@@ -937,6 +944,126 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     );
   };
 
+  const handleProcessManuscript = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportProgress('Lendo arquivo...');
+
+    try {
+      let rawText = '';
+      
+      if (file.name.endsWith('.docx')) {
+        const arrayBuffer = await file.arrayBuffer();
+        setImportProgress('Extraindo texto do Word...');
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        rawText = result.value;
+      } else if (file.name.endsWith('.txt')) {
+        rawText = await file.text();
+      } else {
+        alert('Formato não suportado. Envie um arquivo .docx ou .txt');
+        setIsImporting(false);
+        return;
+      }
+
+      setImportProgress('Identificando capítulos...');
+      
+      // Quebra baseada na palavra "capitulo" (com ou sem acento), "parte", etc.
+      // O (?=...)  um lookahead que mantm a palavra "captulo" no incio do chunk seguinte.
+      const chapterRegex = /\n(?=(?:cap.tulo|capitulo|parte)\s+(?:\d+|[IVXLCDM]+|um|dois|tr.s|quatro|cinco|seis|sete|oito|nove|dez))/i;
+      let chunks = rawText.split(chapterRegex);
+      
+      const newBook = {
+        id: 'book_' + Date.now(),
+        title: file.name.replace(/\.[^/.]+$/, ""), // remove extension
+        authorId: currentUser.id,
+        authorName: currentUser.name,
+        cover: null,
+        synopsis: 'Livro importado do manuscrito original.',
+        genre: 'No definido',
+        tags: [],
+        rating: 0,
+        reviewsCount: 0,
+        readsCount: 0,
+        createdAt: new Date().toISOString(),
+        published: false,
+        status: 'draft',
+        universe: {
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          description: '',
+          rules: '',
+          pages: {},
+          chapters: chunks.reduce((acc, chunk, index) => {
+            if (!chunk.trim()) return acc;
+            
+            const lines = chunk.trim().split('\n');
+            let chTitle = '';
+            let chContent = chunk.trim();
+            
+            if (/^(?:cap.tulo|capitulo|parte)/i.test(lines[0])) {
+               chTitle = lines[0].trim();
+               lines.shift();
+               chContent = lines.join('\n').trim();
+            } else if (acc.length === 0) {
+               chTitle = 'Introdução';
+            } else {
+               chTitle = `Parte ${acc.length + 1}`;
+            }
+
+            // Agora, fatiar o conteúdo do capítulo em subtemas/páginas
+            const subthemeRegex = /\n(?=subtema)/i;
+            const pageChunks = chContent.split(subthemeRegex);
+            
+            const pages = pageChunks.map((pc, pIndex) => {
+              const pcLines = pc.trim().split('\n');
+              let pTitle = pIndex === 0 ? 'Início' : `Subtema ${pIndex}`;
+              let pContent = pc.trim();
+              
+              if (/^subtema/i.test(pcLines[0])) {
+                // Remove a palavra "Subtema" do título final se o usuário escreveu, ex: "Subtema: A Caverna" vira "A Caverna" ou fica o original
+                pTitle = pcLines[0].replace(/^subtema[:\-\s]*/i, '').trim() || `Subtema ${pIndex}`;
+                pcLines.shift();
+                pContent = pcLines.join('\n').trim();
+              }
+
+              return {
+                id: 'page_' + Date.now() + '_' + acc.length + '_' + pIndex,
+                subtheme: pTitle,
+                text: pContent,
+                image: null
+              };
+            });
+
+            acc.push({
+              id: 'ch_' + Date.now() + '_' + acc.length,
+              title: chTitle,
+              isPreamble: chTitle === 'Introdução',
+              pages: pages.filter(p => p.text.length > 0) // Remove subtemas vazios
+            });
+
+            return acc;
+          }, [])
+        }
+      };
+
+      setImportProgress('Salvando na plataforma...');
+      
+      const newBooks = [...(db.books || []), newBook];
+      await onUpdateData({ ...db, books: newBooks });
+      
+      alert('Manuscrito importado com sucesso!');
+      setShowImportModal(false);
+      onSelectBook(newBook.id);
+
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao importar: ' + err.message);
+    }
+    
+    setIsImporting(false);
+  };
+
   return (
     <div className="author-dashboard-container dashboard-container" style={{ position: 'relative' }}>
       
@@ -971,7 +1098,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
         {/* Links Menu */}
         <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
-        <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Meus Livros</button>
+        <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
         <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
         <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
         <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
@@ -986,6 +1113,207 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         {activeTab === 'solicitacoes_notas' && renderSolicitacoesNotas()}
         {activeTab === 'suporte' && renderSuporte()}
       </div>
+
+      {/* Modais de Importao */}
+      {showCreationChoice && (
+        <div className="modal-overlay" style={{ zIndex: 9999, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-content" style={{ 
+            maxWidth: '750px', 
+            padding: '3.5rem',
+            borderRadius: '24px',
+            textAlign: 'center', 
+            background: 'linear-gradient(145deg, var(--bg-color) 0%, var(--card-bg) 100%)',
+            border: '1px solid rgba(226, 192, 68, 0.2)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '2.4rem', marginBottom: '0.5rem', textShadow: '0 2px 10px rgba(226, 192, 68, 0.2)' }}>Vamos criar um novo mundo?</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>Como você deseja começar a sua jornada literária?</p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div 
+                style={{ 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid rgba(255,255,255,0.05)', 
+                  padding: '2.5rem 1.5rem', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer', 
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onClick={() => { setShowCreationChoice(false); onOpenNewBook(); }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = 'var(--accent-gold)';
+                  e.currentTarget.style.background = 'rgba(226, 192, 68, 0.05)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(226, 192, 68, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <Palette size={56} color="var(--accent-gold)" style={{ margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 8px rgba(226,192,68,0.4))' }} />
+                <h3 style={{ margin: '0 0 0.8rem 0', color: 'var(--text-main)', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif" }}>Plataforma de Criação</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>Criar do zero usando nosso sistema de worldbuilding passo a passo.</p>
+              </div>
+
+              <div 
+                style={{ 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid rgba(255,255,255,0.05)', 
+                  padding: '2.5rem 1.5rem', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer', 
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onClick={() => { setShowCreationChoice(false); setShowImportModal(true); }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = 'var(--accent-gold)';
+                  e.currentTarget.style.background = 'rgba(226, 192, 68, 0.05)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(226, 192, 68, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <UploadCloud size={56} color="var(--accent-gold)" style={{ margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 8px rgba(226,192,68,0.4))' }} />
+                <h3 style={{ margin: '0 0 0.8rem 0', color: 'var(--text-main)', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif" }}>Importar Manuscrito</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>Já tenho a história escrita em DOCX ou TXT. Apenas fatie para mim!</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowCreationChoice(false)} 
+              style={{ 
+                marginTop: '2.5rem', 
+                background: 'transparent', 
+                border: 'none', 
+                color: 'var(--text-muted)', 
+                fontSize: '1rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textUnderlineOffset: '4px'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-main)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              Cancelar e voltar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showImportModal && (
+        <div className="modal-overlay" style={{ zIndex: 9999, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-content" style={{ 
+            maxWidth: '700px',
+            padding: '3.5rem',
+            borderRadius: '24px',
+            background: 'var(--card-bg)',
+            border: '1px solid rgba(226, 192, 68, 0.2)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: '2rem' }}>Importar Manuscrito</h2>
+              <button onClick={() => setShowImportModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e)=>e.currentTarget.style.color='var(--text-main)'} onMouseLeave={(e)=>e.currentTarget.style.color='var(--text-secondary)'}><X size={28} /></button>
+            </div>
+
+            <div style={{ 
+              background: 'linear-gradient(90deg, rgba(226, 192, 68, 0.1) 0%, rgba(0,0,0,0) 100%)', 
+              padding: '1.5rem 2rem', 
+              borderRadius: '8px', 
+              borderLeft: '4px solid var(--accent-gold)', 
+              marginBottom: '2.5rem' 
+            }}>
+              <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Star size={18} color="var(--accent-gold)" /> Como preparar seu arquivo
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, margin: '0 0 1rem 0' }}>
+                Para que a nossa <strong>inteligência</strong> consiga separar seus capítulos perfeitamente, certifique-se de que o seu arquivo <strong>.docx</strong> ou <strong>.txt</strong> esteja organizado.
+              </p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
+                Antes de cada novo capítulo, escreva a palavra <strong>Capítulo</strong> (ex: <i>Capítulo 1</i>). E se quiser dividir as partes do capítulo em páginas, escreva a palavra <strong>Subtema</strong> antes de cada cena (ex: <i>Subtema: A Chegada</i>). O sistema usará essas palavras para fatiar tudo direitinho!
+              </p>
+            </div>
+
+            {isImporting ? (
+              <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+                <div className="loading-spinner" style={{ margin: '0 auto 1.5rem auto', width: '40px', height: '40px', borderTopColor: 'var(--accent-gold)' }}></div>
+                <h3 style={{ color: 'var(--accent-gold)', fontSize: '1.4rem' }}>{importProgress}</h3>
+                <p style={{ color: 'var(--text-muted)' }}>Isso pode levar alguns segundos dependendo do tamanho da obra.</p>
+              </div>
+            ) : (
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '1rem', 
+                  alignItems: 'center', 
+                  padding: '3rem 2rem', 
+                  border: '2px dashed rgba(226, 192, 68, 0.4)', 
+                  borderRadius: '12px', 
+                  background: 'rgba(0,0,0,0.2)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-gold)';
+                  e.currentTarget.style.background = 'rgba(226, 192, 68, 0.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(226, 192, 68, 0.4)';
+                  e.currentTarget.style.background = 'rgba(0,0,0,0.2)';
+                }}
+              >
+                <FileText size={56} color="var(--accent-gold)" style={{ opacity: 0.8 }} />
+                <h3 style={{ color: 'var(--text-main)', margin: 0, fontSize: '1.3rem' }}>Selecione o arquivo da história</h3>
+                <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.95rem' }}>Apenas .docx ou .txt (Max 10MB)</p>
+                <input 
+                  type="file" 
+                  accept=".docx,.txt"
+                  id="manuscript-upload"
+                  style={{ display: 'none' }}
+                  onChange={handleProcessManuscript}
+                />
+                <label 
+                  htmlFor="manuscript-upload" 
+                  style={{ 
+                    cursor: 'pointer', 
+                    marginTop: '1.5rem', 
+                    display: 'inline-block',
+                    background: 'linear-gradient(135deg, #E2C044 0%, #D4AF37 100%)',
+                    color: '#000',
+                    padding: '0.8rem 2rem',
+                    borderRadius: '30px',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 15px rgba(226, 192, 68, 0.3)',
+                    transition: 'transform 0.2s, box-shadow 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(226, 192, 68, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(226, 192, 68, 0.3)';
+                  }}
+                >
+                  Escolher Arquivo e Importar
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

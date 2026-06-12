@@ -1072,9 +1072,23 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 />
               )}
               
-              <div style={formFieldStyle}>
-                <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Título do Capítulo</label>
-                <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '1.2rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1 }} />
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ ...formFieldStyle, flex: 2 }}>
+                  <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Título</label>
+                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '1.2rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1 }} />
+                </div>
+                <div style={{ ...formFieldStyle, flex: 1 }}>
+                  <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Tipo</label>
+                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={isReadOnly} className="form-input" style={{ fontSize: '1.1rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                    <option value="chapter">Capítulo</option>
+                    <option value="prologue">Prólogo</option>
+                    <option value="preface">Prefácio</option>
+                    <option value="index">Índice</option>
+                    <option value="dedication">Dedicatória</option>
+                    <option value="acknowledgements">Agradecimentos</option>
+                    <option value="epilogue">Epílogo</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>

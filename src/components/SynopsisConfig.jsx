@@ -5,7 +5,7 @@ import { uploadImage } from '../lib/supabaseClient';
 const GENRES_LIST = [
   'Fantasia', 'Ficção Científica', 'Romance', 'Terror', 
   'Suspense', 'Mistério', 'Aventura', 'Jovem Adulto', 
-  'Distopia', 'Drama', 'Histórico'
+  'Distopia', 'Drama', 'Histórico', 'Religiosa'
 ];
 
 export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange }) {

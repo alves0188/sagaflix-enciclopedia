@@ -32,7 +32,11 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const [currentBookId, setCurrentBookIdState] = useState(() => {
-    try { return localStorage.getItem('sagaflix_bookId') || null; } catch { return null; }
+    try { 
+      const saved = localStorage.getItem('sagaflix_bookId');
+      if (saved === '[object Object]') return null;
+      return saved || null; 
+    } catch { return null; }
   });
   const setCurrentBookId = (id) => {
     setCurrentBookIdState(id);
@@ -155,19 +159,26 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: resetTokenActive, password: newPassword })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
-        window.history.replaceState({}, document.title, '/');
-        setResetTokenActive(null);
-      } else {
-        setResetError(data.error || 'Erro ao redefinir a senha.');
+      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (dbError) throw dbError;
+      
+      let db = dbData.data;
+      let user = db.users?.find(u => u.resetToken === resetTokenActive);
+      
+      if (!user) {
+        setResetError('Link de recuperação inválido ou expirado.');
+        return;
       }
+
+      user.password = newPassword;
+      user.resetToken = null; // consume the token
+
+      const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+      if (updateError) throw updateError;
+
+      alert('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
+      window.history.replaceState({}, document.title, '/');
+      setResetTokenActive(null);
     } catch (err) {
       setResetError('Erro de conexão ao redefinir a senha.');
     }

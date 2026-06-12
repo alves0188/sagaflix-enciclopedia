@@ -59,22 +59,38 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
     setForgotMessage('');
     setForgotError('');
     try {
-      const res = await fetch(window.API_BASE_URL + '/api/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setForgotMessage(data.message || 'E-mail de recuperação enviado com sucesso!');
-        setForgotEmail('');
-      } else {
-        setForgotError(data.error || 'Erro ao processar recuperação.');
+      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (dbError) throw dbError;
+      
+      let db = dbData.data;
+      let user = db.users?.find(u => u.email === forgotEmail);
+      
+      if (!user) {
+        setForgotError('E-mail não encontrado no sistema.');
+        setForgotLoading(false);
+        return;
       }
+
+      const token = Math.random().toString(36).substring(2, 15);
+      user.resetToken = token;
+      
+      const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+      if (updateError) throw updateError;
+
+      const resetLink = `${window.location.origin}/recuperar-senha?token=${token}`;
+      
+      setForgotMessage(
+        <div style={{textAlign: 'left', lineHeight: '1.5'}}>
+           <strong style={{color: 'var(--accent-gold)'}}>E-mail de recuperação simulado!</strong><br/><br/>
+           <span style={{fontSize:'0.85rem', opacity:0.9}}>Acesse o link abaixo para redefinir sua senha:</span><br/>
+           <a href={resetLink} style={{color: 'var(--accent-gold)', fontWeight: 'bold', wordBreak: 'break-all'}}>{resetLink}</a>
+        </div>
+      );
     } catch (err) {
       setForgotError('Erro ao se conectar com o servidor.');
+    } finally {
+      setForgotLoading(false);
     }
-    setForgotLoading(false);
   };
 
   if (showForgotPassword) {

@@ -28,7 +28,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
   const ALL_GENRES = [
     'Fantasia', 'Ficção Científica', 'Romance', 'Terror', 
     'Suspense', 'Mistério', 'Aventura', 'Jovem Adulto', 
-    'Distopia', 'Alta Fantasia', 'Realismo Mágico', 'Drama'
+    'Distopia', 'Alta Fantasia', 'Realismo Mágico', 'Drama', 'Religiosa'
   ];
   
   const [error, setError] = useState('');

@@ -14,22 +14,30 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   };
   const themeColors = colors[theme];
 
+  const nonChapterTypes = ['prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'];
   const book = db?.books?.find(b => b.id === bookId);
   const data = book?.universe || {};
   const rawChapters = data?.chapters || [];
   const notes = data?.notes || [];
 
-  const processedRawChapters = rawChapters.map((ch, idx) => {
+  const preambleChapters = rawChapters.filter(ch => nonChapterTypes.includes(ch.type) || ch.isPreamble);
+  const actualChapters = rawChapters.filter(ch => !nonChapterTypes.includes(ch.type) && !ch.isPreamble);
+
+  const processedRawChapters = actualChapters.map((ch, idx) => {
+    const isSpecial = ch.isVirtual || /^(?:cap|parte|pr.logo|pref.cio|introdu)/i.test(ch.title);
     const chapterNum = idx + 1;
+    const headerPrefix = isSpecial ? '' : `
+          <div style="text-transform: uppercase; letter-spacing: 3px; font-size: 0.9rem; opacity: 0.7; margin-bottom: 1.2rem; color: ${themeColors.gold}; font-weight: 600;">
+            CAPÍTULO ${String(chapterNum).padStart(2, '0')}
+          </div>`;
+
     const headerPage = {
       isChapterHeader: true,
       subtheme: '',
       text: `
         <div class="reader-chapter-header-page" style="text-align: center; padding: 4rem 1rem 2rem 1rem;">
           <div style="color: ${themeColors.gold}; margin-bottom: 1.5rem; font-size: 1.8rem; font-family: 'Playfair Display', serif;">❦</div>
-          <div style="text-transform: uppercase; letter-spacing: 3px; font-size: 0.9rem; opacity: 0.7; margin-bottom: 1.2rem; color: ${themeColors.gold}; font-weight: 600;">
-            CAPÍTULO ${String(chapterNum).padStart(2, '0')}
-          </div>
+          ${headerPrefix}
           <h1 style="font-family: 'Playfair Display', serif; color: ${themeColors.gold}; font-size: 2.6rem; margin: 0; font-weight: normal; line-height: 1.3;">
             ${cleanChapterTitle(ch.title || 'Sem título')}
           </h1>
@@ -115,6 +123,25 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       ]
     }
   ];
+
+  preambleChapters.forEach(ch => {
+    ch.pages?.forEach((p, idx) => {
+      let displaySubtheme = ch.title;
+      if (ch.pages.length > 1 && p.subtheme && !/^in.cio$/i.test(p.subtheme)) {
+        displaySubtheme += ` - ${p.subtheme}`;
+      }
+      virtualChapters[0].pages.push({
+        subtheme: displaySubtheme,
+        text: `
+          <div class="reader-preamble-page" style="padding: 1rem 0;">
+            ${idx === 0 ? `<h2 style="font-family: 'Playfair Display', serif; color: ${themeColors.gold}; text-align: center; margin-bottom: 2rem; font-size: 2rem;">${ch.title}</h2>` : ''}
+            <div style="line-height: 1.8; font-size: 1.05rem;">${p.text}</div>
+          </div>
+        `,
+        image: p.image || null
+      });
+    });
+  });
 
   const chapters = [...virtualChapters, ...processedRawChapters];
 
@@ -576,7 +603,14 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             {chapter && (
               <>
                 <div style={{ fontWeight: 'bold', fontSize: '1rem', color: themeColors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {chapter.isVirtual ? chapter.title : `Capítulo ${String(activeChapterIdx - virtualChapters.length + 1).padStart(2, '0')}`}
+                  {(() => {
+                    if (chapter.isVirtual || chapter.isPreamble || /^(?:cap|parte|pr.logo|pref.cio|introdu)/i.test(chapter.title)) {
+                      return chapter.title || 'Sem título';
+                    }
+                    const rawIdx = activeChapterIdx - virtualChapters.length;
+                    const cNum = actualChapters.slice(0, rawIdx).filter(c => !c.isVirtual && !c.isPreamble).length + 1;
+                    return `Capítulo ${String(cNum).padStart(2, '0')}`;
+                  })()}
                 </div>
                 <div style={{ fontSize: '0.9rem', color: themeColors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {!chapter.isVirtual && chapter.title} {subthemeObj?.subtheme && !chapter.isVirtual ? `- ${subthemeObj.subtheme}` : ''}
@@ -658,7 +692,13 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {ch.isVirtual ? ch.title : `Cap. ${String(idx - virtualChapters.length + 1).padStart(2, '0')} - ${ch.title || 'Sem título'}`}
+                      {(() => {
+                        if (ch.isVirtual || ch.isPreamble || /^(?:cap|parte|pr.logo|pref.cio|introdu)/i.test(ch.title)) {
+                          return ch.title || 'Sem título';
+                        }
+                        const actualIdx = chapters.slice(0, idx).filter(c => !c.isVirtual && !c.isPreamble).length + 1;
+                        return `Cap. ${String(actualIdx).padStart(2, '0')} - ${ch.title || 'Sem título'}`;
+                      })()}
                     </span>
                     {locked && (
                       <span style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.2rem', color: themeColors.gold, fontWeight: 'bold' }}>
