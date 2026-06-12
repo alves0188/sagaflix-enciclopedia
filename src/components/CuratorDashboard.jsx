@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus } from 'lucide-react';
+import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus, Ban } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import ReaderDashboard from './ReaderDashboard';
@@ -173,7 +173,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   // REDIRECIONAMENTO DE ABAS POR PERMISSÕES
   useEffect(() => {
     const perms = getCuratorPermissions(currentUser);
-    const tabs = ['dashboard', 'autores', 'leitores', 'novos_pedidos', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'gamificacao', 'equipe'];
+    const tabs = ['dashboard', 'autores', 'leitores', 'novos_pedidos', 'reprovados', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'gamificacao', 'equipe'];
     
     const isAllowed = (tab) => {
       if (tab === 'dashboard') return perms.dashboard_access;
@@ -186,6 +186,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       if (tab === 'equipe') return perms.manage_team;
       if (tab === 'leitores') return perms.view_authors;
       if (tab === 'novos_pedidos') return perms.approve_books;
+      if (tab === 'reprovados') return perms.approve_books;
       if (tab === 'gamificacao') return perms.dashboard_access; // Mesma permissão do hasAccess
       return false;
     };
@@ -3042,6 +3043,40 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         )}
       </div>
     );
+  const renderReprovados = () => {
+    const reprovados = (db.authorRequests || []).filter(r => r.status === 'rejected');
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#f44336', margin: 0 }}>Candidatos Reprovados</h2>
+        </div>
+        {reprovados.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia. Nenhum candidato reprovado no momento.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {reprovados.map(req => {
+              const user = db.users.find(u => u.id === req.userId);
+              if (!user) return null;
+              return (
+                <div key={req.id} style={{ background: 'var(--card-bg)', border: '1px solid #f4433655', borderRadius: '8px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                      <Ban size={24} color="#f44336" />
+                      <h3 style={{ margin: 0, color: '#f44336' }}>{user.name}</h3>
+                    </div>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Email:</strong> {user.email}</p>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Obra:</strong> {req.bookTitle}</p>
+                  </div>
+                  <button className="btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#4CAF50' }} onClick={() => handleUpdateAuthorStatus(user.id, 'active')}>
+                    Reverter Recusa e Aprovar
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -3058,6 +3093,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('autores') && <button onClick={() => setActiveTab('autores')} style={navItemStyle(activeTab === 'autores')}><Users size={18}/> Autores</button>}
         {hasAccess('autores') && <button onClick={() => setActiveTab('leitores')} style={navItemStyle(activeTab === 'leitores')}><Users size={18}/> Leitores</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('novos_pedidos')} style={navItemStyle(activeTab === 'novos_pedidos')}><UserPlus size={18}/> Novos Pedidos</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('reprovados')} style={navItemStyle(activeTab === 'reprovados')}><Ban size={18} color={activeTab === 'reprovados' ? '#000' : '#f44336'}/> Reprovados</button>}
         {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> Notificações</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('curadoria')} style={navItemStyle(activeTab === 'curadoria')}><CheckCircle size={18}/> Curadoria</button>}
         {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
@@ -3073,6 +3109,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {activeTab === 'autores' && hasAccess('autores') && renderAutores()}
         {activeTab === 'leitores' && hasAccess('autores') && renderLeitores()}
         {activeTab === 'novos_pedidos' && hasAccess('curadoria') && renderNovosPedidos()}
+        {activeTab === 'reprovados' && hasAccess('curadoria') && renderReprovados()}
         {activeTab === 'notifications' && hasAccess('notifications') && renderNotifications()}
         {activeTab === 'curadoria' && hasAccess('curadoria') && renderCuradoria()}
         {activeTab === 'revisoes' && hasAccess('revisoes') && renderRevisoes()}
