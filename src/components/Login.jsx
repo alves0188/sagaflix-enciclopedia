@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { sendEmail } from '../lib/emailjs';
 
 export default function Login({ onLogin, onNavigateRegister, portalRole }) {
   const [email, setEmail] = useState('');
@@ -65,27 +66,23 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
       let db = dbData.data;
       let user = db.users?.find(u => u.email === forgotEmail);
       
-      if (!user) {
-        setForgotError('E-mail não encontrado no sistema.');
-        setForgotLoading(false);
-        return;
+      if (user) {
+        const token = Math.random().toString(36).substring(2, 15);
+        user.resetToken = token;
+        
+        const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+        if (updateError) throw updateError;
+
+        const resetLink = `${window.location.origin}/recuperar-senha?token=${token}`;
+        
+        const subject = 'Recuperação de Senha - Sagaflix';
+        const message = `Olá ${user.name},\n\nVocê solicitou a recuperação da sua senha na Sagaflix. Clique no link abaixo para criar uma nova senha:\n\n${resetLink}\n\nSe você não solicitou isso, pode ignorar este e-mail.\n\nEquipe Sagaflix`;
+        
+        await sendEmail(user.email, subject, message);
       }
 
-      const token = Math.random().toString(36).substring(2, 15);
-      user.resetToken = token;
-      
-      const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
-      if (updateError) throw updateError;
-
-      const resetLink = `${window.location.origin}/recuperar-senha?token=${token}`;
-      
-      setForgotMessage(
-        <div style={{textAlign: 'left', lineHeight: '1.5'}}>
-           <strong style={{color: 'var(--accent-gold)'}}>E-mail de recuperação simulado!</strong><br/><br/>
-           <span style={{fontSize:'0.85rem', opacity:0.9}}>Acesse o link abaixo para redefinir sua senha:</span><br/>
-           <a href={resetLink} style={{color: 'var(--accent-gold)', fontWeight: 'bold', wordBreak: 'break-all'}}>{resetLink}</a>
-        </div>
-      );
+      setForgotMessage('Se o e-mail fornecido estiver em nossos registros, enviaremos um link de recuperação de senha.');
+      setForgotEmail('');
     } catch (err) {
       setForgotError('Erro ao se conectar com o servidor.');
     } finally {
