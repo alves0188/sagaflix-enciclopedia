@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, User, Upload, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { supabase, uploadImage } from '../lib/supabaseClient';
+import { sendEmail } from '../lib/emailjs';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
@@ -148,29 +149,18 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
       await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
 
-      // Disparar envio do e-mail de confirmação
-      try {
-        await fetch(window.API_BASE_URL + '/api/send-verification-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: newUser.email,
-            token: verificationToken,
-            name: newUser.name
-          })
-        });
-      } catch (mailErr) {
-        console.error('Falha ao acionar envio de e-mail:', mailErr);
-      }
-
       if (role === 'author') {
-        // Simulação do E-mail para Autor usando alert (PLANO A)
-        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${newUser.email}\n\nAssunto: Cadastro Recebido\n\nOlá ${newUser.name},\nRecebemos sua solicitação para ser Autor na Sagaflix. Nossos curadores já estão analisando sua amostra de texto. Assim que você for aprovado, enviaremos um novo e-mail de boas-vindas com a liberação de acesso!`);
+        const subject = 'Cadastro Recebido - Sagaflix';
+        const message = `Olá ${newUser.name},\n\nRecebemos sua solicitação para ser Autor na Sagaflix. Nossos curadores já estão analisando sua amostra de texto. Assim que você for aprovado, enviaremos um novo e-mail de boas-vindas com a liberação de acesso!\n\nEquipe Sagaflix`;
+        
+        await sendEmail(newUser.email, subject, message);
         alert('Seu cadastro foi enviado para a Curadoria! Aguarde a aprovação.');
       } else {
-        // Simulação do E-mail para Leitor usando alert (PLANO A)
         const fakeLink = `${window.location.origin}/#confirmacao/${verificationToken}`;
-        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${newUser.email}\n\nAssunto: Confirme seu E-mail\n\nOlá ${newUser.name},\nBem-vindo à Sagaflix! Para acessar a plataforma, clique no link abaixo para confirmar seu e-mail:\n\n${fakeLink}`);
+        const subject = 'Confirme seu E-mail - Sagaflix';
+        const message = `Olá ${newUser.name},\n\nBem-vindo à Sagaflix! Para acessar a plataforma, clique no link abaixo para confirmar seu e-mail:\n\n${fakeLink}\n\nEquipe Sagaflix`;
+        
+        await sendEmail(newUser.email, subject, message);
         alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
       }
       onNavigateLogin();

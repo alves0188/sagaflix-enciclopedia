@@ -4,6 +4,7 @@ import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import ReaderDashboard from './ReaderDashboard';
 import { supabase, uploadImage } from '../lib/supabaseClient';
+import { sendEmail } from '../lib/emailjs';
 
 const ROLE_PRESETS = {
   admin: {
@@ -2625,9 +2626,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
 
       if (newStatus === 'active' && userEmail) {
-        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${userEmail}\n\nAssunto: Você foi Aprovado na Sagaflix!\n\nOlá ${userName},\nSeja bem-vindo à Sagaflix! Seu perfil de Autor foi aprovado pela curadoria. Use o seu e-mail e senha cadastrados para acessar a plataforma agora mesmo.`);
+        const subject = 'Você foi Aprovado na Sagaflix!';
+        const message = `Olá ${userName},\n\nSeja bem-vindo à Sagaflix! Seu perfil de Autor foi aprovado pela curadoria. Use o seu e-mail e senha cadastrados para acessar a plataforma agora mesmo no link abaixo:\n\nhttps://sagaflix-enciclopedia.vercel.app/autor\n\nEquipe Sagaflix`;
+        await sendEmail(userEmail, subject, message);
       } else if (newStatus === 'rejected' && userEmail) {
-        alert(`[SIMULAÇÃO DE E-MAIL] Para: ${userEmail}\n\nAssunto: Atualização do seu cadastro na Sagaflix\n\nOlá ${userName},\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.`);
+        const subject = 'Atualização do seu cadastro na Sagaflix';
+        const message = `Olá ${userName},\n\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.\n\nSe você tiver alguma dúvida em relação a esta decisão ou desejar uma réplica da nossa avaliação, por favor, entre em contato com nosso suporte através do e-mail suporte@sagaflix.com.br\n\nEquipe Sagaflix`;
+        await sendEmail(userEmail, subject, message);
       }
 
       alert('Status atualizado com sucesso!');
