@@ -2916,102 +2916,108 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   };
 
-  const renderNovosPedidos = () => {
-    if (selectedRequest) {
-      const user = db.users.find(u => u.id === selectedRequest.userId);
-      if (!user) return <div style={{color:'red'}}>Erro: Usuário não encontrado.</div>;
-      
-      return (
-        <div style={{ height: '100%', overflowY: 'auto', paddingRight: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-            <button onClick={() => setSelectedRequest(null)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ArrowLeft size={16} /> Voltar
-            </button>
-            <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Detalhes do Pedido</h2>
-          </div>
+  const renderRequestDetails = (isReprovado = false) => {
+    const user = db.users.find(u => u.id === selectedRequest.userId);
+    if (!user) return <div style={{color:'red'}}>Erro: Usuário não encontrado.</div>;
+    
+    return (
+      <div style={{ height: '100%', overflowY: 'auto', paddingRight: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <button onClick={() => setSelectedRequest(null)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowLeft size={16} /> Voltar
+          </button>
+          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: isReprovado ? '#f44336' : 'var(--accent-gold)' }}>
+            {isReprovado ? 'Análise de Candidato Reprovado' : 'Detalhes do Pedido'}
+          </h2>
+        </div>
 
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-            {/* Coluna 1: Perfil do Autor */}
-            <div style={{ flex: '1', minWidth: '300px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-              <h3 style={{ color: 'var(--accent-gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Perfil do Candidato</h3>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--accent-gold)', overflow: 'hidden' }}>
-                  {user.avatar ? <img src={user.avatar} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <User size={48} color="var(--accent-gold)" style={{margin:'16px'}}/>}
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.2rem' }}>{user.name}</h4>
-                  <p style={{ margin: 0, color: 'var(--text-muted)' }}>{user.email}</p>
-                </div>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+          {/* Coluna 1: Perfil do Autor */}
+          <div style={{ flex: '1', minWidth: '300px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+            <h3 style={{ color: 'var(--accent-gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Perfil do Candidato</h3>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--accent-gold)', overflow: 'hidden' }}>
+                {user.avatar ? <img src={user.avatar} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <User size={48} color="var(--accent-gold)" style={{margin:'16px'}}/>}
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Idade</strong>
-                  <span>{user.age || 'Não informada'}</span>
-                </div>
-                <div>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gêneros Favoritos</strong>
-                  <span>{user.tastes || 'Não informado'}</span>
-                </div>
-              </div>
-
               <div>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Biografia</strong>
-                <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px' }}>
-                  {user.about || 'Biografia não informada pelo autor.'}
-                </p>
+                <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.2rem' }}>{user.name}</h4>
+                <p style={{ margin: 0, color: 'var(--text-muted)' }}>{user.email}</p>
               </div>
             </div>
 
-            {/* Coluna 2: Dados da Obra e Ações */}
-            <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-                <h3 style={{ color: 'var(--accent-gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Obra Submetida</h3>
-                
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Título da Obra</strong>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedRequest.bookTitle}</span>
-                </div>
-                
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Sinopse</strong>
-                  <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px' }}>
-                    {selectedRequest.synopsis}
-                  </p>
-                </div>
-                
-                <div>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Manuscrito (Texto de Amostra)</strong>
-                  {selectedRequest.sampleText ? (
-                    <a href={selectedRequest.sampleText} target="_blank" rel="noreferrer" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-                      <FileText size={16} /> Baixar / Ler Manuscrito
-                    </a>
-                  ) : (
-                    <span style={{ color: '#f44336' }}>Nenhum manuscrito enviado.</span>
-                  )}
-                </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Idade</strong>
+                <span>{user.age || 'Não informada'}</span>
               </div>
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gêneros Favoritos</strong>
+                <span>{user.tastes || 'Não informado'}</span>
+              </div>
+            </div>
 
-              {/* Botões de Ação */}
-              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-                <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', textAlign: 'center' }}>Decisão da Curadoria</h3>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button className="btn-primary" style={{ flex: 1, background: '#4CAF50', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }} onClick={() => { handleUpdateAuthorStatus(user.id, 'active'); setSelectedRequest(null); }}>
-                    <Check size={20} style={{display:'inline-block', verticalAlign:'middle', marginRight:'8px'}} />
-                    Aprovar Autor
-                  </button>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Biografia</strong>
+              <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px' }}>
+                {user.about || 'Biografia não informada pelo autor.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Coluna 2: Dados da Obra e Ações */}
+          <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+              <h3 style={{ color: 'var(--accent-gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Obra Submetida</h3>
+              
+              <div style={{ marginBottom: '1.5rem' }}>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Título da Obra</strong>
+                <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedRequest.bookTitle}</span>
+              </div>
+              
+              <div style={{ marginBottom: '1.5rem' }}>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Sinopse</strong>
+                <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px' }}>
+                  {selectedRequest.synopsis}
+                </p>
+              </div>
+              
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Manuscrito (Texto de Amostra)</strong>
+                {selectedRequest.sampleText ? (
+                  <a href={selectedRequest.sampleText} target="_blank" rel="noreferrer" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+                    <FileText size={16} /> Baixar / Ler Manuscrito
+                  </a>
+                ) : (
+                  <span style={{ color: '#f44336' }}>Nenhum manuscrito enviado.</span>
+                )}
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
+              <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', textAlign: 'center' }}>Decisão da Curadoria</h3>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn-primary" style={{ flex: 1, background: '#4CAF50', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }} onClick={() => { handleUpdateAuthorStatus(user.id, 'active'); setSelectedRequest(null); }}>
+                  <Check size={20} style={{display:'inline-block', verticalAlign:'middle', marginRight:'8px'}} />
+                  {isReprovado ? 'Reverter Recusa e Aprovar' : 'Aprovar Autor'}
+                </button>
+                {!isReprovado && (
                   <button className="btn-secondary" style={{ flex: 1, color: '#f44336', borderColor: 'rgba(244,67,54,0.3)', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }} onClick={() => { handleUpdateAuthorStatus(user.id, 'rejected'); setSelectedRequest(null); }}>
                     <X size={20} style={{display:'inline-block', verticalAlign:'middle', marginRight:'8px'}} />
                     Recusar Autor
                   </button>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  };
+
+  const renderNovosPedidos = () => {
+    if (selectedRequest) return renderRequestDetails(false);
 
     const pedidos = (db.authorRequests || []).filter(r => r.status === 'pending_approval' || r.status === 'pending');
     return (
@@ -3046,6 +3052,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   };
 
   const renderReprovados = () => {
+    if (selectedRequest) return renderRequestDetails(true);
+
     const reprovados = (db.authorRequests || []).filter(r => r.status === 'rejected');
     return (
       <div>
@@ -3069,8 +3077,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Email:</strong> {user.email}</p>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}><strong>Obra:</strong> {req.bookTitle}</p>
                   </div>
-                  <button className="btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#4CAF50' }} onClick={() => handleUpdateAuthorStatus(user.id, 'active')}>
-                    Reverter Recusa e Aprovar
+                  <button className="btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#4CAF50' }} onClick={() => setSelectedRequest(req)}>
+                    Analisar Perfil Completo
                   </button>
                 </div>
               );
