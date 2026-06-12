@@ -121,6 +121,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [authorSearchText, setAuthorSearchText] = useState('');
+  
+  // Modais de Gestão de Usuários
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userFormData, setUserFormData] = useState({ name: '', email: '', phone: '', role: 'author', avatar: '', bio: '', incompleteProfile: false });
+  const [selectedReaderDossier, setSelectedReaderDossier] = useState(null);
   const [authorIdSearchText, setAuthorIdSearchText] = useState('');
   const [authorLetterFilter, setAuthorLetterFilter] = useState('');
 
