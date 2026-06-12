@@ -135,6 +135,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       db.users.push(newUser);
 
       if (role === 'author') {
+        if (!db.authorRequests) db.authorRequests = [];
         db.authorRequests.push({
           id: 'req_' + Date.now(),
           userId: newUser.id,

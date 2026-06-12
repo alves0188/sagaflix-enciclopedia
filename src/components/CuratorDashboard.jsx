@@ -197,7 +197,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
   }, [currentUser, activeTab]);
 
-  const authors = db.users.filter(u => u.role === 'author');
+  const authors = db.users.filter(u => u.role === 'author' && u.status === 'active');
   const readers = db.users.filter(u => u.role === 'reader');
   const notifications = db.notifications || [];
 
@@ -2915,7 +2915,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   };
 
   const renderNovosPedidos = () => {
-    const pedidos = (db.authorRequests || []).filter(r => r.status === 'pending_approval');
+    const pedidos = (db.authorRequests || []).filter(r => r.status === 'pending_approval' || r.status === 'pending');
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
