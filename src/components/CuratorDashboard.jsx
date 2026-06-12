@@ -1730,8 +1730,33 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 </button>
                 <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
                   e.stopPropagation();
-                  if(window.confirm('Tem certeza que deseja deletar este autor?')) {
-                    onUpdateData({ ...db, users: db.users.filter(u => u.id !== author.id) });
+                  if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele será movido para Reprovados, mas manterá seus livros e acesso como leitor.')) {
+                    let newDb = { ...db };
+                    const userIndex = newDb.users.findIndex(u => u.id === author.id);
+                    if (userIndex !== -1) {
+                      newDb.users[userIndex].role = 'reader';
+                      newDb.users[userIndex].status = 'rejected';
+                    }
+                    let hasRequest = false;
+                    if (newDb.authorRequests) {
+                      const reqIndex = newDb.authorRequests.findIndex(r => r.userId === author.id);
+                      if (reqIndex !== -1) {
+                        newDb.authorRequests[reqIndex].status = 'rejected';
+                        hasRequest = true;
+                      }
+                    }
+                    if (!hasRequest) {
+                      newDb.authorRequests = newDb.authorRequests || [];
+                      newDb.authorRequests.push({
+                        id: 'req_revoked_' + Date.now(),
+                        userId: author.id,
+                        status: 'rejected',
+                        bookTitle: 'Acesso de Autor Revogado',
+                        synopsis: 'Acesso de autor foi revogado pela curadoria.',
+                        createdAt: new Date().toISOString()
+                      });
+                    }
+                    onUpdateData(newDb);
                   }
                 }}>
                   <Trash2 size={14} />
@@ -2614,6 +2639,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       const userIndex = newDb.users.findIndex(u => u.id === userId);
       if (userIndex !== -1) {
         newDb.users[userIndex].status = newStatus;
+        if (newStatus === 'active') {
+          newDb.users[userIndex].role = 'author';
+        }
         userEmail = newDb.users[userIndex].email;
         userName = newDb.users[userIndex].name;
       }
