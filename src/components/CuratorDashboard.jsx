@@ -142,6 +142,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [supportCategoryFilter, setSupportCategoryFilter] = useState('all'); // 'all' | 'technical' | 'curator' | 'financial' | 'other'
   const [reportCategoryFilter, setReportCategoryFilter] = useState('all');
 
+  // ESTADOS DA ANÁLISE DE DENÚNCIAS
+  const [selectedReportForReview, setSelectedReportForReview] = useState(null);
+  const [reportValidation, setReportValidation] = useState(''); // 'procedente' | 'infundada'
+  const [reportAction, setReportAction] = useState('none'); // 'none' | 'warning' | 'strike' | 'suspend'
+  const [reportCuratorNote, setReportCuratorNote] = useState('');
+  const [reportMessageToAuthor, setReportMessageToAuthor] = useState('');
+
   // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
   const [equipeSubTab, setEquipeSubTab] = useState('membros');
   const [showCuratorModal, setShowCuratorModal] = useState(false);
@@ -1301,6 +1308,205 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     alert('Mensagem enviada com sucesso!');
   };
 
+  const handleResolveReport = () => {
+    if (!reportValidation) {
+      alert("Por favor, valide se a denúncia é procedente ou infundada.");
+      return;
+    }
+    if (!reportCuratorNote.trim()) {
+      alert("Por favor, adicione uma nota interna justificando sua decisão.");
+      return;
+    }
+
+    let newDb = { ...db };
+    const reportId = selectedReportForReview.id;
+    const bookId = selectedReportForReview.bookId;
+    const book = newDb.books.find(b => b.id === bookId);
+    const authorId = book?.authorId;
+
+    // 1. Atualizar a denúncia
+    newDb.reports = newDb.reports.map(r => {
+      if (r.id === reportId) {
+        return { 
+          ...r, 
+          status: 'resolved', 
+          validation: reportValidation, 
+          actionTaken: reportAction, 
+          curatorNote: reportCuratorNote, 
+          resolvedAt: new Date().toISOString(),
+          resolvedBy: currentUser.name
+        };
+      }
+      return r;
+    });
+
+    // 2. Aplicar punições e enviar mensagens
+    if (reportValidation === 'procedente' && authorId) {
+      if (reportMessageToAuthor.trim()) {
+        const newNotif = {
+          id: Date.now().toString(),
+          type: 'message',
+          action: 'Aviso da Curadoria: Infração de Regras',
+          details: reportMessageToAuthor,
+          date: new Date().toLocaleString(),
+          read: false,
+          userId: authorId
+        };
+        newDb.notifications = [...(newDb.notifications || []), newNotif];
+      }
+
+      if (reportAction === 'strike') {
+        newDb.users = newDb.users.map(u => {
+          if (u.id === authorId) {
+            return {
+              ...u,
+              strikes: [...(u.strikes || []), {
+                date: new Date().toISOString(),
+                reason: selectedReportForReview.reason,
+                category: selectedReportForReview.category,
+                reportId: reportId
+              }]
+            };
+          }
+          return u;
+        });
+      }
+
+      if (reportAction === 'suspend') {
+        newDb.books = newDb.books.map(b => {
+          if (b.id === bookId) {
+            return { ...b, status: 'suspended' }; // Adiciona um novo status
+          }
+          return b;
+        });
+      }
+    }
+
+    newDb = logCuratorAction(
+      'Análise de Denúncia',
+      `Analisou denúncia do livro "${book?.title}". Resultado: ${reportValidation}. Ação: ${reportAction}.`,
+      newDb
+    );
+
+    onUpdateData(newDb);
+    setSelectedReportForReview(null);
+    alert('Denúncia resolvida com sucesso!');
+  };
+
+  const renderReportReviewModal = () => {
+    if (!selectedReportForReview) return null;
+    const report = selectedReportForReview;
+    const book = (db.books || []).find(b => b.id === report.bookId);
+
+    const categoryLabels = {
+      sensivel: 'Conteúdo sensível',
+      explicito: 'Conteúdo explícito (+18)',
+      plagio: 'Plágio / Direitos Autorais',
+      outro: 'Outros'
+    };
+
+    return (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '700px', border: '1px solid var(--accent-gold)', maxHeight: '90vh', overflowY: 'auto' }}>
+          <h3 style={{ margin: '0 0 1rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShieldAlert size={24} /> Análise de Denúncia
+          </h3>
+          
+          {/* Dados da Denúncia */}
+          <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div>
+                <strong>Obra:</strong> <span style={{ color: 'var(--accent-gold)' }}>{book?.title || 'Desconhecido'}</span><br/>
+                <strong>Reportado por:</strong> {report.userName} em {new Date(report.createdAt).toLocaleString('pt-BR')}
+              </div>
+              {report.category && (
+                <div>
+                  <strong>Categoria:</strong> <span style={{ background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>{categoryLabels[report.category] || report.category}</span>
+                </div>
+              )}
+            </div>
+            <strong>Motivo descrito pelo Leitor:</strong>
+            <p style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336', margin: '0.5rem 0 0 0' }}>
+              {report.reason || "Sem descrição adicional."}
+            </p>
+          </div>
+
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>1. Validação da Curadoria</h4>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: reportValidation === 'procedente' ? 'rgba(76, 175, 80, 0.2)' : 'var(--card-bg)', padding: '1rem', borderRadius: '8px', flex: 1, border: reportValidation === 'procedente' ? '1px solid #4CAF50' : '1px solid var(--border-color)' }}>
+              <input type="radio" name="validation" value="procedente" checked={reportValidation === 'procedente'} onChange={(e) => setReportValidation(e.target.value)} style={{ accentColor: '#4CAF50' }} />
+              <div>
+                <strong style={{ color: reportValidation === 'procedente' ? '#4CAF50' : 'var(--text-main)' }}>Denúncia Procedente</strong>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>O autor cometeu uma infração.</p>
+              </div>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: reportValidation === 'infundada' ? 'rgba(244, 67, 54, 0.2)' : 'var(--card-bg)', padding: '1rem', borderRadius: '8px', flex: 1, border: reportValidation === 'infundada' ? '1px solid #f44336' : '1px solid var(--border-color)' }}>
+              <input type="radio" name="validation" value="infundada" checked={reportValidation === 'infundada'} onChange={(e) => setReportValidation(e.target.value)} style={{ accentColor: '#f44336' }} />
+              <div>
+                <strong style={{ color: reportValidation === 'infundada' ? '#f44336' : 'var(--text-main)' }}>Denúncia Infundada</strong>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>O leitor equivocou-se.</p>
+              </div>
+            </label>
+          </div>
+
+          {reportValidation === 'procedente' && (
+            <>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>2. Ações e Penalidades</h4>
+              <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Ação a ser tomada no Perfil/Obra:</label>
+                  <select 
+                    value={reportAction} 
+                    onChange={(e) => setReportAction(e.target.value)}
+                    style={{ width: '100%', padding: '0.8rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px', outline: 'none' }}
+                  >
+                    <option value="none">Nenhuma Penalidade (Apenas Aviso)</option>
+                    <option value="strike">Aplicar Strike (Infração Registrada)</option>
+                    <option value="suspend">Suspender Obra</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Mensagem para o Autor (Opcional):</label>
+                  <textarea 
+                    value={reportMessageToAuthor}
+                    onChange={(e) => setReportMessageToAuthor(e.target.value)}
+                    placeholder="Escreva uma mensagem oficial para o autor exigindo correções..."
+                    style={{ width: '100%', height: '80px', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', resize: 'vertical' }}
+                  />
+                  <small style={{ color: 'var(--text-muted)' }}>Esta mensagem aparecerá nas notificações do autor no estúdio.</small>
+                </div>
+              </div>
+            </>
+          )}
+
+          <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>{reportValidation === 'procedente' ? '3' : '2'}. Conclusão da Curadoria</h4>
+          <textarea 
+            value={reportCuratorNote}
+            onChange={(e) => setReportCuratorNote(e.target.value)}
+            placeholder="Justifique sua decisão para o histórico interno da curadoria (obrigatório)..."
+            style={{ width: '100%', height: '80px', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', marginBottom: '1.5rem', resize: 'vertical' }}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <button 
+              onClick={() => setSelectedReportForReview(null)}
+              style={{ background: 'transparent', color: 'var(--text-main)', border: '1px solid var(--border-color)', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer' }}
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleResolveReport}
+              style={{ background: '#4CAF50', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Check size={18} /> Confirmar Decisão
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const navItemStyle = (isActive) => ({
     background: isActive ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
     color: isActive ? 'var(--accent-gold)' : 'var(--text-main)',
@@ -1442,13 +1648,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     </div>
                     <button 
                       onClick={() => {
-                        const newReports = db.reports.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r);
-                        onUpdateData({ ...db, reports: newReports });
+                        setSelectedReportForReview(report);
+                        setReportValidation('');
+                        setReportAction('none');
+                        setReportCuratorNote('');
+                        setReportMessageToAuthor('');
                       }}
-                      style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                      style={{ background: 'rgba(255, 152, 0, 0.1)', color: '#ff9800', border: '1px solid rgba(255, 152, 0, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
-                      <Check size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
-                      Marcar como Resolvido
+                      <ShieldAlert size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
+                      Analisar Denúncia
                     </button>
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336' }}>
@@ -1784,9 +1993,22 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   background: hasPendingRequests ? '#f44336' : '#ff9800', 
                   color: '#fff', width: '24px', height: '24px', borderRadius: '50%', 
                   display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                  fontSize: '0.8rem', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.5)'
+                  fontSize: '0.8rem', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', zIndex: 2
                 }}>
                   {authorNotifs.length}
+                </div>
+              )}
+
+              {author.strikes?.length > 0 && (
+                <div style={{ 
+                  position: 'absolute', top: '-10px', left: '-10px', 
+                  background: '#000', border: '1px solid #f44336', 
+                  color: '#f44336', padding: '2px 8px', borderRadius: '12px', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                  fontSize: '0.75rem', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', zIndex: 2
+                }}>
+                  <AlertTriangle size={12} />
+                  {author.strikes.length} Strike{author.strikes.length > 1 ? 's' : ''}
                 </div>
               )}
 
@@ -3370,6 +3592,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         </div>
       )}
 
+      {renderReportReviewModal()}
       <HQModal isOpen={showHqModal} onClose={() => setShowHqModal(false)} />
     </div>
   );
