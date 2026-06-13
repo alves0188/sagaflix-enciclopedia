@@ -140,6 +140,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [supportStatusFilter, setSupportStatusFilter] = useState('open'); // 'open' | 'resolved' | 'all'
   const [supportSearchText, setSupportSearchText] = useState('');
   const [supportCategoryFilter, setSupportCategoryFilter] = useState('all'); // 'all' | 'technical' | 'curator' | 'financial' | 'other'
+  const [reportCategoryFilter, setReportCategoryFilter] = useState('all');
 
   // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
   const [equipeSubTab, setEquipeSubTab] = useState('membros');
@@ -1380,68 +1381,86 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   // ========== RENDERIZAÇÃO DAS ABAS ==========
   
   const renderDenuncias = () => {
-    const reports = (db.reports || []).filter(r => r.status === 'pending');
+    let reports = (db.reports || []).filter(r => r.status === 'pending');
 
-    if (reports.length === 0) {
-      return (
-        <div>
-          <div className="curator-section-header">
-            <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <ShieldAlert size={24} /> Denúncias da Comunidade
-            </h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores</p>
-          </div>
-
-          <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center' }}>
-            <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia pendente</h3>
-            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Quando os leitores reportarem problemas em capítulos, eles aparecerão aqui para análise da moderação.</p>
-          </div>
-        </div>
-      );
+    if (reportCategoryFilter !== 'all') {
+      reports = reports.filter(r => r.category === reportCategoryFilter);
     }
+
+    const categoryLabels = {
+      sensivel: 'Conteúdo sensível',
+      explicito: 'Conteúdo explícito (+18)',
+      plagio: 'Plágio / Direitos Autorais',
+      outro: 'Outros'
+    };
 
     return (
       <div>
-        <div className="curator-section-header">
-          <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-            <ShieldAlert size={24} /> Denúncias da Comunidade
-          </h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores ({reports.length} pendentes)</p>
+        <div className="curator-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <ShieldAlert size={24} /> Denúncias da Comunidade
+            </h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores ({reports.length} pendentes)</p>
+          </div>
+          <select 
+            value={reportCategoryFilter}
+            onChange={(e) => setReportCategoryFilter(e.target.value)}
+            style={{ background: 'var(--card-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)', padding: '0.5rem 1rem', borderRadius: '8px', outline: 'none' }}
+          >
+            <option value="all">Todas as Categorias</option>
+            <option value="sensivel">Conteúdo sensível</option>
+            <option value="explicito">Conteúdo explícito (+18)</option>
+            <option value="plagio">Plágio / Direitos Autorais</option>
+            <option value="outro">Outros</option>
+          </select>
         </div>
 
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
-          {reports.map(report => {
-            const book = (db.books || []).find(b => b.id === report.bookId);
-            return (
-              <div key={report.id} style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '1.5rem', border: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-gold)' }}>Livro: {book?.title || 'Desconhecido'}</h4>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      Reportado por: <strong>{report.userName}</strong> em {new Date(report.createdAt).toLocaleString('pt-BR')}
+        {reports.length === 0 ? (
+          <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center', marginTop: '1.5rem' }}>
+            <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
+            <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia pendente</h3>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Não há denúncias nesta categoria no momento.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '1.5rem', marginTop: '1.5rem' }}>
+            {reports.map(report => {
+              const book = (db.books || []).find(b => b.id === report.bookId);
+              return (
+                <div key={report.id} style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '1.5rem', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-gold)' }}>Livro: {book?.title || 'Desconhecido'}</h4>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <span>Reportado por: <strong>{report.userName}</strong> em {new Date(report.createdAt).toLocaleString('pt-BR')}</span>
+                        {report.category && (
+                          <span style={{ background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                            {categoryLabels[report.category] || report.category}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => {
+                        const newReports = db.reports.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r);
+                        onUpdateData({ ...db, reports: newReports });
+                      }}
+                      style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      <Check size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
+                      Marcar como Resolvido
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => {
-                      const newReports = db.reports.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r);
-                      onUpdateData({ ...db, reports: newReports });
-                    }}
-                    style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    <Check size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
-                    Marcar como Resolvido
-                  </button>
+                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336' }}>
+                    <p style={{ margin: 0, color: 'var(--text-main)', lineHeight: '1.5' }}>
+                      {report.reason || "Sem descrição adicional."}
+                    </p>
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336' }}>
-                  <p style={{ margin: 0, color: 'var(--text-main)', lineHeight: '1.5' }}>
-                    {report.reason}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };

@@ -187,6 +187,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   // Interactions State
   const [userInteractions, setUserInteractions] = useState({}); // { [chapterId]: 'like' | 'dislike' }
   const [showReportModal, setShowReportModal] = useState(false);
+  const [reportCategory, setReportCategory] = useState('');
   const [reportReason, setReportReason] = useState('');
   
   const handleInteraction = (chapterId, type) => {
@@ -203,6 +204,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       bookId: bookId,
       userId: currentUser?.id,
       userName: currentUser?.name || 'Leitor Anônimo',
+      category: reportCategory,
       reason: reportReason,
       createdAt: new Date().toISOString(),
       status: 'pending'
@@ -216,6 +218,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     alert("Sua denúncia foi enviada para a curadoria. Obrigado!");
     setShowReportModal(false);
     setReportReason('');
+    setReportCategory('');
   };
 
   const getChapterId = (ch) => ch?.isVirtual ? ch.virtualType : ch?.id;
@@ -1148,13 +1151,35 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               <AlertTriangle size={24} /> Reportar Capítulo
             </h3>
             <p style={{ opacity: 0.8, marginBottom: '1.5rem', lineHeight: '1.5' }}>
-              Encontrou algum problema neste capítulo? Por favor, descreva o problema abaixo para que nossa curadoria possa analisar.
+              Encontrou algum problema neste capítulo? Por favor, selecione o motivo e descreva o problema abaixo para que nossa curadoria possa analisar.
             </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+              {[
+                { id: 'sensivel', label: 'Conteúdo sensível' },
+                { id: 'explicito', label: 'Conteúdo explícito (+18)' },
+                { id: 'plagio', label: 'Plágio / Direitos Autorais' },
+                { id: 'outro', label: 'Outros' }
+              ].map(cat => (
+                <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="reportCategory" 
+                    value={cat.id} 
+                    checked={reportCategory === cat.id} 
+                    onChange={(e) => setReportCategory(e.target.value)}
+                    style={{ accentColor: themeColors.gold }}
+                  />
+                  <span>{cat.label}</span>
+                </label>
+              ))}
+            </div>
+
             <textarea 
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              placeholder="Descreva o problema (ex: conteúdo ofensivo, erros graves de formatação, plagio, etc)..."
-              style={{ width: '100%', height: '120px', padding: '1rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: themeColors.text, borderRadius: '8px', marginBottom: '1.5rem', resize: 'vertical' }}
+              placeholder={reportCategory === 'outro' ? "Por favor, descreva o problema detalhadamente..." : "Quer adicionar algum detalhe? (Opcional)"}
+              style={{ width: '100%', height: '100px', padding: '1rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: themeColors.text, borderRadius: '8px', marginBottom: '1.5rem', resize: 'vertical' }}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button 
@@ -1165,8 +1190,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               </button>
               <button 
                 onClick={submitReport}
-                disabled={!reportReason.trim()}
-                style={{ background: themeColors.gold, color: '#000', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: reportReason.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: reportReason.trim() ? 1 : 0.5 }}
+                disabled={!reportCategory || (reportCategory === 'outro' && !reportReason.trim())}
+                style={{ background: themeColors.gold, color: '#000', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: (reportCategory && (reportCategory !== 'outro' || reportReason.trim())) ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: (reportCategory && (reportCategory !== 'outro' || reportReason.trim())) ? 1 : 0.5 }}
               >
                 Enviar Denúncia
               </button>
