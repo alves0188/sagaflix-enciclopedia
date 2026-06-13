@@ -905,7 +905,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
               }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginRight: '0.5rem', marginLeft: '0.5rem', flexShrink: 0 }}>A-Z:</span>
+
                 <button 
                   onClick={() => setLetterFilter('')} 
                   style={{ 
