@@ -74,9 +74,22 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     return () => clearTimeout(autoSaveTimeoutRef.current);
   }, [formData, editingItem, isReadOnly, data, onUpdate]);
 
-  const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
-  const canEditChapter = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
-  const canViewChapter = isReadOnly || canEditChapter;
+  const isSerialPublishing = currentBook?.publicationStatus === 'ongoing' && currentBook?.status === 'published';
+  const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || isSerialPublishing || currentUser?.role === 'curator');
+  
+  let isLockedBy24h = false;
+  if (isSerialPublishing && currentUser?.role !== 'curator' && editingItem && editingItem !== 'new') {
+    if (formData?.createdAt) {
+      const createdDate = new Date(formData.createdAt);
+      const diffHours = (new Date() - createdDate) / (1000 * 60 * 60);
+      if (diffHours > 24) isLockedBy24h = true;
+    } else {
+      isLockedBy24h = true;
+    }
+  }
+
+  const canEditChapter = !isReadOnly && (currentBook?.status === 'draft' || (isSerialPublishing && !isLockedBy24h) || currentUser?.role === 'curator');
+  const canViewChapter = isReadOnly || canEditChapter || (isSerialPublishing && isLockedBy24h);
   const effectiveReadOnly = !canEditChapter;
   const isChapterLike = ['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(formData.type || 'chapter');
 
@@ -122,17 +135,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (activeList === 'events') type = 'evento';
     
     if (type === 'pista') {
-      setFormData({ id: Date.now().toString(), type, name: '', image: '', found: '', wrong_view: '', reality: '', gallery: [] });
+      setFormData({ id: Date.now().toString(), type, name: '', image: '', found: '', wrong_view: '', reality: '', gallery: [], createdAt: new Date().toISOString() });
     } else if (type === 'post') {
-      setFormData({ id: Date.now().toString(), type, title: '', content: '', image: '', date: new Date().toLocaleDateString('pt-BR') });
+      setFormData({ id: Date.now().toString(), type, title: '', content: '', image: '', date: new Date().toLocaleDateString('pt-BR'), createdAt: new Date().toISOString() });
     } else if (type === 'chapter') {
-      setFormData({ id: Date.now().toString(), type, title: '', pages: [{ subtheme: 'Novo Subtema', text: '', image: '' }] });
+      setFormData({ id: Date.now().toString(), type, title: '', pages: [{ subtheme: 'Novo Subtema', text: '', image: '' }], createdAt: new Date().toISOString() });
       setActiveSubthemeStr('Novo Subtema');
       setActivePageIdxWithinSubtheme(0);
     } else if (type === 'evento') {
-      setFormData({ id: Date.now().toString(), type, name: '', content: '', tags: '' });
+      setFormData({ id: Date.now().toString(), type, name: '', content: '', tags: '', createdAt: new Date().toISOString() });
     } else {
-      setFormData({ id: Date.now().toString(), type, name: '', role: '', territory: '', age: '', image: '', description: '', motivations: '', curiosities: '', connections: [], gallery: [], customFields: [], privateNotes: '' });
+      setFormData({ id: Date.now().toString(), type, name: '', role: '', territory: '', age: '', image: '', description: '', motivations: '', curiosities: '', connections: [], gallery: [], customFields: [], privateNotes: '', createdAt: new Date().toISOString() });
     }
   };
 
@@ -1015,7 +1028,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ArrowLeft size={18} /> Voltar
               </button>
-              {!isReadOnly && <button className="btn-primary" onClick={handleSave}><Save size={18} /> Salvar</button>}
+              {!effectiveReadOnly && <button className="btn-primary" onClick={handleSave}><Save size={18} /> Salvar</button>}
             </div>
           </div>
         ) : (
@@ -1055,7 +1068,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ArrowLeft size={16} /> Voltar
               </button>
-              {!isReadOnly && <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>}
+              {!effectiveReadOnly && <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>}
             </div>
           </div>
           
