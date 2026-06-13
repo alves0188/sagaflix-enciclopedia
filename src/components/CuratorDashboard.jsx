@@ -1378,6 +1378,23 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   // ========== RENDERIZAÇÃO DAS ABAS ==========
   
+  const renderDenuncias = () => (
+    <div>
+      <div className="curator-section-header">
+        <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <ShieldAlert size={24} /> Denúncias da Comunidade
+        </h2>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores</p>
+      </div>
+
+      <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center' }}>
+        <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
+        <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia no momento</h3>
+        <p style={{ color: 'var(--text-muted)', margin: 0 }}>Quando os leitores reportarem problemas em capítulos, eles aparecerão aqui para análise da moderação.</p>
+      </div>
+    </div>
+  );
+
   const renderDashboardGeral = () => {
     
     const subTabStyle = (isActive) => ({
@@ -3176,6 +3193,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('autores') && <button onClick={() => setActiveTab('leitores')} style={navItemStyle(activeTab === 'leitores')}><Users size={18}/> Leitores</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('novos_pedidos')} style={navItemStyle(activeTab === 'novos_pedidos')}><UserPlus size={18}/> Novos Pedidos</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('reprovados')} style={navItemStyle(activeTab === 'reprovados')}><Ban size={18} color={activeTab === 'reprovados' ? '#000' : '#f44336'}/> Reprovados</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('denuncias')} style={navItemStyle(activeTab === 'denuncias')}><ShieldAlert size={18} color={activeTab === 'denuncias' ? '#000' : '#ff9800'}/> Denúncias</button>}
         {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> Notificações</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('curadoria')} style={navItemStyle(activeTab === 'curadoria')}><CheckCircle size={18}/> Curadoria</button>}
         {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
@@ -3197,6 +3215,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {activeTab === 'leitores' && hasAccess('autores') && renderLeitores()}
         {activeTab === 'novos_pedidos' && hasAccess('curadoria') && renderNovosPedidos()}
         {activeTab === 'reprovados' && hasAccess('curadoria') && renderReprovados()}
+        {activeTab === 'denuncias' && hasAccess('curadoria') && renderDenuncias()}
         {activeTab === 'notifications' && hasAccess('notifications') && renderNotifications()}
         {activeTab === 'curadoria' && hasAccess('curadoria') && renderCuradoria()}
         {activeTab === 'revisoes' && hasAccess('revisoes') && renderRevisoes()}

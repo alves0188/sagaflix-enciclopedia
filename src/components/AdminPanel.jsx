@@ -1075,11 +1075,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ ...formFieldStyle, flex: 2 }}>
                   <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Título</label>
-                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '1.2rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1 }} />
+                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '1.2rem', padding: '0.8rem', opacity: effectiveReadOnly ? 0.7 : 1 }} />
                 </div>
                 <div style={{ ...formFieldStyle, flex: 1 }}>
                   <label style={{ fontSize: '1.1rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Tipo</label>
-                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={isReadOnly} className="form-input" style={{ fontSize: '1.1rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" style={{ fontSize: '1.1rem', padding: '0.8rem', opacity: effectiveReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
                     <option value="chapter">Capítulo</option>
                     <option value="prologue">Prólogo</option>
                     <option value="preface">Prefácio</option>
@@ -1094,7 +1094,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 'bold' }}>Subtemas</h3>
-                  {!isReadOnly && <button onClick={handleAddSubtheme} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Novo Subtema"><Plus size={20} /></button>}
+                  {!effectiveReadOnly && <button onClick={handleAddSubtheme} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Novo Subtema"><Plus size={20} /></button>}
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -1136,12 +1136,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     <div className="editor-title-container" style={{ flexShrink: 0 }}>
                       <input 
                         type="text" 
-                        value={activeSubthemeStr || ''} 
-                        onChange={(e) => handleSubthemeNameChange(e.target.value)} 
-                        disabled={isReadOnly}
+                        value={activePage.subtheme || ''} 
+                        onChange={(e) => handlePageChange(activePage.globalIdx, 'subtheme', e.target.value)} 
+                        disabled={effectiveReadOnly}
                         className="form-input" 
                         placeholder="Nome do Subtema..." 
-                        style={{ fontSize: '2rem', padding: '1rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid var(--border-color)', borderRadius: 0, color: 'var(--accent-gold)', opacity: isReadOnly ? 0.8 : 1 }} 
+                        style={{ fontSize: '2rem', padding: '1rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid var(--border-color)', borderRadius: 0, color: 'var(--accent-gold)', opacity: effectiveReadOnly ? 0.8 : 1 }} 
                       />
 
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
@@ -1162,7 +1162,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             Sessão {idx + 1}
                           </button>
                         ))}
-                        {!isReadOnly && (
+                        {!effectiveReadOnly && (
                           <button 
                             onClick={handleAddPageToSubtheme} 
                             style={{ background: 'transparent', color: 'var(--accent-gold)', border: '1px dashed var(--accent-gold)', padding: '0.6rem 1.2rem', borderRadius: '8px 8px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}
@@ -1177,9 +1177,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
-                          if (!isReadOnly) handlePageChange(activePage.globalIdx, 'text', newContent);
+                          if (!effectiveReadOnly) handlePageChange(activePage.globalIdx, 'text', newContent);
                         }}
-                        disabled={isReadOnly}
+                        disabled={effectiveReadOnly}
                         placeholder="Escreva a sessão do capítulo aqui..."
                       />
                     </div>
@@ -1190,7 +1190,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
                         {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
                         
-                        {!isReadOnly ? (
+                        {!effectiveReadOnly ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
                             <label className="btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '0.8rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {uploading ? 'Enviando...' : <><Upload size={16} /> Fazer Upload da Imagem</>}
@@ -1204,7 +1204,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         )}
                       </div>
 
-                      {!isReadOnly && (
+                      {!effectiveReadOnly && (
                         <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end' }}>
                           <button onClick={() => {
                             handleRemoveGlobalPage(activePage.globalIdx);

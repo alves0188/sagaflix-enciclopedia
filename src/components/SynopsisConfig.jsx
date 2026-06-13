@@ -13,7 +13,8 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     releaseWeekday: book.releaseWeekday !== undefined ? book.releaseWeekday : 1,
     ageRating: book.ageRating || 'Livre',
     genres: book.genres || (book.category ? book.category.split(',').map(g => g.trim()) : []),
-    coAuthorId: book.coAuthorId || ''
+    coAuthorId: book.coAuthorId || '',
+    publicationStatus: book.publicationStatus || 'ongoing'
   });
   const [uploading, setUploading] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -157,6 +158,27 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
               <option value="14">14 anos</option>
               <option value="16">16 anos</option>
               <option value="18">18 anos</option>
+            </select>
+          </div>
+
+          {/* Status de Publicação da Obra */}
+          <div style={formFieldStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+              <label style={{ color: 'var(--text-muted)', margin: 0 }}>Status da Obra</label>
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontStyle: 'italic' }}>
+                * Leitores adoram acompanhar obras em andamento!
+              </span>
+            </div>
+            <select 
+              name="publicationStatus" 
+              value={formData.publicationStatus} 
+              onChange={handleChange} 
+              disabled={isReadOnly} 
+              className="form-input" 
+              style={{ padding: '0.6rem', opacity: isReadOnly ? 0.7 : 1 }}
+            >
+              <option value="ongoing">Em Andamento</option>
+              <option value="completed">Concluída</option>
             </select>
           </div>
 

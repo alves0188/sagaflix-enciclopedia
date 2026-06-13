@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send, Gift } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send, Gift, ThumbsUp, ThumbsDown, AlertTriangle } from 'lucide-react';
 import ShopModal from './ShopModal';
 
 const cleanChapterTitle = (title) => {
@@ -183,6 +183,25 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [activeParagraphIdx, setActiveParagraphIdx] = useState(null);
   const [newCommentText, setNewCommentText] = useState('');
+  
+  // Interactions State
+  const [userInteractions, setUserInteractions] = useState({}); // { [chapterId]: 'like' | 'dislike' }
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  
+  const handleInteraction = (chapterId, type) => {
+    setUserInteractions(prev => ({
+      ...prev,
+      [chapterId]: prev[chapterId] === type ? null : type
+    }));
+  };
+  
+  const submitReport = () => {
+    alert("Sua denúncia foi enviada para a curadoria. Obrigado!");
+    // Aqui no futuro enviaríamos para uma tabela "reports" no Supabase
+    setShowReportModal(false);
+    setReportReason('');
+  };
 
   const getChapterId = (ch) => ch?.isVirtual ? ch.virtualType : ch?.id;
 
@@ -810,6 +829,33 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                     <div className={`reader-body ${chapter?.isVirtual ? 'is-virtual' : ''}`}>
                       {renderReaderBody((subthemeObj.text || '').replace(/(<p>(\s|&nbsp;|<br\/?\s*>)*<\/p>)+$/, ''), chapter, subthemeObj)}
                     </div>
+
+                    {/* Fim do Capítulo - Botões de Interação */}
+                    {!chapter?.isVirtual && activeSubthemeIdx === chapter.pages.length - 1 && (
+                      <div className="chapter-interaction-footer" style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', breakInside: 'avoid' }}>
+                        <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: themeColors.gold, fontSize: '1.5rem' }}>O que achou deste capítulo?</h3>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <button 
+                            style={{ background: userInteractions[chapter.id] === 'like' ? 'rgba(76, 175, 80, 0.2)' : 'transparent', color: userInteractions[chapter.id] === 'like' ? '#4CAF50' : themeColors.text, border: `1px solid ${userInteractions[chapter.id] === 'like' ? '#4CAF50' : 'rgba(255,255,255,0.2)'}`, borderRadius: '24px', padding: '0.8rem 1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', transition: 'all 0.2s' }} 
+                            onClick={() => handleInteraction(chapter.id, 'like')}
+                          >
+                            <ThumbsUp size={20} fill={userInteractions[chapter.id] === 'like' ? '#4CAF50' : 'none'} /> Gostei
+                          </button>
+                          <button 
+                            style={{ background: userInteractions[chapter.id] === 'dislike' ? 'rgba(244, 67, 54, 0.2)' : 'transparent', color: userInteractions[chapter.id] === 'dislike' ? '#f44336' : themeColors.text, border: `1px solid ${userInteractions[chapter.id] === 'dislike' ? '#f44336' : 'rgba(255,255,255,0.2)'}`, borderRadius: '24px', padding: '0.8rem 1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', transition: 'all 0.2s' }} 
+                            onClick={() => handleInteraction(chapter.id, 'dislike')}
+                          >
+                            <ThumbsDown size={20} fill={userInteractions[chapter.id] === 'dislike' ? '#f44336' : 'none'} /> Não Gostei
+                          </button>
+                        </div>
+                        <button 
+                          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', textDecoration: 'underline', cursor: 'pointer', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} 
+                          onClick={() => setShowReportModal(true)}
+                        >
+                          <AlertTriangle size={16} /> Reportar problema com este capítulo
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', marginTop: '4rem', opacity: 0.5, fontSize: '1.2rem' }}>
@@ -1078,6 +1124,41 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             </div>
           </div>
         </div>
+
+      {/* Modal de Denúncia */}
+      {showReportModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: themeColors.sidebarBg, color: themeColors.text, padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px', border: `1px solid ${themeColors.gold}` }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontFamily: "'Playfair Display', serif", color: themeColors.gold, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertTriangle size={24} /> Reportar Capítulo
+            </h3>
+            <p style={{ opacity: 0.8, marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              Encontrou algum problema neste capítulo? Por favor, descreva o problema abaixo para que nossa curadoria possa analisar.
+            </p>
+            <textarea 
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              placeholder="Descreva o problema (ex: conteúdo ofensivo, erros graves de formatação, plagio, etc)..."
+              style={{ width: '100%', height: '120px', padding: '1rem', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: themeColors.text, borderRadius: '8px', marginBottom: '1.5rem', resize: 'vertical' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button 
+                onClick={() => setShowReportModal(false)}
+                style={{ background: 'transparent', color: themeColors.text, border: '1px solid rgba(255,255,255,0.2)', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={submitReport}
+                disabled={!reportReason.trim()}
+                style={{ background: themeColors.gold, color: '#000', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: reportReason.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', opacity: reportReason.trim() ? 1 : 0.5 }}
+              >
+                Enviar Denúncia
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
