@@ -8,8 +8,9 @@ import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
 import EmailConfirmationView from './components/EmailConfirmationView';
 import NewBookModal from './components/NewBookModal';
+import ShopModal from './components/ShopModal';
 import { supabase, uploadImage } from './lib/supabaseClient';
-import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2 } from 'lucide-react';
+import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store } from 'lucide-react';
 import { useHashHistory } from './hooks/useHashHistory';
 import { useHashTabs } from './hooks/useHashTabs';
 
@@ -69,6 +70,7 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
   const [viewRoleOverride, setViewRoleOverride] = useState(null);
+  const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
     try { return localStorage.getItem('sagaflix_universeTab') || 'home'; } catch { return 'home'; }
   });
@@ -853,6 +855,18 @@ export default function App() {
                   )}
 
                   <button 
+                    onClick={() => {
+                      handleCloseProfileModal();
+                      setIsShopModalOpen(true);
+                    }}
+                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'var(--bg-main)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 'bold' }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 215, 0, 0.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--bg-main)'; }}
+                  >
+                    <Store size={18} /> Sagaflix Shop
+                  </button>
+
+                  <button 
                     onClick={() => setIsEditingProfile(true)}
                     className="btn-primary" 
                     style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
@@ -1055,6 +1069,13 @@ export default function App() {
             )}
           </div>
         </div>
+      )}
+      {isShopModalOpen && (
+        <ShopModal 
+          isOpen={isShopModalOpen} 
+          onClose={() => setIsShopModalOpen(false)} 
+          userName={currentUser?.nickname || currentUser?.name} 
+        />
       )}
     </div>
   );

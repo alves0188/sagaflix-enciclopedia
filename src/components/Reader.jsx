@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send, Gift } from 'lucide-react';
+import ShopModal from './ShopModal';
 
 const cleanChapterTitle = (title) => {
   if (!title) return '';
@@ -168,6 +169,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [zoom, setZoom] = useState(100);
+  const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [pageInput, setPageInput] = useState('1');
   const [expandedChapters, setExpandedChapters] = useState([0, 1, 2, 3]); // Expand virtual pages and first chapter by default
   const [globalPageCounts, setGlobalPageCounts] = useState([]);
@@ -633,6 +635,26 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               <div style={{ width: '1px', height: '20px', background: themeColors.border, margin: '0 0.5rem' }}></div>
             </>
           )}
+          <button 
+            onClick={() => setIsShopModalOpen(true)}
+            title="Presentear o Autor" 
+            style={{ 
+              background: 'var(--accent-gold)', 
+              border: 'none', 
+              color: '#000', 
+              cursor: 'pointer', 
+              padding: '0.4rem 0.8rem', 
+              borderRadius: '4px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.3rem',
+              fontWeight: 'bold',
+              fontSize: '0.8rem',
+              marginLeft: '0.5rem'
+            }}
+          >
+            <Gift size={16} /> <span className="hide-on-mobile">Presentear</span>
+          </button>
           <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -1167,6 +1189,13 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           background-image: var(--bubble-svg-empty-hover);
         }
       `}} />
+      {isShopModalOpen && (
+        <ShopModal 
+          isOpen={isShopModalOpen} 
+          onClose={() => setIsShopModalOpen(false)} 
+          userName={currentUser?.nickname || currentUser?.name} 
+        />
+      )}
     </div>
   );
 }

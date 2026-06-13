@@ -148,7 +148,9 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         about: formData.about, // Bio do autor
         avatar: formData.avatar, // Foto de perfil
         status: role === 'author' ? 'pending_approval' : 'pending_email',
-        verificationToken
+        verificationToken,
+        isPremium: false,
+        crystals: 0
       };
 
       db.users.push(newUser);
