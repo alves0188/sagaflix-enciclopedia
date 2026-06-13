@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Palette, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 
 const COLORS = [
@@ -18,6 +18,46 @@ const DEFAULT_LEGENDS = {
   '#CE93D8': 'Worldbuilding',
   '#FFCC80': 'Outros'
 };
+
+function DebouncedInput({ value, onChange, placeholder, style }) {
+  const [localValue, setLocalValue] = useState(value);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setLocalValue(val);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      onChange(val);
+    }, 800);
+  };
+
+  return <input type="text" value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} placeholder={placeholder} style={style} />;
+}
+
+function DebouncedTextarea({ value, onChange, placeholder, style }) {
+  const [localValue, setLocalValue] = useState(value);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setLocalValue(val);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      onChange(val);
+    }, 800);
+  };
+
+  return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} placeholder={placeholder} style={style} />;
+}
 
 export default function BookIdeasBoard({ book, onUpdateBook }) {
   const [showLegends, setShowLegends] = useState(false);
@@ -236,10 +276,9 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   </div>
 
                   {/* Título da Ideia */}
-                  <input 
-                    type="text"
+                  <DebouncedInput 
                     value={idea.title || ''}
-                    onChange={(e) => handleUpdateIdeaTitle(idea.id, e.target.value)}
+                    onChange={(val) => handleUpdateIdeaTitle(idea.id, val)}
                     placeholder="Título da Ideia..."
                     style={{ 
                       background: 'transparent',
@@ -257,9 +296,9 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   />
 
                   {/* Post-it Text Content */}
-                  <textarea 
-                    value={idea.text}
-                    onChange={(e) => handleUpdateIdeaText(idea.id, e.target.value)}
+                  <DebouncedTextarea 
+                    value={idea.text || ''}
+                    onChange={(val) => handleUpdateIdeaText(idea.id, val)}
                     placeholder="Clique aqui e digite a sua ideia..."
                     style={{ 
                       flex: 1, 
