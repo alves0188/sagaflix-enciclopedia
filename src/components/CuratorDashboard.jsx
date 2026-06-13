@@ -124,7 +124,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   const [authorSearchText, setAuthorSearchText] = useState('');
   
-  // Modais de Gestão de Usuários
+  // Modais de GestÃ£o de UsuÃ¡rios
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [userFormData, setUserFormData] = useState({ name: '', email: '', phone: '', role: 'author', avatar: '', bio: '', incompleteProfile: false });
@@ -153,7 +153,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '' });
   const [bannerUploading, setBannerUploading] = useState(false);
 
-  // ESTADOS DA GAMIFICAÇÃO
+  // ESTADOS DA GAMIFICAÃ‡ÃƒO
   const [gamificacaoSubTab, setGamificacaoSubTab] = useState('badges');
   const [editingBadge, setEditingBadge] = useState(null);
   const [badgeForm, setBadgeForm] = useState({ id: '', name: '', description: '', icon: '', minPages: 0 });
@@ -170,7 +170,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
   }, [focusAuthorId, db, setFocusAuthorId]);
 
-  // REDIRECIONAMENTO DE ABAS POR PERMISSÕES
+  // REDIRECIONAMENTO DE ABAS POR PERMISSÃ•ES
   useEffect(() => {
     const perms = getCuratorPermissions(currentUser);
     const tabs = ['dashboard', 'autores', 'leitores', 'novos_pedidos', 'reprovados', 'notifications', 'curadoria', 'revisoes', 'mensagens', 'banners', 'gamificacao', 'equipe'];
@@ -187,7 +187,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       if (tab === 'leitores') return perms.view_authors;
       if (tab === 'novos_pedidos') return perms.approve_books;
       if (tab === 'reprovados') return perms.approve_books;
-      if (tab === 'gamificacao') return perms.dashboard_access; // Mesma permissão do hasAccess
+      if (tab === 'gamificacao') return perms.dashboard_access; // Mesma permissÃ£o do hasAccess
       return false;
     };
 
@@ -203,7 +203,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const readers = db.users.filter(u => u.role === 'reader');
   const notifications = db.notifications || [];
 
-  // FUNÇÃO AUXILIAR DE LOG DE CURADORIA
+  // FUNÃ‡ÃƒO AUXILIAR DE LOG DE CURADORIA
   const logCuratorAction = (action, details, targetDb = db) => {
     const newDb = { ...targetDb };
     if (!newDb.auditLogs) newDb.auditLogs = [];
@@ -249,12 +249,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       newDb.banners = (newDb.banners || []).filter(b => b.id !== bannerId);
       
       newDb = logCuratorAction(
-        'Exclusão de Banner',
+        'ExclusÃ£o de Banner',
         `Removeu o banner "${bannerToDelete ? bannerToDelete.title : bannerId}"`,
         newDb
       );
       onUpdateData(newDb);
-      alert("Banner excluído com sucesso!");
+      alert("Banner excluÃ­do com sucesso!");
     }
   };
 
@@ -279,7 +279,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const handleSaveBanner = (e) => {
     e.preventDefault();
     if (!bannerFormData.title || !bannerFormData.imageUrl) {
-      alert("Por favor, preencha o título e a imagem do banner.");
+      alert("Por favor, preencha o tÃ­tulo e a imagem do banner.");
       return;
     }
 
@@ -291,14 +291,14 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     if (isNew) {
       newDb.banners.push({ ...bannerFormData });
       newDb = logCuratorAction(
-        'Criação de Banner',
+        'CriaÃ§Ã£o de Banner',
         `Criou o banner "${bannerFormData.title}"`,
         newDb
       );
     } else {
       newDb.banners = newDb.banners.map(b => b.id === bannerFormData.id ? { ...bannerFormData } : b);
       newDb = logCuratorAction(
-        'Edição de Banner',
+        'EdiÃ§Ã£o de Banner',
         `Editou o banner "${bannerFormData.title}"`,
         newDb
       );
@@ -319,7 +319,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           </div>
           <button onClick={() => {
             setEditingBanner(true);
-            setBannerFormData({ id: 'bn_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler' });
+            setBannerFormData({ id: 'bn_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'ComeÃ§ar a Ler' });
           }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={18} /> Novo Banner
           </button>
@@ -331,21 +331,21 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <div style={{ display: 'flex', gap: '2rem' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Título</label>
-                  <input type="text" value={bannerFormData.title} onChange={e => setBannerFormData({...bannerFormData, title: e.target.value})} className="form-input" placeholder="Ex: Lançamento do Ano" style={{ width: '100%' }} />
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>TÃ­tulo</label>
+                  <input type="text" value={bannerFormData.title} onChange={e => setBannerFormData({...bannerFormData, title: e.target.value})} className="form-input" placeholder="Ex: LanÃ§amento do Ano" style={{ width: '100%' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Descrição</label>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>DescriÃ§Ã£o</label>
                   <textarea value={bannerFormData.description} onChange={e => setBannerFormData({...bannerFormData, description: e.target.value})} className="form-input" placeholder="Breve texto sobre o banner" style={{ width: '100%', height: '80px', resize: 'none' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Ação (Link ou ID do Livro)</label>
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>AÃ§Ã£o (Link ou ID do Livro)</label>
                     <input type="text" value={bannerFormData.actionUrl} onChange={e => setBannerFormData({...bannerFormData, actionUrl: e.target.value})} className="form-input" placeholder="Ex: book_12345" style={{ width: '100%' }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do Botão</label>
-                    <input type="text" value={bannerFormData.actionText} onChange={e => setBannerFormData({...bannerFormData, actionText: e.target.value})} className="form-input" placeholder="Ex: Começar a Ler" style={{ width: '100%' }} />
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do BotÃ£o</label>
+                    <input type="text" value={bannerFormData.actionText} onChange={e => setBannerFormData({...bannerFormData, actionText: e.target.value})} className="form-input" placeholder="Ex: ComeÃ§ar a Ler" style={{ width: '100%' }} />
                   </div>
                 </div>
               </div>
@@ -396,9 +396,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', fontSize: '1.2rem' }}>{banner.title}</h3>
                 <p style={{ margin: '0 0 1rem 0', color: 'var(--text-muted)', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{banner.description}</p>
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-                  <span style={{ color: 'var(--accent-gold)' }}>Ação: {banner.actionUrl}</span>
+                  <span style={{ color: 'var(--accent-gold)' }}>AÃ§Ã£o: {banner.actionUrl}</span>
                   <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
-                  <span style={{ color: 'var(--text-muted)' }}>Botão: {banner.actionText}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>BotÃ£o: {banner.actionText}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderLeft: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.1)', justifyContent: 'center', gap: '0.5rem' }}>
@@ -414,7 +414,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           {(!db.banners || db.banners.length === 0) && (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border-color)', color: 'var(--text-muted)' }}>
               <Image size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-              <p>Nenhum banner cadastrado. Os banners padrão serão exibidos para os leitores.</p>
+              <p>Nenhum banner cadastrado. Os banners padrÃ£o serÃ£o exibidos para os leitores.</p>
             </div>
           )}
         </div>
@@ -454,7 +454,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     if (editingCurator) {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase() && u.id !== editingCurator.id);
       if (emailExists) {
-        alert('Este e-mail já está em uso por outro usuário.');
+        alert('Este e-mail jÃ¡ estÃ¡ em uso por outro usuÃ¡rio.');
         return;
       }
       
@@ -477,7 +477,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       });
 
       newDb = logCuratorAction(
-        'Edição de Curador',
+        'EdiÃ§Ã£o de Curador',
         `Editou dados do curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${editingCurator.id === 'admin' ? 'admin' : selectedRole}`,
         newDb
       );
@@ -485,7 +485,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     } else {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase());
       if (emailExists) {
-        alert('Este e-mail já está cadastrado.');
+        alert('Este e-mail jÃ¡ estÃ¡ cadastrado.');
         return;
       }
       
@@ -502,7 +502,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       
       newDb.users.push(newCurator);
       newDb = logCuratorAction(
-        'Criação de Curador',
+        'CriaÃ§Ã£o de Curador',
         `Adicionou o curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${selectedRole}`,
         newDb
       );
@@ -517,23 +517,23 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   const handleDeleteCurator = (curatorId) => {
     if (curatorId === 'admin') {
-      alert('O Administrador Principal (admin) não pode ser excluído.');
+      alert('O Administrador Principal (admin) nÃ£o pode ser excluÃ­do.');
       return;
     }
     if (curatorId === currentUser.id) {
-      alert('Você não pode excluir a si mesmo.');
+      alert('VocÃª nÃ£o pode excluir a si mesmo.');
       return;
     }
     
     const curator = db.users.find(u => u.id === curatorId);
     if (!curator) return;
     
-    if (window.confirm(`Tem certeza de que deseja remover o curador "${curator.name}"? Ele perderá acesso ao painel.`)) {
+    if (window.confirm(`Tem certeza de que deseja remover o curador "${curator.name}"? Ele perderÃ¡ acesso ao painel.`)) {
       let newDb = { ...db };
       newDb.users = newDb.users.filter(u => u.id !== curatorId);
       
       newDb = logCuratorAction(
-        'Exclusão de Curador',
+        'ExclusÃ£o de Curador',
         `Removeu o curador "${curator.name}" (${curator.email}) da equipe`,
         newDb
       );
@@ -555,7 +555,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       let matchesAction = true;
       if (auditActionFilter !== 'all') {
         if (auditActionFilter === 'approvals') {
-          matchesAction = log.action.includes('Aprovação') || log.action.includes('Pedido Aceito') || log.action.includes('Pedido Rejeitado') || log.action.includes('Aprovou');
+          matchesAction = log.action.includes('AprovaÃ§Ã£o') || log.action.includes('Pedido Aceito') || log.action.includes('Pedido Rejeitado') || log.action.includes('Aprovou');
         } else if (auditActionFilter === 'messages') {
           matchesAction = log.action.includes('Mensagem') || log.action.includes('Envio de Mensagem');
         } else if (auditActionFilter === 'cms') {
@@ -607,10 +607,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           )}
         </div>
 
-        {/* Sub-Navegação */}
+        {/* Sub-NavegaÃ§Ã£o */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', gap: '0.5rem' }}>
           <button onClick={() => setEquipeSubTab('membros')} style={subTabStyle(equipeSubTab === 'membros')}><Users size={16}/> Membros da Equipe</button>
-          <button onClick={() => setEquipeSubTab('logs')} style={subTabStyle(equipeSubTab === 'logs')}><Activity size={16}/> Histórico de Auditoria</button>
+          <button onClick={() => setEquipeSubTab('logs')} style={subTabStyle(equipeSubTab === 'logs')}><Activity size={16}/> HistÃ³rico de Auditoria</button>
         </div>
 
         {/* ================= ABA MEMBROS ================= */}
@@ -644,7 +644,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   </div>
                   
                   <h3 style={{ margin: '0 0 0.3rem 0', color: 'var(--text-main)', fontSize: '1.2rem' }}>
-                    {curator.name} {isSelf && <span style={{ fontSize: '0.75rem', background: 'var(--accent-gold)', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '10px', marginLeft: '0.5rem', fontWeight: 'bold' }}>Você</span>}
+                    {curator.name} {isSelf && <span style={{ fontSize: '0.75rem', background: 'var(--accent-gold)', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '10px', marginLeft: '0.5rem', fontWeight: 'bold' }}>VocÃª</span>}
                   </h3>
                   <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{curator.email}</p>
                   
@@ -725,13 +725,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {/* ================= ABA AUDIT LOGS ================= */}
         {equipeSubTab === 'logs' && (
           <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>Histórico Completo de Auditoria</h3>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>HistÃ³rico Completo de Auditoria</h3>
             
             {/* Linha de Filtros */}
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
               <input 
                 type="text" 
-                placeholder="Pesquisar por descrição..." 
+                placeholder="Pesquisar por descriÃ§Ã£o..." 
                 value={auditSearchText}
                 onChange={e => setAuditSearchText(e.target.value)}
                 style={{ flex: '2', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '250px' }}
@@ -751,11 +751,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 onChange={e => setAuditActionFilter(e.target.value)}
                 style={{ flex: '1', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '8px', minWidth: '150px' }}
               >
-                <option value="all">Todas as Ações</option>
-                <option value="approvals">Aprovações e Revisões</option>
+                <option value="all">Todas as AÃ§Ãµes</option>
+                <option value="approvals">AprovaÃ§Ãµes e RevisÃµes</option>
                 <option value="messages">Centro de Mensagens</option>
-                <option value="cms">Alterações de Livro (CMS)</option>
-                <option value="team">Gestão da Equipe</option>
+                <option value="cms">AlteraÃ§Ãµes de Livro (CMS)</option>
+                <option value="team">GestÃ£o da Equipe</option>
               </select>
             </div>
 
@@ -766,7 +766,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '150px' }}>Data e Hora</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '200px' }}>Curador</th>
-                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '180px' }}>Ação</th>
+                    <th style={{ padding: '1rem 0.5rem', fontWeight: '500', width: '180px' }}>AÃ§Ã£o</th>
                     <th style={{ padding: '1rem 0.5rem', fontWeight: '500' }}>Detalhes do Registro</th>
                   </tr>
                 </thead>
@@ -778,7 +778,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   ) : (
                     filteredLogs.slice().reverse().map(log => {
                       let badgeColor = '#555';
-                      if (log.action.includes('Aprovação') || log.action.includes('Aceito') || log.action.includes('Aprovou')) badgeColor = '#4CAF50';
+                      if (log.action.includes('AprovaÃ§Ã£o') || log.action.includes('Aceito') || log.action.includes('Aprovou')) badgeColor = '#4CAF50';
                       else if (log.action.includes('Rejeitado') || log.action.includes('Pedido Rejeitado')) badgeColor = '#f44336';
                       else if (log.action.includes('Mensagem') || log.action.includes('Envio')) badgeColor = '#2196F3';
                       else if (log.action.includes('CMS')) badgeColor = '#ff9800';
@@ -809,7 +809,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           </div>
         )}
 
-        {/* Modal de Curador (Novo / Edição) */}
+        {/* Modal de Curador (Novo / EdiÃ§Ã£o) */}
         {showCuratorModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
             <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', width: '850px', maxWidth: '95%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -870,15 +870,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                         <option value="admin">Administrador Geral</option>
                         <option value="approver">Aprovador (Curador de Obras)</option>
                         <option value="redator">Redator (Leitor do Universo)</option>
-                        <option value="revisor">Revisor de Textos (Leitor de Capítulos)</option>
+                        <option value="revisor">Revisor de Textos (Leitor de CapÃ­tulos)</option>
                       </select>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Escolher um perfil preenche as permissões padrão ao lado.</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Escolher um perfil preenche as permissÃµes padrÃ£o ao lado.</span>
                     </div>
                   </div>
 
-                  {/* Coluna da Direita: Permissões Liga e Desliga */}
+                  {/* Coluna da Direita: PermissÃµes Liga e Desliga */}
                   <div style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: '2rem', display: 'flex', flexDirection: 'column', gap: '1.2rem', maxHeight: '400px', overflowY: 'auto' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--accent-gold)' }}>Definir Permissões</h4>
+                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--accent-gold)' }}>Definir PermissÃµes</h4>
                     
                     <div>
                       <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>Painel Geral (Abas)</h5>
@@ -913,7 +913,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('notifications_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Notificações</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>NotificaÃ§Ãµes</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -935,7 +935,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('manage_review_requests')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Revisões</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>RevisÃµes</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -974,7 +974,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     </div>
 
                     <div>
-                      <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>Categorias de Suporte (Sessão de Atendimento)</h5>
+                      <h5 style={{ margin: '0 0 0.6rem 0', color: 'var(--text-main)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem', fontSize: '0.85rem', fontWeight: 'bold' }}>Categorias de Suporte (SessÃ£o de Atendimento)</h5>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
                           <input 
@@ -984,7 +984,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('support_technical_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>🛠️ Suporte Técnico</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>ðŸ› ï¸ Suporte TÃ©cnico</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -995,7 +995,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('support_curator_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>📖 Curadoria</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>ðŸ“– Curadoria</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1006,7 +1006,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('support_financial_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>💰 Financeiro</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>ðŸ’° Financeiro</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1017,7 +1017,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('support_other_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>❓ Outros Assuntos</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>â“ Outros Assuntos</span>
                         </label>
                       </div>
                     </div>
@@ -1032,7 +1032,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                           onChange={() => togglePermission('cms_edit')}
                           style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                         />
-                        <span style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Habilitar Escrita / Edição</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Habilitar Escrita / EdiÃ§Ã£o</span>
                       </label>
                       
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
@@ -1044,7 +1044,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('cms_chapters')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Capítulos</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>CapÃ­tulos</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1055,7 +1055,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('cms_pages')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Apresentações</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>ApresentaÃ§Ãµes</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1088,7 +1088,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('cms_organizations')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Organizações</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>OrganizaÃ§Ãµes</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1110,7 +1110,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             onChange={() => togglePermission('cms_posts')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Blog / Notícias</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Blog / NotÃ­cias</span>
                         </label>
 
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
@@ -1159,11 +1159,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       const bookTitle = book.title;
       book.status = newStatus;
       
-      // Calcular datas de agendamento de capítulos ao publicar
+      // Calcular datas de agendamento de capÃ­tulos ao publicar
       if (newStatus === 'published') {
         const releaseMode = book.releaseMode || 'all';
         const intervalDays = parseInt(book.releaseIntervalDays) || 2;
-        const targetWeekday = book.releaseWeekday !== undefined ? parseInt(book.releaseWeekday) : 1; // Padrão: Segunda (1)
+        const targetWeekday = book.releaseWeekday !== undefined ? parseInt(book.releaseWeekday) : 1; // PadrÃ£o: Segunda (1)
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1209,9 +1209,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         }
       }
       
-      const actionText = newStatus === 'published' ? 'Aprovação de Livro' : 'Alteração de Status';
+      const actionText = newStatus === 'published' ? 'AprovaÃ§Ã£o de Livro' : 'AlteraÃ§Ã£o de Status';
       const detailText = newStatus === 'published'
-        ? `Aprovou a publicação do livro "${bookTitle}"`
+        ? `Aprovou a publicaÃ§Ã£o do livro "${bookTitle}"`
         : `Reverteu o livro "${bookTitle}" para rascunho`;
         
       const loggedDb = logCuratorAction(actionText, detailText, newDb);
@@ -1240,11 +1240,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
     const loggedDb = logCuratorAction(
       'Pedido Aceito',
-      `Aceitou o pedido de revisão do autor "${notif.authorName}" para o livro "${notif.bookTitle}" (Voltou para Rascunho)`,
+      `Aceitou o pedido de revisÃ£o do autor "${notif.authorName}" para o livro "${notif.bookTitle}" (Voltou para Rascunho)`,
       newDb
     );
     onUpdateData(loggedDb);
-    alert(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editá-lo.`);
+    alert(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editÃ¡-lo.`);
   };
 
   const handleRejectRequest = (notif) => {
@@ -1255,7 +1255,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
     const loggedDb = logCuratorAction(
       'Pedido Rejeitado',
-      `Rejeitou o pedido de revisão do autor "${notif.authorName}" para o livro "${notif.bookTitle}"`,
+      `Rejeitou o pedido de revisÃ£o do autor "${notif.authorName}" para o livro "${notif.bookTitle}"`,
       newDb
     );
     onUpdateData(loggedDb);
@@ -1278,7 +1278,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     newDb.notifications = [...(newDb.notifications || []), newNotif];
 
-    let targetName = 'Todos os Usuários';
+    let targetName = 'Todos os UsuÃ¡rios';
     if (msgTarget === 'all_authors') targetName = 'Todos os Autores';
     else if (msgTarget === 'all_readers') targetName = 'Todos os Leitores';
     else if (msgTarget !== 'all') {
@@ -1374,7 +1374,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
   };
 
-  // ========== RENDERIZAÇÃO DAS ABAS ==========
+  // ========== RENDERIZAÃ‡ÃƒO DAS ABAS ==========
   
   const renderDashboardGeral = () => {
     
@@ -1391,11 +1391,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Analytics e BI</h2>
         </div>
 
-        {/* Sub-Navegação */}
+        {/* Sub-NavegaÃ§Ã£o */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', gap: '0.5rem', overflowX: 'auto' }}>
-          <button onClick={() => setDashTab('geral')} style={subTabStyle(dashTab === 'geral')}><PieChart size={16}/> Visão Geral</button>
-          <button onClick={() => setDashTab('marketing')} style={subTabStyle(dashTab === 'marketing')}><Target size={16}/> Growth & Monetização</button>
-          <button onClick={() => setDashTab('engajamento')} style={subTabStyle(dashTab === 'engajamento')}><Activity size={16}/> Retenção & Engajamento</button>
+          <button onClick={() => setDashTab('geral')} style={subTabStyle(dashTab === 'geral')}><PieChart size={16}/> VisÃ£o Geral</button>
+          <button onClick={() => setDashTab('marketing')} style={subTabStyle(dashTab === 'marketing')}><Target size={16}/> Growth & MonetizaÃ§Ã£o</button>
+          <button onClick={() => setDashTab('engajamento')} style={subTabStyle(dashTab === 'engajamento')}><Activity size={16}/> RetenÃ§Ã£o & Engajamento</button>
           <button onClick={() => setDashTab('universo')} style={subTabStyle(dashTab === 'universo')}><Star size={16}/> Universo & Creators</button>
         </div>
 
@@ -1404,19 +1404,19 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Users size={18} /> <strong>Total de Usuários</strong></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Users size={18} /> <strong>Total de UsuÃ¡rios</strong></div>
                 <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{authors.length + readers.length}</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{authors.length} Autores | {readers.length} Leitores</span>
               </div>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><TrendingUp size={18} /> <strong>Views Totais</strong></div>
                 <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{ANALYTICS.overview.totalViews}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Somatório de todos os livros</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>SomatÃ³rio de todos os livros</span>
               </div>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Clock size={18} /> <strong>Retenção Média</strong></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Clock size={18} /> <strong>RetenÃ§Ã£o MÃ©dia</strong></div>
                 <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{ANALYTICS.overview.avgSessionTime}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessão diária</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessÃ£o diÃ¡ria</span>
               </div>
             </div>
             
@@ -1483,10 +1483,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.1rem' }}>
                             <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                              ⭐ {book.avgRating.toFixed(1)}
+                              â­ {book.avgRating.toFixed(1)}
                             </span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              {book.ratingCount === 1 ? '1 avaliação' : `${book.ratingCount} avaliações`}
+                              {book.ratingCount === 1 ? '1 avaliaÃ§Ã£o' : `${book.ratingCount} avaliaÃ§Ãµes`}
                             </span>
                           </div>
                         </div>
@@ -1503,11 +1503,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {dashTab === 'marketing' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><Target size={20} /> Atração (Growth)</h3>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4CAF50' }}><Target size={20} /> AtraÃ§Ã£o (Growth)</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>CAC (Custo de Aquisição)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.growth.cac} <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#4CAF50'}}>↓ 12% M/M</span></div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>CAC (Custo de AquisiÃ§Ã£o)</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.growth.cac} <span style={{fontSize:'0.9rem', fontWeight:'normal', color:'#4CAF50'}}>â†“ 12% M/M</span></div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>K-Factor (Virabilidade)</div>
@@ -1515,25 +1515,25 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Acima de 1.0 = Crescimento Exponencial</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão (Landing Page)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ConversÃ£o (Landing Page)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.growth.conversionRate}</div>
                 </div>
               </div>
             </div>
 
             <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFD700' }}><DollarSign size={20} /> Monetização (Funil)</h3>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFD700' }}><DollarSign size={20} /> MonetizaÃ§Ã£o (Funil)</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>LTV (Lifetime Value)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.ltv}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita Média por Usuário)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita MÃ©dia por UsuÃ¡rio)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.arpu}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Conversão para Premium</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ConversÃ£o para Premium</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.monetization.premiumConversion}</div>
                 </div>
               </div>
@@ -1545,15 +1545,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {dashTab === 'engajamento' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
             <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Activity size={20} /> Saúde da Base</h3>
+              <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Activity size={20} /> SaÃºde da Base</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (Usuários Ativos)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (UsuÃ¡rios Ativos)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.retention.dau_mau}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formação de hábito diário</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formaÃ§Ã£o de hÃ¡bito diÃ¡rio</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Churn Rate (Evasão Mensal)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Churn Rate (EvasÃ£o Mensal)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#f44336' }}>{ANALYTICS.retention.churn}</div>
                 </div>
               </div>
@@ -1585,13 +1585,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Star size={20} /> O Diferencial: Universo</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Adoção da Enciclopédia</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>AdoÃ§Ã£o da EnciclopÃ©dia</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.universe.adoptionRate}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Leitores que interagem com Personagens/Locais</div>
                 </div>
                 <div style={{ padding: '1rem', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '8px', border: '1px solid rgba(76, 175, 80, 0.3)' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Correlação Universo vs Retenção</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.retentionDiff} retenção</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>CorrelaÃ§Ã£o Universo vs RetenÃ§Ã£o</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.retentionDiff} retenÃ§Ã£o</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Leitores que consomem os Extras abandonam menos as obras do que os que leem apenas o texto.</div>
                 </div>
               </div>
@@ -1602,10 +1602,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>NPS do Autor (Net Promoter Score)</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.nps} <span style={{fontSize:'1rem'}}>Zona de Excelência</span></div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4CAF50' }}>{ANALYTICS.universe.nps} <span style={{fontSize:'1rem'}}>Zona de ExcelÃªncia</span></div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Concentração de Audiência</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ConcentraÃ§Ã£o de AudiÃªncia</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{ANALYTICS.universe.concentration}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica necessidade de promover mais autores da cauda longa.</div>
                 </div>
@@ -1730,7 +1730,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 </button>
                 <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
                   e.stopPropagation();
-                  if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele será movido para Reprovados, mas manterá seus livros e acesso como leitor.')) {
+                  if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele serÃ¡ movido para Reprovados, mas manterÃ¡ seus livros e acesso como leitor.')) {
                     let newDb = { ...db };
                     const userIndex = newDb.users.findIndex(u => u.id === author.id);
                     if (userIndex !== -1) {
@@ -1769,7 +1769,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   };
 
-  // ========== VIEW: AUTHOR DASHBOARD (Sobrepõe tudo) ==========
+  // ========== VIEW: AUTHOR DASHBOARD (SobrepÃµe tudo) ==========
   if (viewingAuthorDashId) {
     return (
       <AuthorDashboard 
@@ -1802,7 +1802,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     const handleDownloadBackup = () => {
       if (!selectedBook.universe || !selectedBook.universe.chapters || selectedBook.universe.chapters.length === 0) {
-        alert("Não há capítulos salvos para fazer backup.");
+        alert("NÃ£o hÃ¡ capÃ­tulos salvos para fazer backup.");
         return;
       }
       let content = `=========================================\n`;
@@ -1815,7 +1815,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       const chapters = selectedBook.universe.chapters;
       chapters.forEach(ch => {
         content += `\n=========================================\n`;
-        content += `${ch.title || 'Capítulo sem título'}\n`;
+        content += `${ch.title || 'CapÃ­tulo sem tÃ­tulo'}\n`;
         content += `=========================================\n\n`;
         
         if (ch.pages) {
@@ -1854,7 +1854,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{selectedBook.status.toUpperCase()}</strong></span>
             {permissions.approve_books && selectedBook.status === 'pending' && (
               <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: '#4CAF50' }}>
-                <Check size={16} /> Aprovar Publicação
+                <Check size={16} /> Aprovar PublicaÃ§Ã£o
               </button>
             )}
             {permissions.approve_books && selectedBook.status === 'published' && (
@@ -1888,7 +1888,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               if (permissions.cms_posts) allowed.push('posts');
               if (permissions.cms_events) allowed.push('events');
               if (permissions.cms_edit) allowed.push('synopsis');
-              allowed.push('reviews'); // Sempre visível para curador com acesso ao CMS
+              allowed.push('reviews'); // Sempre visÃ­vel para curador com acesso ao CMS
               return allowed;
             })()}
           />
@@ -1897,7 +1897,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     );
   }
 
-  // ========== VIEW: PERFIL DO AUTOR (Sobrepõe abas, mantido para legado) ==========
+  // ========== VIEW: PERFIL DO AUTOR (SobrepÃµe abas, mantido para legado) ==========
   if (selectedAuthor) {
     const authorBooks = db.books.filter(b => b.authorId === selectedAuthor.id);
     const authorNotifs = notifications.filter(n => n.authorId === selectedAuthor.id).reverse();
@@ -1916,7 +1916,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
         <div style={{ display: 'grid', gridTemplateColumns: '300px 2fr 1.5fr', gap: '2rem', flex: 1, overflowY: 'hidden' }}>
           
-          {/* Coluna 1: Informações do Perfil */}
+          {/* Coluna 1: InformaÃ§Ãµes do Perfil */}
           <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
             <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '3px solid var(--accent-gold)' }}>
               {selectedAuthor.avatar ? (
@@ -1933,7 +1933,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <MapPin size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
                 <div>
                   <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Cidade / Origem</strong>
-                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.location || 'São Paulo, Brasil'}</span>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.location || 'SÃ£o Paulo, Brasil'}</span>
                 </div>
               </div>
 
@@ -1941,7 +1941,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <Edit3 size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
                 <div>
                   <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Estilo de Escrita</strong>
-                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.writingStyle || 'Fantasia Épica & Ficção Histórica'}</span>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.writingStyle || 'Fantasia Ã‰pica & FicÃ§Ã£o HistÃ³rica'}</span>
                 </div>
               </div>
 
@@ -1956,7 +1956,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
                 <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Biografia</strong>
                 <p style={{ fontSize: '0.85rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)' }}>
-                  {selectedAuthor.bio || 'Autor apaixonado por criar mundos imersivos e complexos. Busca explorar a psique humana através de narrativas de fantasia sombria e aventuras épicas.'}
+                  {selectedAuthor.bio || 'Autor apaixonado por criar mundos imersivos e complexos. Busca explorar a psique humana atravÃ©s de narrativas de fantasia sombria e aventuras Ã©picas.'}
                 </p>
               </div>
             </div>
@@ -2079,7 +2079,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const renderNotifications = () => {
     return (
       <div>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Notificações por Autor</h2>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>NotificaÃ§Ãµes por Autor</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {authors.map(author => {
             const logs = notifications.filter(n => n.authorId === author.id && n.type !== 'request').reverse();
@@ -2114,9 +2114,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     
     return (
       <div>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Aprovação de Livros (Curadoria)</h2>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>AprovaÃ§Ã£o de Livros (Curadoria)</h2>
         {pendingBooks.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Nenhum livro aguardando aprovação no momento.</p>
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum livro aguardando aprovaÃ§Ã£o no momento.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {authors.map(author => {
@@ -2140,7 +2140,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             Acessar CMS do Livro
                           </button>
                           <button onClick={() => handleUpdateBookStatus(book.id, 'published')} className="btn-primary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem', background: '#4CAF50' }}>
-                            Aprovar Publicação
+                            Aprovar PublicaÃ§Ã£o
                           </button>
                         </div>
                       </div>
@@ -2160,9 +2160,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     return (
       <div>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Pedidos de Revisão/Alteração</h2>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', marginBottom: '2rem' }}>Pedidos de RevisÃ£o/AlteraÃ§Ã£o</h2>
         {pendingRequests.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Nenhum pedido de alteração pendente.</p>
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum pedido de alteraÃ§Ã£o pendente.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {authors.map(author => {
@@ -2214,10 +2214,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     
     const getCategoryDetails = (cat) => {
       const cats = {
-        technical: { label: '🛠️ Suporte Técnico', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
-        curator: { label: '📖 Curadoria / Obras', color: 'var(--accent-gold)', bg: 'rgba(212, 175, 55, 0.1)' },
-        financial: { label: '💰 Financeiro', color: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)' },
-        other: { label: '❓ Outros Assuntos', color: '#9e9e9e', bg: 'rgba(158, 158, 158, 0.1)' }
+        technical: { label: 'ðŸ› ï¸ Suporte TÃ©cnico', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
+        curator: { label: 'ðŸ“– Curadoria / Obras', color: 'var(--accent-gold)', bg: 'rgba(212, 175, 55, 0.1)' },
+        financial: { label: 'ðŸ’° Financeiro', color: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)' },
+        other: { label: 'â“ Outros Assuntos', color: '#9e9e9e', bg: 'rgba(158, 158, 158, 0.1)' }
       };
       return cats[cat] || cats.other;
     };
@@ -2235,7 +2235,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       // 1. Filtrar por Status (Aberto, Resolvido)
       if (supportStatusFilter !== 'all' && t.status !== supportStatusFilter) return false;
 
-      // 2. Filtrar por Categoria (Tópico)
+      // 2. Filtrar por Categoria (TÃ³pico)
       if (supportCategoryFilter !== 'all' && t.category !== supportCategoryFilter) return false;
 
       // 3. Filtrar por Busca de Texto (Assunto, Autor ou Corpo da Mensagem)
@@ -2334,7 +2334,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Central de Chamados e Suporte</h2>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gerencie e responda às dúvidas dos autores conforme sua área de atuação.</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gerencie e responda Ã s dÃºvidas dos autores conforme sua Ã¡rea de atuaÃ§Ã£o.</span>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.02)', padding: '0.3rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -2430,7 +2430,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 )}
               </div>
 
-              {/* Filtro de Categoria/Tópico */}
+              {/* Filtro de Categoria/TÃ³pico */}
               <div>
                 <select
                   value={supportCategoryFilter}
@@ -2447,11 +2447,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     cursor: 'pointer'
                   }}
                 >
-                  <option value="all">📂 Todos os Tópicos</option>
-                  <option value="technical">🛠️ Suporte Técnico</option>
-                  <option value="curator">📖 Curadoria / Obras</option>
-                  <option value="financial">💰 Financeiro</option>
-                  <option value="other">❓ Outros Assuntos</option>
+                  <option value="all">ðŸ“‚ Todos os TÃ³picos</option>
+                  <option value="technical">ðŸ› ï¸ Suporte TÃ©cnico</option>
+                  <option value="curator">ðŸ“– Curadoria / Obras</option>
+                  <option value="financial">ðŸ’° Financeiro</option>
+                  <option value="other">â“ Outros Assuntos</option>
                 </select>
               </div>
             </div>
@@ -2520,7 +2520,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                       className={selectedTicket.status === 'open' ? 'btn-secondary' : 'btn-primary'}
                       style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
                     >
-                      {selectedTicket.status === 'open' ? '🔒 Marcar como Resolvido' : '🔓 Reabrir Chamado'}
+                      {selectedTicket.status === 'open' ? 'ðŸ”’ Marcar como Resolvido' : 'ðŸ”“ Reabrir Chamado'}
                     </button>
                     <span style={{
                       padding: '0.4rem 0.8rem',
@@ -2587,7 +2587,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     </div>
                   ) : (
                     <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic', padding: '0.5rem' }}>
-                      Este chamado foi resolvido e encerrado. Se necessário, reabra o chamado para continuar conversando.
+                      Este chamado foi resolvido e encerrado. Se necessÃ¡rio, reabra o chamado para continuar conversando.
                     </div>
                   )}
                 </div>
@@ -2610,7 +2610,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gestão de Leitores</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>GestÃ£o de Leitores</h2>
           <button className="btn-primary" onClick={() => {
             setEditingUser(null);
             setUserFormData({ name: '', email: '', phone: '', role: 'reader', avatar: '', bio: '', incompleteProfile: false });
@@ -2625,7 +2625,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <th style={{ padding: '1rem' }}>E-mail</th>
                 <th style={{ padding: '1rem' }}>Telefone</th>
                 <th style={{ padding: '1rem' }}>Status</th>
-                <th style={{ padding: '1rem' }}>Ação</th>
+                <th style={{ padding: '1rem' }}>AÃ§Ã£o</th>
               </tr>
             </thead>
             <tbody>
@@ -2633,7 +2633,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <tr key={leitor.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <td style={{ padding: '1rem' }}>{leitor.name}</td>
                   <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{leitor.email}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{leitor.phone || 'Não inf.'}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{leitor.phone || 'NÃ£o inf.'}</td>
                   <td style={{ padding: '1rem' }}>
                     <span style={{ padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', background: leitor.status === 'active' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 152, 0, 0.2)', color: leitor.status === 'active' ? '#4CAF50' : '#ff9800' }}>
                       {leitor.status === 'active' ? 'Ativo' : 'Pendente'}
@@ -2641,7 +2641,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   </td>
                   <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                     <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => setSelectedReaderDossier(leitor)}>
-                      Ver Dossiê
+                      Ver DossiÃª
                     </button>
                     <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => {
                       setEditingUser(leitor);
@@ -2698,12 +2698,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
 
       if (newStatus === 'active' && userEmail) {
-        const subject = 'Você foi Aprovado na Sagaflix!';
-        const message = `Olá ${userName},\n\nSeja bem-vindo à Sagaflix! Seu perfil de Autor foi aprovado pela curadoria. Use o seu e-mail e senha cadastrados para acessar a plataforma agora mesmo no link abaixo:\n\nhttps://sagaflix-enciclopedia.vercel.app/autor\n\nEquipe Sagaflix`;
+        const subject = 'Parabéns! Você agora é um Autor Oficial da Sagaflix! 🎉';
+        const message = `Olá ${userName},\n\nÉ com imensa alegria que anunciamos que o seu perfil e a sua obra foram APROVADOS pela nossa Curadoria! A partir de agora, você pode acessar o Sagaflix Estúdio e começar a publicar seus capítulos para milhares de leitores. Acesse: https://sagaflix-enciclopedia.vercel.app/autor\n\n⚠️ AVISO IMPORTANTE: REGRAS DE CONVÍVIO\nA Sagaflix é um instrumento de divulgação de cultura, imaginação e conhecimento. Nossa comunidade é composta por indivíduos com desejos, crenças, instintos e gostos literários muito distintos.\n\nPara garantirmos a harmonia da nossa plataforma, lembramos que NÃO TOLERAMOS qualquer tipo de insulto, discurso de ódio ou assédio entre usuários (seja nas avaliações, mensagens ou comentários). Todo autor deve estar preparado para receber opiniões e críticas construtivas sobre sua obra com maturidade.\n\nQualquer violação às regras de respeito descritas em nossos Termos de Uso resultará em punições severas, podendo chegar ao banimento definitivo e o encaminhamento dos dados do infrator para medidas judiciais cabíveis por parte da pessoa ofendida. A Sagaflix atua como provedora de hospedagem e não se responsabiliza pelas opiniões individuais emitidas por seus usuários, mas será implacável na remoção de contas tóxicas.\n\nBem-vindo à sua nova casa literária. Escreva com o coração, e respeite a jornada dos seus colegas de página.\n\nAbraços,\nEquipe de Curadoria Sagaflix`;
         await sendEmail(userEmail, subject, message);
       } else if (newStatus === 'rejected' && userEmail) {
-        const subject = 'Atualização do seu cadastro na Sagaflix';
-        const message = `Olá ${userName},\n\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.\n\nSe você tiver alguma dúvida em relação a esta decisão ou desejar uma réplica da nossa avaliação, por favor, entre em contato com nosso suporte através do e-mail suporte@sagaflix.com.br\n\nEquipe Sagaflix`;
+        const subject = 'AtualizaÃ§Ã£o do seu cadastro na Sagaflix';
+        const message = `OlÃ¡ ${userName},\n\nInfelizmente seu perfil nÃ£o foi aprovado pela nossa curadoria neste momento.\n\nSe vocÃª tiver alguma dÃºvida em relaÃ§Ã£o a esta decisÃ£o ou desejar uma rÃ©plica da nossa avaliaÃ§Ã£o, por favor, entre em contato com nosso suporte atravÃ©s do e-mail suporte@sagaflix.com.br\n\nEquipe Sagaflix`;
         await sendEmail(userEmail, subject, message);
       }
 
@@ -2739,13 +2739,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     return (
       <div className="curator-gamificacao-section animate-fade-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gamificação e Engajamento</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>GamificaÃ§Ã£o e Engajamento</h2>
         </div>
 
         {/* Sub-abas */}
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', flexWrap: 'wrap' }}>
           <button onClick={() => setGamificacaoSubTab('badges')} style={subTabStyle(gamificacaoSubTab === 'badges')}>
-            <Award size={16} /> Gestão de Títulos (Badges)
+            <Award size={16} /> GestÃ£o de TÃ­tulos (Badges)
           </button>
           <button onClick={() => setGamificacaoSubTab('ranking')} style={subTabStyle(gamificacaoSubTab === 'ranking')}>
             <TrendingUp size={16} /> Top 100 Leitores
@@ -2758,18 +2758,18 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {gamificacaoSubTab === 'badges' && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os títulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
+              <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os tÃ­tulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
               <button className="btn-primary" onClick={() => {
-                setBadgeForm({ id: '', name: '', description: '', rule: '', icon: '🏆' });
+                setBadgeForm({ id: '', name: '', description: '', rule: '', icon: 'ðŸ†' });
                 setEditingBadge(true);
-              }}>+ Novo Título</button>
+              }}>+ Novo TÃ­tulo</button>
             </div>
             
             {badges.length === 0 ? (
               <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
                 <Star size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>Nenhum título cadastrado</h3>
-                <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie os 10 títulos principais para incentivar os leitores!</p>
+                <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>Nenhum tÃ­tulo cadastrado</h3>
+                <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie os 10 tÃ­tulos principais para incentivar os leitores!</p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
@@ -2786,7 +2786,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                       <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--accent-gold)' }}>{badge.name}</h4>
                       <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{badge.description}</p>
                       <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.6rem', borderRadius: '4px', color: '#aaa' }}>
-                        <strong>Diretriz/Regra:</strong> {badge.rule || 'Atribuição manual'}
+                        <strong>Diretriz/Regra:</strong> {badge.rule || 'AtribuiÃ§Ã£o manual'}
                       </div>
                       <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                         <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => {
@@ -2794,7 +2794,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                           setEditingBadge(true);
                         }}>Editar</button>
                         <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }} onClick={() => {
-                          if (window.confirm(`Tem certeza que deseja excluir o título "${badge.name}"?`)) {
+                          if (window.confirm(`Tem certeza que deseja excluir o tÃ­tulo "${badge.name}"?`)) {
                              const newBadges = (db.gamificationBadges || []).filter(b => b.id !== badge.id);
                              onUpdateData({ ...db, gamificationBadges: newBadges });
                           }
@@ -2808,16 +2808,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             {editingBadge && (
               <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ background: 'var(--bg-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px', border: '1px solid var(--border-color)' }}>
-                  <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)' }}>{badgeForm.id ? 'Editar Título' : 'Novo Título'}</h3>
+                  <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)' }}>{badgeForm.id ? 'Editar TÃ­tulo' : 'Novo TÃ­tulo'}</h3>
                   
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do Título</label>
-                    <input type="text" className="input-field" value={badgeForm.name || ''} onChange={e => setBadgeForm({...badgeForm, name: e.target.value})} placeholder="Ex: Leitor Ávido" />
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do TÃ­tulo</label>
+                    <input type="text" className="input-field" value={badgeForm.name || ''} onChange={e => setBadgeForm({...badgeForm, name: e.target.value})} placeholder="Ex: Leitor Ãvido" />
                   </div>
                   
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Descrição</label>
-                    <textarea className="input-field" value={badgeForm.description || ''} onChange={e => setBadgeForm({...badgeForm, description: e.target.value})} placeholder="Parabéns, você leu 10 livros..." style={{ minHeight: '80px' }}></textarea>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>DescriÃ§Ã£o</label>
+                    <textarea className="input-field" value={badgeForm.description || ''} onChange={e => setBadgeForm({...badgeForm, description: e.target.value})} placeholder="ParabÃ©ns, vocÃª leu 10 livros..." style={{ minHeight: '80px' }}></textarea>
                   </div>
                   
                   <div style={{ marginBottom: '1rem' }}>
@@ -2826,20 +2826,20 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   </div>
 
                   <div style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                    <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)' }}>Construtor de Regra (Automático)</h4>
+                    <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)' }}>Construtor de Regra (AutomÃ¡tico)</h4>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                       <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Alvo da Métrica</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Alvo da MÃ©trica</label>
                         <select className="input-field" value={badgeForm.conditionTarget || ''} onChange={e => setBadgeForm({...badgeForm, conditionTarget: e.target.value})}>
                           <option value="">(Nenhum / Manual)</option>
-                          <option value="pagesRead">Páginas Lidas</option>
+                          <option value="pagesRead">PÃ¡ginas Lidas</option>
                           <option value="booksRead">Livros Lidos (Validados)</option>
-                          <option value="dossiersReadComplex">Dossiês Lidos (Regra Complexa)</option>
+                          <option value="dossiersReadComplex">DossiÃªs Lidos (Regra Complexa)</option>
                           <option value="secretNotesApproved">Notas Secretas Aprovadas</option>
                         </select>
                       </div>
                       <div style={{ width: '130px' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Condição</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>CondiÃ§Ã£o</label>
                         <select className="input-field" value={badgeForm.conditionOperator || '>='} onChange={e => setBadgeForm({...badgeForm, conditionOperator: e.target.value})}>
                           <option value=">=">Maior/Igual a</option>
                           <option value="==">Igual a</option>
@@ -2853,14 +2853,14 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   </div>
 
                   <div style={{ marginBottom: '2rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Ícone (Emoji ou URL da Imagem)</label>
-                    <input type="text" className="input-field" value={badgeForm.icon || ''} onChange={e => setBadgeForm({...badgeForm, icon: e.target.value})} placeholder="Ex: 🏆 ou https://link.com/img.png" />
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Ãcone (Emoji ou URL da Imagem)</label>
+                    <input type="text" className="input-field" value={badgeForm.icon || ''} onChange={e => setBadgeForm({...badgeForm, icon: e.target.value})} placeholder="Ex: ðŸ† ou https://link.com/img.png" />
                   </div>
                   
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                     <button className="btn-secondary" onClick={() => setEditingBadge(false)}>Cancelar</button>
                     <button className="btn-primary" onClick={() => {
-                       if (!badgeForm.name) return alert('O nome é obrigatório!');
+                       if (!badgeForm.name) return alert('O nome Ã© obrigatÃ³rio!');
                        let newBadges;
                        if (badgeForm.id) {
                           newBadges = (db.gamificationBadges || []).map(b => b.id === badgeForm.id ? badgeForm : b);
@@ -2869,7 +2869,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                        }
                        onUpdateData({ ...db, gamificationBadges: newBadges });
                        setEditingBadge(false);
-                    }}>Salvar Título</button>
+                    }}>Salvar TÃ­tulo</button>
                   </div>
                 </div>
               </div>
@@ -2879,13 +2879,13 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
         {gamificacaoSubTab === 'config' && (
           <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', maxWidth: '600px' }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Configuração Anti-Fraude (Anti-Cheat)</h3>
+            <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>ConfiguraÃ§Ã£o Anti-Fraude (Anti-Cheat)</h3>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: '1.5' }}>
-              Para evitar que leitores simplesmente pulem as páginas rapidamente para ganhar títulos de "X livros lidos", o sistema exige um tempo mínimo de leitura baseado na quantidade de palavras.
+              Para evitar que leitores simplesmente pulem as pÃ¡ginas rapidamente para ganhar tÃ­tulos de "X livros lidos", o sistema exige um tempo mÃ­nimo de leitura baseado na quantidade de palavras.
             </p>
 
             <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontWeight: 'bold' }}>Tolerância de Leitura Rápida (%)</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontWeight: 'bold' }}>TolerÃ¢ncia de Leitura RÃ¡pida (%)</label>
               <input 
                 type="number" 
                 className="input-field" 
@@ -2894,7 +2894,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 style={{ width: '150px' }}
               />
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                Ex: Se a média de leitura de um livro for de 5 horas, configurar 40% significa que a leitura só será validada para os prêmios se o usuário passar no mínimo 2 horas lendo.
+                Ex: Se a mÃ©dia de leitura de um livro for de 5 horas, configurar 40% significa que a leitura sÃ³ serÃ¡ validada para os prÃªmios se o usuÃ¡rio passar no mÃ­nimo 2 horas lendo.
               </p>
             </div>
           </div>
@@ -2902,7 +2902,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
         {gamificacaoSubTab === 'ranking' && (
           <div>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Os 100 leitores mais engajados da plataforma com base em páginas lidas.</p>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Os 100 leitores mais engajados da plataforma com base em pÃ¡ginas lidas.</p>
             
             <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
@@ -2910,10 +2910,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)' }}>
                     <th style={{ padding: '1rem', width: '60px', textAlign: 'center' }}>Pos</th>
                     <th style={{ padding: '1rem' }}>Leitor (Nickname)</th>
-                    <th style={{ padding: '1rem' }}>Páginas Lidas</th>
+                    <th style={{ padding: '1rem' }}>PÃ¡ginas Lidas</th>
                     <th style={{ padding: '1rem' }}>Livros Lidos</th>
-                    <th style={{ padding: '1rem' }}>Títulos Desbloqueados</th>
-                    <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
+                    <th style={{ padding: '1rem' }}>TÃ­tulos Desbloqueados</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>AÃ§Ãµes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2942,7 +2942,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                           <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }} onClick={() => {
-                            const newPages = window.prompt("Páginas lidas:", leitor.pagesRead || 0);
+                            const newPages = window.prompt("PÃ¡ginas lidas:", leitor.pagesRead || 0);
                             if (newPages === null) return;
                             const newBooks = window.prompt("Obras lidas:", (leitor.finishedBooks || []).length);
                             if (newBooks === null) return;
@@ -2972,7 +2972,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                             updatedLeitor.badges = autoBadges;
                             const newUsers = db.users.map(u => u.id === updatedLeitor.id ? updatedLeitor : u);
                             onUpdateData({ ...db, users: newUsers });
-                          }}>Editar Métricas</button>
+                          }}>Editar MÃ©tricas</button>
                         </td>
                       </tr>
                     ))
@@ -2988,7 +2988,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   const renderRequestDetails = (isReprovado = false) => {
     const user = db.users.find(u => u.id === selectedRequest.userId);
-    if (!user) return <div style={{color:'red'}}>Erro: Usuário não encontrado.</div>;
+    if (!user) return <div style={{color:'red'}}>Erro: UsuÃ¡rio nÃ£o encontrado.</div>;
     
     return (
       <div style={{ height: '100%', overflowY: 'auto', paddingRight: '1rem' }}>
@@ -2997,7 +2997,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <ArrowLeft size={16} /> Voltar
           </button>
           <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: isReprovado ? '#f44336' : 'var(--accent-gold)' }}>
-            {isReprovado ? 'Análise de Candidato Reprovado' : 'Detalhes do Pedido'}
+            {isReprovado ? 'AnÃ¡lise de Candidato Reprovado' : 'Detalhes do Pedido'}
           </h2>
         </div>
 
@@ -3019,29 +3019,29 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
               <div>
                 <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Idade</strong>
-                <span>{user.age || 'Não informada'}</span>
+                <span>{user.age || 'NÃ£o informada'}</span>
               </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gêneros Favoritos</strong>
-                <span>{user.tastes || 'Não informado'}</span>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>GÃªneros Favoritos</strong>
+                <span>{user.tastes || 'NÃ£o informado'}</span>
               </div>
             </div>
 
             <div>
               <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Biografia</strong>
               <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px' }}>
-                {user.about || 'Biografia não informada pelo autor.'}
+                {user.about || 'Biografia nÃ£o informada pelo autor.'}
               </p>
             </div>
           </div>
 
-          {/* Coluna 2: Dados da Obra e Ações */}
+          {/* Coluna 2: Dados da Obra e AÃ§Ãµes */}
           <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
               <h3 style={{ color: 'var(--accent-gold)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Obra Submetida</h3>
               
               <div style={{ marginBottom: '1.5rem' }}>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Título da Obra</strong>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>TÃ­tulo da Obra</strong>
                 <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{selectedRequest.bookTitle}</span>
               </div>
               
@@ -3064,9 +3064,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               </div>
             </div>
 
-            {/* Botões de Ação */}
+            {/* BotÃµes de AÃ§Ã£o */}
             <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-              <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', textAlign: 'center' }}>Decisão da Curadoria</h3>
+              <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', textAlign: 'center' }}>DecisÃ£o da Curadoria</h3>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button className="btn-primary" style={{ flex: 1, background: '#4CAF50', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }} onClick={() => { handleUpdateAuthorStatus(user.id, 'active'); setSelectedRequest(null); }}>
                   <Check size={20} style={{display:'inline-block', verticalAlign:'middle', marginRight:'8px'}} />
@@ -3093,10 +3093,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Aprovação de Autores</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>AprovaÃ§Ã£o de Autores</h2>
         </div>
         {pedidos.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Nenhum autor aguardando aprovação no momento.</p>
+          <p style={{ color: 'var(--text-muted)' }}>Nenhum autor aguardando aprovaÃ§Ã£o no momento.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {pedidos.map(req => {
@@ -3131,7 +3131,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#f44336', margin: 0 }}>Candidatos Reprovados</h2>
         </div>
         {reprovados.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia. Nenhum candidato reprovado no momento.</p>
+          <p style={{ color: 'var(--text-muted)' }}>A lixeira estÃ¡ vazia. Nenhum candidato reprovado no momento.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {reprovados.map(req => {
@@ -3174,16 +3174,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('autores') && <button onClick={() => setActiveTab('leitores')} style={navItemStyle(activeTab === 'leitores')}><Users size={18}/> Leitores</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('novos_pedidos')} style={navItemStyle(activeTab === 'novos_pedidos')}><UserPlus size={18}/> Novos Pedidos</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('reprovados')} style={navItemStyle(activeTab === 'reprovados')}><Ban size={18} color={activeTab === 'reprovados' ? '#000' : '#f44336'}/> Reprovados</button>}
-        {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> Notificações</button>}
+        {hasAccess('notifications') && <button onClick={() => setActiveTab('notifications')} style={navItemStyle(activeTab === 'notifications')}><Bell size={18}/> NotificaÃ§Ãµes</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('curadoria')} style={navItemStyle(activeTab === 'curadoria')}><CheckCircle size={18}/> Curadoria</button>}
-        {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> Revisões</button>}
+        {hasAccess('revisoes') && <button onClick={() => setActiveTab('revisoes')} style={navItemStyle(activeTab === 'revisoes')}><FileText size={18}/> RevisÃµes</button>}
         {hasAccess('mensagens') && <button onClick={() => setActiveTab('mensagens')} style={navItemStyle(activeTab === 'mensagens')}><MessageSquare size={18}/> Mensagens</button>}
         {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
-        {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> Gamificação</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> GamificaÃ§Ã£o</button>}
         {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
       </div>
 
-      {/* Conteúdo Principal */}
+      {/* ConteÃºdo Principal */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '3rem', background: 'var(--bg-main)' }}>
         {activeTab === 'dashboard' && hasAccess('dashboard') && renderDashboardGeral()}
         {activeTab === 'autores' && hasAccess('autores') && renderAutores()}
@@ -3203,7 +3203,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         <div className="admin-modal-overlay">
           <div className="admin-modal-content" style={{ width: '90%', maxWidth: '500px', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>{editingUser ? 'Editar Usuário' : 'Adicionar Usuário'}</h2>
+              <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>{editingUser ? 'Editar UsuÃ¡rio' : 'Adicionar UsuÃ¡rio'}</h2>
               <button onClick={() => setShowUserForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)' }}><X size={20}/></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -3233,11 +3233,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input type="checkbox" id="incomplete" checked={userFormData.incompleteProfile} onChange={e => setUserFormData({...userFormData, incompleteProfile: e.target.checked})} />
-                <label htmlFor="incomplete" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Marcar perfil como incompleto (Para o usuário preencher depois)</label>
+                <label htmlFor="incomplete" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Marcar perfil como incompleto (Para o usuÃ¡rio preencher depois)</label>
               </div>
               <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => {
                 if (!userFormData.name || !userFormData.email) {
-                  if (!window.confirm('Nome ou E-mail estão vazios. Deseja forçar a criação com dados incompletos?')) return;
+                  if (!window.confirm('Nome ou E-mail estÃ£o vazios. Deseja forÃ§ar a criaÃ§Ã£o com dados incompletos?')) return;
                 }
                 const updatedUsers = [...(db.users || [])];
                 if (editingUser) {
@@ -3258,7 +3258,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 onUpdateData({ ...db, users: updatedUsers });
                 setShowUserForm(false);
               }}>
-                {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}
+                {editingUser ? 'Salvar AlteraÃ§Ãµes' : 'Criar UsuÃ¡rio'}
               </button>
             </div>
           </div>
