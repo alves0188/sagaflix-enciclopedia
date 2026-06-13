@@ -197,8 +197,23 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   };
   
   const submitReport = () => {
+    const newReport = {
+      id: 'report_' + Date.now(),
+      chapterId: getChapterId(chapter),
+      bookId: bookId,
+      userId: currentUser?.id,
+      userName: currentUser?.name || 'Leitor Anônimo',
+      reason: reportReason,
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    onUpdateData({
+      ...db,
+      reports: [...(db.reports || []), newReport]
+    });
+
     alert("Sua denúncia foi enviada para a curadoria. Obrigado!");
-    // Aqui no futuro enviaríamos para uma tabela "reports" no Supabase
     setShowReportModal(false);
     setReportReason('');
   };

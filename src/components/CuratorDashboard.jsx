@@ -1379,22 +1379,72 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   // ========== RENDERIZAÇÃO DAS ABAS ==========
   
-  const renderDenuncias = () => (
-    <div>
-      <div className="curator-section-header">
-        <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <ShieldAlert size={24} /> Denúncias da Comunidade
-        </h2>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores</p>
-      </div>
+  const renderDenuncias = () => {
+    const reports = (db.reports || []).filter(r => r.status === 'pending');
 
-      <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center' }}>
-        <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-        <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia no momento</h3>
-        <p style={{ color: 'var(--text-muted)', margin: 0 }}>Quando os leitores reportarem problemas em capítulos, eles aparecerão aqui para análise da moderação.</p>
+    if (reports.length === 0) {
+      return (
+        <div>
+          <div className="curator-section-header">
+            <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <ShieldAlert size={24} /> Denúncias da Comunidade
+            </h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores</p>
+          </div>
+
+          <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center' }}>
+            <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
+            <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia pendente</h3>
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Quando os leitores reportarem problemas em capítulos, eles aparecerão aqui para análise da moderação.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div className="curator-section-header">
+          <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <ShieldAlert size={24} /> Denúncias da Comunidade
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores ({reports.length} pendentes)</p>
+        </div>
+
+        <div style={{ display: 'grid', gap: '1.5rem' }}>
+          {reports.map(report => {
+            const book = (db.books || []).find(b => b.id === report.bookId);
+            return (
+              <div key={report.id} style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '1.5rem', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-gold)' }}>Livro: {book?.title || 'Desconhecido'}</h4>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      Reportado por: <strong>{report.userName}</strong> em {new Date(report.createdAt).toLocaleString('pt-BR')}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newReports = db.reports.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r);
+                      onUpdateData({ ...db, reports: newReports });
+                    }}
+                    style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4CAF50', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    <Check size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
+                    Marcar como Resolvido
+                  </button>
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336' }}>
+                  <p style={{ margin: 0, color: 'var(--text-main)', lineHeight: '1.5' }}>
+                    {report.reason}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderDashboardGeral = () => {
     
