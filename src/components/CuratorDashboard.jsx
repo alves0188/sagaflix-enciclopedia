@@ -150,6 +150,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [reportMessageToAuthor, setReportMessageToAuthor] = useState('');
   const [reportInternalComment, setReportInternalComment] = useState('');
   const [reportSendToAuthor, setReportSendToAuthor] = useState(false);
+  const [showAddCuratorToReport, setShowAddCuratorToReport] = useState(false);
   // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
   const [equipeSubTab, setEquipeSubTab] = useState('membros');
   const [showCuratorModal, setShowCuratorModal] = useState(false);
@@ -1316,6 +1317,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         return { 
           ...r, 
           status: 'investigating', 
+          assignedCurators: [{ id: currentUser.id, name: currentUser.name }],
           assignedCurator: { id: currentUser.id, name: currentUser.name } 
         };
       }
@@ -1423,6 +1425,27 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     setReportSendToAuthor(false);
     // Update local state to reflect immediately in the modal
     setSelectedReportForReview(newDb.reports.find(r => r.id === reportId));
+  };
+
+  const handleAddCuratorToInvestigation = (curatorId, curatorName) => {
+    let newDb = { ...db };
+    const reportId = selectedReportForReview.id;
+    newDb.reports = newDb.reports.map(r => {
+      if (r.id === reportId) {
+        const existing = r.assignedCurators || (r.assignedCurator ? [r.assignedCurator] : []);
+        if (!existing.some(c => c.id === curatorId)) {
+          return {
+            ...r,
+            assignedCurators: [...existing, { id: curatorId, name: curatorName }]
+          };
+        }
+      }
+      return r;
+    });
+
+    onUpdateData(newDb);
+    setSelectedReportForReview(newDb.reports.find(r => r.id === reportId));
+    setShowAddCuratorToReport(false);
   };
 
   const handleResolveReport = () => {
@@ -1547,6 +1570,63 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               {report.reason || "Sem descrição adicional."}
             </p>
           </div>
+
+          {/* Equipe Investigadora */}
+          {(report.status === 'investigating' || report.status === 'resolved') && (
+            <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ margin: 0, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Users size={18} /> Equipe de Curadoria Envolvida
+                </h4>
+                {report.status !== 'resolved' && (
+                  <button 
+                    onClick={() => setShowAddCuratorToReport(!showAddCuratorToReport)}
+                    style={{ background: 'rgba(33, 150, 243, 0.1)', color: '#2196F3', border: '1px solid rgba(33, 150, 243, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <Plus size={14} /> Adicionar Curador
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {(report.assignedCurators || (report.assignedCurator ? [report.assignedCurator] : [])).map(c => (
+                  <span key={c.id} style={{ background: 'rgba(33, 150, 243, 0.1)', color: '#2196F3', padding: '0.4rem 0.8rem', borderRadius: '16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid rgba(33, 150, 243, 0.3)' }}>
+                    <User size={14} /> {c.name}
+                  </span>
+                ))}
+              </div>
+
+              {showAddCuratorToReport && report.status !== 'resolved' && (
+                <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Selecione um curador para incluir nesta investigação:</p>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <select 
+                      id="addCuratorSelect"
+                      style={{ flex: 1, padding: '0.6rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px' }}
+                    >
+                      <option value="">Selecione...</option>
+                      {db.users.filter(u => u.role === 'curator' && !(report.assignedCurators || (report.assignedCurator ? [report.assignedCurator] : [])).some(c => c.id === u.id)).map(u => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </select>
+                    <button 
+                      onClick={() => {
+                        const sel = document.getElementById('addCuratorSelect');
+                        if (sel && sel.value) {
+                          const curId = sel.value;
+                          const curName = sel.options[sel.selectedIndex].text;
+                          handleAddCuratorToInvestigation(curId, curName);
+                        }
+                      }}
+                      style={{ background: '#4CAF50', color: '#fff', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {(report.status === 'investigating' || report.status === 'resolved') && (
             <div style={{ marginBottom: '1.5rem' }}>
@@ -1817,15 +1897,17 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             </p>
           </div>
 
-          {report.status === 'investigating' && report.assignedCurator && (
-            <div style={{ background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#2196F3', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <User size={12} /> {report.assignedCurator.name}
+          {report.status === 'investigating' && (report.assignedCurators?.length > 0 || report.assignedCurator) && (
+            <div style={{ background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#2196F3', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <User size={12} style={{ flexShrink: 0 }} /> 
+              <span>{(report.assignedCurators || (report.assignedCurator ? [report.assignedCurator] : [])).map(c => c.name).join(', ')}</span>
             </div>
           )}
 
           {report.status === 'resolved' && (
-            <div style={{ background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#4CAF50', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Check size={12} /> Resolvido ({report.actionTaken === 'none' ? 'Aviso' : report.actionTaken === 'strike' ? 'Strike' : 'Suspensão'})
+            <div style={{ background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#4CAF50', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <Check size={12} style={{ flexShrink: 0 }} /> 
+              <span>Resolvido por: {(report.assignedCurators || (report.assignedCurator ? [report.assignedCurator] : [])).map(c => c.name).join(', ')} ({report.actionTaken === 'none' ? 'Aviso' : report.actionTaken === 'strike' ? 'Strike' : 'Suspensão'})</span>
             </div>
           )}
 
