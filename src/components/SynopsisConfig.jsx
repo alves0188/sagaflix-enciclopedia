@@ -53,24 +53,16 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     alert("Dados do livro salvos com sucesso!");
   };
 
-  const handleSubmitToCuration = () => {
-    if (window.confirm("Deseja realmente enviar este livro para a Curadoria? Após o envio, você não poderá mais editar os conteúdos deste livro até a aprovação ou rejeição.")) {
-      onUpdateBook({ ...formData, status: 'pending' });
-      alert("Livro enviado para curadoria com sucesso!");
+  const handleTogglePublish = () => {
+    if (book.status === 'draft') {
+      if (window.confirm("Deseja publicar este livro para os leitores?")) {
+        onUpdateBook({ ...formData, status: 'published' });
+      }
+    } else {
+      if (window.confirm("Deseja voltar este livro para Rascunho? Ninguém mais poderá ler até você publicar novamente.")) {
+        onUpdateBook({ ...formData, status: 'draft' });
+      }
     }
-  };
-
-  const handleSendRequest = () => {
-    if (!requestData.what || !requestData.why) {
-      alert("Preencha os campos obrigatórios.");
-      return;
-    }
-    if (onLogChange) {
-      onLogChange('Pediu alteração', JSON.stringify(requestData), 'request');
-    }
-    setShowRequestModal(false);
-    setRequestData({ what: '', why: '', impact: '' });
-    alert("Pedido enviado para a curadoria com sucesso!");
   };
 
   const formFieldStyle = { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' };
@@ -85,14 +77,9 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
               Status: {book.status.toUpperCase()}
             </span>
           )}
-          {book.status === 'draft' && (
-            <button className="btn-primary" onClick={handleSubmitToCuration} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#ff9800', color: '#000', border: 'none' }}>
-              Enviar para Curadoria
-            </button>
-          )}
-          {book.status !== 'draft' && (
-            <button className="btn-primary" onClick={() => setShowRequestModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#2196F3', color: '#fff', border: 'none' }}>
-              Pedir Alteração
+          {!isReadOnly && (
+            <button className="btn-primary" onClick={handleTogglePublish} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
+              {book.status === 'draft' ? 'Publicar Obra' : 'Despublicar Obra'}
             </button>
           )}
           {!isReadOnly && (
@@ -351,34 +338,6 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
         </div>
       </div>
       </div>
-      {showRequestModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '12px', width: '500px', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0 }}>Pedido de Alteração</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>O livro já foi publicado. A criação de novos capítulos e personagens passará por avaliação.</p>
-            
-            <div style={formFieldStyle}>
-              <label>O que você quer editar/adicionar?</label>
-              <input type="text" value={requestData.what} onChange={(e) => setRequestData({...requestData, what: e.target.value})} className="form-input" placeholder="Ex: Adicionar um novo personagem..." />
-            </div>
-            
-            <div style={formFieldStyle}>
-              <label>Por que deseja realizar essa alteração?</label>
-              <textarea value={requestData.why} onChange={(e) => setRequestData({...requestData, why: e.target.value})} className="form-input" rows="3"></textarea>
-            </div>
-            
-            <div style={formFieldStyle}>
-              <label>Qual o impacto na obra já publicada?</label>
-              <textarea value={requestData.impact} onChange={(e) => setRequestData({...requestData, impact: e.target.value})} className="form-input" rows="3"></textarea>
-            </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
-              <button className="btn-secondary" onClick={() => setShowRequestModal(false)}>Cancelar</button>
-              <button className="btn-primary" onClick={handleSendRequest} style={{ background: '#2196F3' }}>Enviar Pedido</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

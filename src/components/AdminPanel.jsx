@@ -830,11 +830,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         </button>
         
         <div style={{ flex: 1 }}></div>
-        {currentBook?.status !== 'draft' && !isReadOnly && (
-          <button style={{...navItemStyle(false), background: '#2196F3', color: '#fff'}} onClick={() => setShowRequestModal(true)}>
-            Solicitar alteração
-          </button>
-        )}
+
         {!isReadOnly && isTabVisible('synopsis') && (
           <button style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>Publicar obra</button>
         )}
