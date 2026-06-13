@@ -77,16 +77,18 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
   const canEditChapter = !isReadOnly && (currentBook?.status === 'draft' || currentUser?.role === 'curator');
   const canViewChapter = isReadOnly || canEditChapter;
+  const effectiveReadOnly = !canEditChapter;
+  const isChapterLike = ['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(formData.type || 'chapter');
 
-  const uniqueSubthemes = formData.type === 'chapter' ? Array.from(new Set((formData.pages || []).map(p => p.subtheme || ''))) : [];
-  const activeSubthemePages = formData.type === 'chapter' ? (formData.pages || []).map((p, idx) => ({ ...p, globalIdx: idx })).filter(p => (p.subtheme || '') === (activeSubthemeStr || '')) : [];
+  const uniqueSubthemes = isChapterLike ? Array.from(new Set((formData.pages || []).map(p => p.subtheme || ''))) : [];
+  const activeSubthemePages = isChapterLike ? (formData.pages || []).map((p, idx) => ({ ...p, globalIdx: idx })).filter(p => (p.subtheme || '') === (activeSubthemeStr || '')) : [];
 
   const getListKey = (type) => {
     if (type === 'personagem') return 'characters';
     if (type === 'local') return 'locations';
     if (type === 'pista') return 'clues';
     if (type === 'post') return 'posts';
-    if (type === 'chapter') return 'chapters';
+    if (['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(type)) return 'chapters';
     if (type === 'evento') return 'events';
     return 'organizations';
   };
@@ -953,7 +955,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       </div>
 
       {/* Right Area: Edit Panel (Standard or Dossier) */}
-      {editingItem && formData.type !== 'chapter' && (
+      {editingItem && !isChapterLike && (
         formData.type === 'post' || formData.type === 'evento' ? (
           <div className="admin-edit-panel" style={{ width: '450px', borderLeft: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', display: 'flex', flexDirection: 'column', height: '100%', boxShadow: '-5px 0 25px rgba(0,0,0,0.5)', zIndex: 10, flexShrink: 0 }}>
             
@@ -1033,7 +1035,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       )}
 
       {/* Full Screen Modal: Chapter Editor (3 Columns) */}
-      {editingItem && formData.type === 'chapter' && (
+      {editingItem && isChapterLike && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
           backgroundColor: 'var(--bg-color)', display: 'flex', flexDirection: 'column',
