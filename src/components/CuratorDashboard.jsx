@@ -2615,44 +2615,28 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
               {/* Histórico de Denúncias */}
               <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', width: '100%' }}>
-                <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-gold)', marginBottom: '1rem' }}>
-                  <ShieldAlert size={16} /> Histórico de Denúncias ({authorReports.length})
-                </strong>
-                {authorReports.length === 0 ? (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Nenhuma denúncia registrada para este autor.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    {authorReports.map(report => {
-                      const book = authorBooks.find(b => b.id === report.bookId);
-                      const isResolved = report.status === 'resolved';
-                      const statusColor = report.status === 'pending' || !report.status ? '#f44336' : report.status === 'investigating' ? '#2196F3' : '#4CAF50';
-                      
-                      return (
-                        <div key={report.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '0.8rem', borderRadius: '8px', borderLeft: `3px solid ${statusColor}`, fontSize: '0.8rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                            <strong style={{ color: 'var(--text-main)' }}>Obra: {book?.title || 'Desconhecida'}</strong>
-                            <span style={{ color: statusColor, fontWeight: 'bold' }}>
-                              {report.status === 'pending' || !report.status ? 'Aberta' : report.status === 'investigating' ? 'Em Investigação' : 'Finalizada'}
-                            </span>
-                          </div>
-                          <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)' }}>
-                            Motivo: {report.reason}
-                          </p>
-                          {isResolved && report.validation && (
-                            <div style={{ background: 'var(--bg-main)', padding: '0.4rem', borderRadius: '4px', marginTop: '0.5rem' }}>
-                              <strong style={{ color: report.validation === 'procedente' ? '#4CAF50' : '#f44336' }}>
-                                {report.validation.toUpperCase()}
-                              </strong>
-                              <span style={{ color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
-                                Ação: {report.actionTaken === 'strike' ? 'Strike Aplicado' : report.actionTaken === 'suspend' ? 'Obra Suspensa' : 'Nenhuma'}
-                              </span>
-                            </div>
-                          )}
+                <details style={{ width: '100%', cursor: 'pointer' }}>
+                  <summary style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontWeight: 'bold', outline: 'none' }}>
+                    <ShieldAlert size={16} /> Histórico de Denúncias ({authorReports.length})
+                  </summary>
+                  
+                  {authorReports.length === 0 ? (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '1rem 0 0 0' }}>Nenhuma denúncia registrada para este autor.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                      {Object.entries(authorReports.reduce((acc, r) => {
+                        const cat = categoryLabels[r.category] || r.category || 'Outros';
+                        acc[cat] = (acc[cat] || 0) + 1;
+                        return acc;
+                      }, {})).map(([cat, count]) => (
+                        <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
+                          <strong style={{ color: 'var(--text-main)', fontSize: '0.85rem' }}>{cat}</strong>
+                          <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '0.85rem' }}>{count} ocorrência{count > 1 ? 's' : ''}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </details>
               </div>
             </div>
           </div>
