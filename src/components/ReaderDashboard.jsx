@@ -889,8 +889,62 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               gap: '1rem'
             }}>
               {/* Catalogo Title / Status */}
-              <div style={{ fontSize: '1rem', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ fontSize: '1rem', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 <BookOpen size={18} /> Catálogo de Histórias
+              </div>
+
+              {/* Filtro por Letra A-Z */}
+              <div className="reader-az-bar" style={{ 
+                display: 'flex', 
+                flexWrap: 'nowrap', 
+                overflowX: 'auto',
+                whiteSpace: 'nowrap',
+                gap: '0.3rem', 
+                alignItems: 'center',
+                flex: 1,
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginRight: '0.5rem', marginLeft: '0.5rem', flexShrink: 0 }}>A-Z:</span>
+                <button 
+                  onClick={() => setLetterFilter('')} 
+                  style={{ 
+                    padding: '0.3rem 0.6rem', 
+                    fontSize: '0.8rem', 
+                    background: letterFilter === '' ? 'var(--accent-gold)' : 'transparent', 
+                    color: letterFilter === '' ? '#000' : 'var(--text-main)', 
+                    border: 'none', 
+                    borderRadius: '4px', 
+                    cursor: 'pointer', 
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                >
+                  Todos
+                </button>
+                {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => (
+                  <button 
+                    key={letter}
+                    onClick={() => setLetterFilter(letter)} 
+                    style={{ 
+                      padding: '0.3rem 0.5rem', 
+                      fontSize: '0.8rem', 
+                      background: letterFilter === letter ? 'var(--accent-gold)' : 'transparent', 
+                      color: letterFilter === letter ? '#000' : 'var(--text-main)', 
+                      border: 'none', 
+                      borderRadius: '4px', 
+                      cursor: 'pointer', 
+                      fontWeight: 'bold',
+                      minWidth: '24px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s',
+                      flexShrink: 0
+                    }}
+                  >
+                    {letter}
+                  </button>
+                ))}
               </div>
 
               {/* Search input and toggle filters button */}
@@ -999,66 +1053,6 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 }} />
               </div>
             )}
-          </div>
-        )}
-
-        {/* Filtro por Letra A-Z */}
-        {activeTab === 'vitrine' && (
-          <div className="reader-az-bar" style={{ 
-            display: 'flex', 
-            flexWrap: isMobile ? 'nowrap' : 'wrap', 
-            overflowX: isMobile ? 'auto' : 'visible',
-            whiteSpace: 'nowrap',
-            gap: '0.3rem', 
-            background: 'rgba(255,255,255,0.02)', 
-            padding: '0.6rem', 
-            borderRadius: '8px', 
-            border: '1px solid var(--border-color)',
-            alignItems: 'center',
-            width: '100%',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginRight: '0.5rem', marginLeft: '0.5rem', flexShrink: 0 }}>A-Z:</span>
-            <button 
-              onClick={() => setLetterFilter('')} 
-              style={{ 
-                padding: '0.3rem 0.6rem', 
-                fontSize: '0.8rem', 
-                background: letterFilter === '' ? 'var(--accent-gold)' : 'transparent', 
-                color: letterFilter === '' ? '#000' : 'var(--text-main)', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer', 
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                flexShrink: 0
-              }}
-            >
-              Todos
-            </button>
-            {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => (
-              <button 
-                key={letter}
-                onClick={() => setLetterFilter(letter)} 
-                style={{ 
-                  padding: '0.3rem 0.5rem', 
-                  fontSize: '0.8rem', 
-                  background: letterFilter === letter ? 'var(--accent-gold)' : 'transparent', 
-                  color: letterFilter === letter ? '#000' : 'var(--text-main)', 
-                  border: 'none', 
-                  borderRadius: '4px', 
-                  cursor: 'pointer', 
-                  fontWeight: 'bold',
-                  minWidth: '24px',
-                  textAlign: 'center',
-                  transition: 'all 0.2s',
-                  flexShrink: 0
-                }}
-              >
-                {letter}
-              </button>
-            ))}
           </div>
         )}
 
