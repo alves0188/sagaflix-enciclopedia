@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
+import HQModal from './HQModal';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -29,6 +30,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   // Manuscrito import modals
   const [showCreationChoice, setShowCreationChoice] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showHqModal, setShowHqModal] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState('');
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
@@ -1102,6 +1104,11 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
         <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
         <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
+        
+        <div style={{ flex: 1 }}></div>
+        <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <button onClick={() => setShowHqModal(true)} style={navItemStyle(false)}><Image size={18} color="var(--accent-gold)"/> <span style={{ color: 'var(--accent-gold)' }}>Em breve HQ's</span></button>
+        </div>
       </div>
 
       {/* Conteúdo Principal */}
@@ -1118,7 +1125,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       {showCreationChoice && (
         <div className="modal-overlay" style={{ zIndex: 9999, backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.7)' }}>
           <div className="modal-content" style={{ 
-            maxWidth: '750px', 
+            maxWidth: '1000px', 
             padding: '3.5rem',
             borderRadius: '24px',
             textAlign: 'center', 
@@ -1129,7 +1136,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '2.4rem', marginBottom: '0.5rem', textShadow: '0 2px 10px rgba(226, 192, 68, 0.2)' }}>Vamos criar um novo mundo?</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>Como você deseja começar a sua jornada literária?</p>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
               <div 
                 style={{ 
                   background: 'rgba(255,255,255,0.02)', 
@@ -1188,6 +1195,37 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                 <UploadCloud size={56} color="var(--accent-gold)" style={{ margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 8px rgba(226,192,68,0.4))' }} />
                 <h3 style={{ margin: '0 0 0.8rem 0', color: 'var(--text-main)', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif" }}>Importar Manuscrito</h3>
                 <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>Já tenho a história escrita em DOCX ou TXT. Apenas fatie para mim!</p>
+              </div>
+
+              <div 
+                style={{ 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid rgba(255,255,255,0.05)', 
+                  padding: '2.5rem 1.5rem', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer', 
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onClick={() => { setShowCreationChoice(false); setShowHqModal(true); }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = 'var(--accent-gold)';
+                  e.currentTarget.style.background = 'rgba(226, 192, 68, 0.05)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(226, 192, 68, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.7rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>EM BREVE</div>
+                <Image size={56} color="var(--text-muted)" style={{ margin: '0 auto 1.5rem auto' }} />
+                <h3 style={{ margin: '0 0 0.8rem 0', color: 'var(--text-main)', fontSize: '1.3rem', fontFamily: "'Playfair Display', serif" }}>História em HQ</h3>
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>Upload de páginas para formato Webtoon ou Mangá.</p>
               </div>
             </div>
 
@@ -1315,6 +1353,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
       )}
 
+      <HQModal isOpen={showHqModal} onClose={() => setShowHqModal(false)} />
     </div>
   );
 }

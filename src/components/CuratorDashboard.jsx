@@ -3,6 +3,7 @@ import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft,
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import ReaderDashboard from './ReaderDashboard';
+import HQModal from './HQModal';
 import { supabase, uploadImage } from '../lib/supabaseClient';
 import { sendEmail } from '../lib/emailjs';
 
@@ -114,6 +115,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [dashTab, setDashTab] = useState('geral');
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showHqModal, setShowHqModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [viewingAuthorDashId, setViewingAuthorDashId] = useState(null);
   
@@ -3181,6 +3183,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> GamificaÃ§Ã£o</button>}
         {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
+
+        <div style={{ flex: 1 }}></div>
+        <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <button onClick={() => setShowHqModal(true)} style={navItemStyle(false)}><Image size={18} color="var(--accent-gold)"/> <span style={{ color: 'var(--accent-gold)' }}>Em breve HQ's</span></button>
+        </div>
       </div>
 
       {/* ConteÃºdo Principal */}
@@ -3274,6 +3281,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         </div>
       )}
 
+      <HQModal isOpen={showHqModal} onClose={() => setShowHqModal(false)} />
     </div>
   );
 }
