@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity } from 'lucide-react';
+import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown } from 'lucide-react';
+import { GENRES_LIST } from '../lib/genres';
 
 const DEFAULT_BANNERS = [
   {
@@ -67,7 +68,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
 
   // Filtros avançados
-  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [showGenresDropdown, setShowGenresDropdown] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedAgeRating, setSelectedAgeRating] = useState('');
   const [selectedAuthorFilter, setSelectedAuthorFilter] = useState('');
@@ -916,136 +917,86 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                   />
                 </div>
 
-                {/* Filtros Toggle Button */}
+                {/* Gêneros Toggle Button */}
                 <button 
-                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                  onClick={() => setShowGenresDropdown(!showGenresDropdown)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.4rem',
-                    background: showFiltersPanel ? 'var(--accent-gold)' : '#1b1d22',
+                    background: 'transparent',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    color: showFiltersPanel ? '#000' : 'var(--text-main)',
+                    color: showGenresDropdown ? 'var(--accent-gold)' : 'var(--text-main)',
                     padding: '0.4rem 0.8rem',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '0.8rem',
+                    fontSize: '0.9rem',
                     fontWeight: 'bold',
                     transition: 'all 0.2s',
                     flexShrink: 0
                   }}
-                  title="Mais Filtros"
+                  title="Filtrar por Gênero"
                 >
-                  <SlidersHorizontal size={14} />
-                  <span>Filtros</span>
+                  <span>{selectedGenre || 'Gêneros'}</span>
+                  <ChevronDown size={16} style={{ transform: showGenresDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                 </button>
               </div>
             </div>
 
-            {/* Collapsible advanced filters panel */}
-            {showFiltersPanel && (
+            {/* Mega-menu de Gêneros */}
+            {showGenresDropdown && (
               <div style={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: '0.8rem',
-                alignItems: isMobile ? 'stretch' : 'center',
-                background: 'rgba(255,255,255,0.01)',
-                padding: '1rem',
+                background: 'var(--card-bg)',
+                padding: '1.5rem',
                 borderRadius: '8px',
-                border: '1px dashed var(--border-color)',
-                animation: 'slideIn 0.3s ease-out'
+                border: '1px solid var(--border-color)',
+                animation: 'slideIn 0.3s ease-out',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                marginBottom: '1rem',
+                position: 'relative',
+                zIndex: 10
               }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>Filtrar por:</span>
-                
-                {/* Gênero */}
-                <select 
-                  value={selectedGenre} 
-                  onChange={e => setSelectedGenre(e.target.value)}
-                  style={{ 
-                    padding: '0.4rem 0.8rem', 
-                    background: '#1b1d22', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    color: 'var(--text-muted)', 
-                    borderRadius: '4px', 
-                    fontSize: '0.8rem', 
-                    cursor: 'pointer', 
-                    outline: 'none',
-                    minWidth: isMobile ? '100%' : '140px'
-                  }}
-                >
-                  <option value="">Todos os Gêneros</option>
-                  {getUniqueGenres().map(g => (
-                    <option key={g} value={g}>{g}</option>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+                  gap: '1rem' 
+                }}>
+                  {GENRES_LIST.map(genre => (
+                    <div 
+                      key={genre}
+                      onClick={() => {
+                        setSelectedGenre(selectedGenre === genre ? '' : genre);
+                        setShowGenresDropdown(false); // Close after selection
+                      }}
+                      style={{
+                        padding: '0.5rem 0',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        color: selectedGenre === genre ? 'var(--accent-gold)' : 'var(--text-main)',
+                        fontWeight: selectedGenre === genre ? 'bold' : 'normal',
+                        cursor: 'pointer',
+                        fontSize: '0.95rem',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedGenre !== genre) e.currentTarget.style.color = 'var(--text-muted)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedGenre !== genre) e.currentTarget.style.color = 'var(--text-main)';
+                      }}
+                    >
+                      {genre}
+                    </div>
                   ))}
-                </select>
+                </div>
 
-                {/* Classificação Indicativa */}
-                <select 
-                  value={selectedAgeRating} 
-                  onChange={e => setSelectedAgeRating(e.target.value)}
-                  style={{ 
-                    padding: '0.4rem 0.8rem', 
-                    background: '#1b1d22', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    color: 'var(--text-muted)', 
-                    borderRadius: '4px', 
-                    fontSize: '0.8rem', 
-                    cursor: 'pointer', 
-                    outline: 'none',
-                    minWidth: isMobile ? '100%' : '140px'
-                  }}
-                >
-                  <option value="">Qualquer Idade</option>
-                  {getUniqueAgeRatings().map(r => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-
-                {/* Autor */}
-                <select 
-                  value={selectedAuthorFilter} 
-                  onChange={e => setSelectedAuthorFilter(e.target.value)}
-                  style={{ 
-                    padding: '0.4rem 0.8rem', 
-                    background: '#1b1d22', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    color: 'var(--text-muted)', 
-                    borderRadius: '4px', 
-                    fontSize: '0.8rem', 
-                    cursor: 'pointer', 
-                    outline: 'none',
-                    minWidth: isMobile ? '100%' : '180px'
-                  }}
-                >
-                  <option value="">Todos os Autores</option>
-                  {getUniqueAuthors().map(a => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-
-                {/* Limpar Filtros */}
-                {(selectedGenre || selectedAgeRating || selectedAuthorFilter || letterFilter) && (
-                  <button 
-                    onClick={() => { setSelectedGenre(''); setSelectedAgeRating(''); setSelectedAuthorFilter(''); setLetterFilter(''); }}
-                    style={{ 
-                      background: 'transparent', 
-                      border: 'none', 
-                      color: '#ff4444', 
-                      fontSize: '0.8rem', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '0.2rem', 
-                      fontWeight: 'bold',
-                      justifyContent: 'center',
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '4px',
-                      background: 'rgba(255,68,68,0.1)'
-                    }}
-                  >
-                    <X size={12} /> Limpar Filtros
-                  </button>
-                )}
+                {/* Linha separadora do menu (como na imagem original) */}
+                <div style={{
+                  height: '6px',
+                  background: 'rgba(255,255,255,0.05)',
+                  borderRadius: '3px',
+                  marginTop: '1.5rem',
+                  width: '100%'
+                }} />
               </div>
             )}
           </div>

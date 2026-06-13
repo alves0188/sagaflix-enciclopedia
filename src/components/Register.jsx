@@ -3,6 +3,7 @@ import { BookOpen, User, Upload, ArrowLeft, Eye, EyeOff, CheckCircle } from 'luc
 import { supabase, uploadImage } from '../lib/supabaseClient';
 import { sendEmail } from '../lib/emailjs';
 import TermsModal from './TermsModal';
+import { GENRES_LIST as ALL_GENRES } from '../lib/genres';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
@@ -29,12 +30,6 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
     synopsis: ''
   });
 
-  const ALL_GENRES = [
-    'Fantasia', 'Ficção Científica', 'Romance', 'Terror', 
-    'Suspense', 'Mistério', 'Aventura', 'Jovem Adulto', 
-    'Distopia', 'Alta Fantasia', 'Realismo Mágico', 'Drama', 'Religiosa'
-  ];
-  
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 

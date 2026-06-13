@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { Save, Upload } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
-
-const GENRES_LIST = [
-  'Fantasia', 'Ficção Científica', 'Romance', 'Terror', 
-  'Suspense', 'Mistério', 'Aventura', 'Jovem Adulto', 
-  'Distopia', 'Drama', 'Histórico', 'Religiosa'
-];
+import { GENRES_LIST } from '../lib/genres';
 
 export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange }) {
   const [formData, setFormData] = useState({
