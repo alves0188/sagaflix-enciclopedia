@@ -515,9 +515,29 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         return t;
       });
 
+      let updatedReports = db.reports;
+      if (selectedTicket.linkedReportId) {
+        updatedReports = (db.reports || []).map(r => {
+          if (r.id === selectedTicket.linkedReportId) {
+            return {
+              ...r,
+              comments: [...(r.comments || []), {
+                id: Date.now().toString(),
+                text: replyText,
+                authorName: 'Autor (via Suporte)',
+                date: new Date().toISOString(),
+                isPublicToAuthor: true
+              }]
+            };
+          }
+          return r;
+        });
+      }
+
       const newDb = {
         ...db,
-        supportTickets: updatedTickets
+        supportTickets: updatedTickets,
+        reports: updatedReports
       };
 
       onUpdateData(newDb);

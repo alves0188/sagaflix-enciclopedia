@@ -149,6 +149,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [reportCuratorNote, setReportCuratorNote] = useState('');
   const [reportMessageToAuthor, setReportMessageToAuthor] = useState('');
   const [reportInternalComment, setReportInternalComment] = useState('');
+  const [reportSendToAuthor, setReportSendToAuthor] = useState(false);
   // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
   const [equipeSubTab, setEquipeSubTab] = useState('membros');
   const [showCuratorModal, setShowCuratorModal] = useState(false);
@@ -1334,16 +1335,86 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     if (!reportInternalComment.trim() || !selectedReportForReview) return;
 
     let newDb = { ...db };
+    const reportId = selectedReportForReview.id;
+    const book = newDb.books.find(b => b.id === selectedReportForReview.bookId);
+    const authorId = book?.authorId;
+    let linkedTicketId = selectedReportForReview.linkedTicketId;
+
+    const newComment = {
+      id: Date.now().toString(),
+      text: reportInternalComment,
+      authorName: currentUser.name,
+      date: new Date().toISOString(),
+      isPublicToAuthor: reportSendToAuthor
+    };
+
+    if (reportSendToAuthor && authorId) {
+      if (!newDb.supportTickets) newDb.supportTickets = [];
+      if (!linkedTicketId) {
+        // Criar novo ticket
+        linkedTicketId = 'ticket_' + Date.now();
+        newDb.supportTickets.push({
+          id: linkedTicketId,
+          authorId: authorId,
+          category: 'curator',
+          subject: `Notificação de Curadoria - Denúncia: ${book?.title}`,
+          status: 'open',
+          createdAt: new Date().toISOString(),
+          messages: [{
+            id: 'msg_' + Date.now(),
+            senderId: currentUser.id,
+            senderName: currentUser.name,
+            message: reportInternalComment,
+            createdAt: new Date().toISOString()
+          }],
+          linkedReportId: reportId
+        });
+
+        // Notificar autor da abertura do chamado
+        if (!newDb.notifications) newDb.notifications = [];
+        newDb.notifications.push({
+          id: Date.now().toString(),
+          type: 'warning',
+          authorId: authorId,
+          title: 'Nova Mensagem da Curadoria',
+          message: `A curadoria entrou em contato sobre a obra "${book?.title}". Verifique sua caixa de Suporte.`,
+          date: new Date().toISOString(),
+          read: false
+        });
+      } else {
+        // Atualizar ticket existente
+        const ticketIndex = newDb.supportTickets.findIndex(t => t.id === linkedTicketId);
+        if (ticketIndex !== -1) {
+          newDb.supportTickets[ticketIndex].replies = newDb.supportTickets[ticketIndex].replies || [];
+          newDb.supportTickets[ticketIndex].replies.push({
+            id: 'reply_' + Date.now(),
+            senderId: currentUser.id,
+            senderName: currentUser.name,
+            message: reportInternalComment,
+            createdAt: new Date().toISOString()
+          });
+
+          // Notificar autor da nova resposta
+          if (!newDb.notifications) newDb.notifications = [];
+          newDb.notifications.push({
+            id: Date.now().toString(),
+            type: 'message',
+            authorId: authorId,
+            title: 'Nova Resposta da Curadoria',
+            message: `Você recebeu uma nova mensagem no chamado sobre a obra "${book?.title}".`,
+            date: new Date().toISOString(),
+            read: false
+          });
+        }
+      }
+    }
+
     newDb.reports = newDb.reports.map(r => {
-      if (r.id === selectedReportForReview.id) {
+      if (r.id === reportId) {
         return {
           ...r,
-          comments: [...(r.comments || []), {
-            id: Date.now().toString(),
-            text: reportInternalComment,
-            authorName: currentUser.name,
-            date: new Date().toISOString()
-          }]
+          linkedTicketId: linkedTicketId || r.linkedTicketId,
+          comments: [...(r.comments || []), newComment]
         };
       }
       return r;
@@ -1351,8 +1422,9 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     onUpdateData(newDb);
     setReportInternalComment('');
+    setReportSendToAuthor(false);
     // Update local state to reflect immediately in the modal
-    setSelectedReportForReview(newDb.reports.find(r => r.id === selectedReportForReview.id));
+    setSelectedReportForReview(newDb.reports.find(r => r.id === reportId));
   };
 
   const handleResolveReport = () => {
@@ -1485,35 +1557,51 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               </h4>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {report.comments && report.comments.length > 0 ? (
-                  report.comments.map(comment => (
-                    <div key={comment.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '3px solid #2196F3' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
-                        <strong style={{ color: '#2196F3' }}>{comment.authorName}</strong>
-                        <span style={{ color: 'var(--text-muted)' }}>{new Date(comment.date).toLocaleString('pt-BR')}</span>
+                  report.comments.map(comment => {
+                    const isPublic = comment.isPublicToAuthor;
+                    const isFromCurator = comment.authorName !== 'Autor (via Suporte)';
+                    const color = isPublic ? (isFromCurator ? '#ff9800' : '#4CAF50') : '#2196F3';
+                    const bg = isPublic ? (isFromCurator ? 'rgba(255, 152, 0, 0.1)' : 'rgba(76, 175, 80, 0.1)') : 'rgba(0,0,0,0.2)';
+
+                    return (
+                      <div key={comment.id} style={{ background: bg, padding: '1rem', borderRadius: '8px', borderLeft: `3px solid ${color}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                          <strong style={{ color: color, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            {isPublic ? (isFromCurator ? <MessageSquare size={14} /> : <User size={14} />) : null}
+                            {comment.authorName} {isPublic && isFromCurator && '(Enviado ao Autor)'}
+                          </strong>
+                          <span style={{ color: 'var(--text-muted)' }}>{new Date(comment.date).toLocaleString('pt-BR')}</span>
+                        </div>
+                        <p style={{ margin: 0, color: 'var(--text-main)' }}>{comment.text}</p>
                       </div>
-                      <p style={{ margin: 0, color: 'var(--text-main)' }}>{comment.text}</p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p style={{ color: 'var(--text-muted)', margin: 0, textAlign: 'center', fontStyle: 'italic' }}>Nenhum comentário registrado ainda.</p>
                 )}
 
                 {report.status !== 'resolved' && (
-                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                    <input 
-                      type="text" 
-                      placeholder="Adicionar comentário (Ex: Enviei mensagem ao autor aguardando prints)..."
-                      value={reportInternalComment}
-                      onChange={(e) => setReportInternalComment(e.target.value)}
-                      style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px' }}
-                      onKeyDown={(e) => { if(e.key === 'Enter') handleAddReportComment(); }}
-                    />
-                    <button 
-                      onClick={handleAddReportComment}
-                      style={{ background: '#2196F3', color: '#fff', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                      Adicionar
-                    </button>
+                  <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="text" 
+                        placeholder={reportSendToAuthor ? "Digite a mensagem para o autor..." : "Adicionar comentário interno..."}
+                        value={reportInternalComment}
+                        onChange={(e) => setReportInternalComment(e.target.value)}
+                        style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-main)', border: reportSendToAuthor ? '1px solid #ff9800' : '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px' }}
+                        onKeyDown={(e) => { if(e.key === 'Enter') handleAddReportComment(); }}
+                      />
+                      <button 
+                        onClick={handleAddReportComment}
+                        style={{ background: reportSendToAuthor ? '#ff9800' : '#2196F3', color: '#fff', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                      >
+                        {reportSendToAuthor ? 'Enviar Mensagem' : 'Adicionar Nota'}
+                      </button>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer', alignSelf: 'flex-start' }}>
+                      <input type="checkbox" checked={reportSendToAuthor} onChange={(e) => setReportSendToAuthor(e.target.checked)} />
+                      Enviar também como Mensagem Direta ao Autor (via Chamado de Suporte)
+                    </label>
                   </div>
                 )}
               </div>
