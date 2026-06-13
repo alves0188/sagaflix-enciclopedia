@@ -888,10 +888,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               border: '1px solid var(--border-color)',
               gap: '1rem'
             }}>
-              {/* Catalogo Title / Status */}
-              <div style={{ fontSize: '1rem', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                <BookOpen size={18} /> Catálogo de Histórias
-              </div>
+
 
               {/* Filtro por Letra A-Z */}
               <div className="reader-az-bar" style={{ 
