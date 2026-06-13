@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { BookOpen, User, Upload, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { BookOpen, User, Upload, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase, uploadImage } from '../lib/supabaseClient';
 import { sendEmail } from '../lib/emailjs';
+import TermsModal from './TermsModal';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -66,6 +69,12 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
     setIsLoading(true);
     setError('');
     
+    if (!termsAccepted) {
+      setError('Você precisa ler e aceitar os Termos de Uso e Privacidade para criar uma conta.');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== confirmPassword) {
       setError('As senhas digitadas não coincidem.');
       setIsLoading(false);
@@ -378,12 +387,39 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
             </div>
           )}
 
-          <button type="submit" className="btn-primary" disabled={isLoading} style={{ width: '100%', padding: '1rem', fontSize: '1rem', marginTop: '1rem', opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}>
+          {/* Termos de Uso Checkbox */}
+          <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.8rem', padding: '1rem', background: 'rgba(226, 192, 68, 0.05)', border: '1px solid rgba(226, 192, 68, 0.2)', borderRadius: '8px' }}>
+            <input 
+              type="checkbox" 
+              checked={termsAccepted} 
+              onChange={(e) => setTermsAccepted(e.target.checked)} 
+              style={{ accentColor: 'var(--accent-gold)', marginTop: '0.2rem', cursor: 'pointer', transform: 'scale(1.2)' }} 
+            />
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: '1.4' }}>
+              Eu declaro que li e concordo com os{' '}
+              <button 
+                type="button" 
+                onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }} 
+                style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontWeight: 'bold' }}
+              >
+                Termos de Uso e Política de Privacidade
+              </button>
+              {' '}da plataforma Sagaflix.
+            </div>
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={isLoading || !termsAccepted} style={{ width: '100%', padding: '1rem', fontSize: '1rem', marginTop: '1rem', opacity: (isLoading || !termsAccepted) ? 0.5 : 1, cursor: (isLoading || !termsAccepted) ? 'not-allowed' : 'pointer' }}>
             {isLoading ? 'ENVIANDO...' : (role === 'author' ? 'ENVIAR PARA APROVAÇÃO' : 'CRIAR CONTA')}
           </button>
         </form>
 
       </div>
+
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+        role={role} 
+      />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import ReaderDashboard from './components/ReaderDashboard';
 import EmailConfirmationView from './components/EmailConfirmationView';
 import NewBookModal from './components/NewBookModal';
 import { supabase, uploadImage } from './lib/supabaseClient';
-import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu } from 'lucide-react';
+import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2 } from 'lucide-react';
 import { useHashHistory } from './hooks/useHashHistory';
 import { useHashTabs } from './hooks/useHashTabs';
 
@@ -297,6 +297,40 @@ export default function App() {
     localStorage.removeItem('sagaflix_universeTab');
     localStorage.removeItem('sagaflix_readerTab');
     localStorage.removeItem('sagaflix_authorTab');
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmation = window.prompt("Tem certeza que deseja apagar sua conta? Todos os seus dados, preferências e obras (se houver) serão APAGADOS permanentemente.\n\nDigite CONFIRMAR para prosseguir:");
+    if (confirmation !== "CONFIRMAR") {
+      alert("A exclusão foi cancelada.");
+      return;
+    }
+
+    try {
+      const newDb = { ...db };
+      
+      // Remover os livros do autor se houver
+      if (currentUser.role === 'author') {
+        newDb.books = newDb.books.filter(b => b.authorId !== currentUser.id);
+        // Remover tickets de suporte
+        if (newDb.supportTickets) {
+          newDb.supportTickets = newDb.supportTickets.filter(t => t.authorId !== currentUser.id);
+        }
+      }
+      
+      // Remover o usuário
+      newDb.users = newDb.users.filter(u => u.id !== currentUser.id);
+
+      const { error } = await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+      if (error) throw error;
+      
+      alert("Sua conta e dados foram excluídos com sucesso. Lamentamos ver você partir!");
+      handleLogout();
+      setIsProfileModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao excluir conta:", err);
+      alert("Ocorreu um erro ao excluir sua conta. Tente novamente.");
+    }
   };
 
   const handleOpenProfileModal = () => {
@@ -820,6 +854,17 @@ export default function App() {
                     onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                   >
                     <LogOut size={18} /> Sair da Conta
+                  </button>
+
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '1rem 0' }}></div>
+                  
+                  <button 
+                    onClick={handleDeleteAccount}
+                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255, 0, 0, 0.1)', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem', fontWeight: 'bold' }}
+                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,0,0,0.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <Trash2 size={16} /> Apagar Minha Conta (LGPD)
                   </button>
                 </div>
               </div>
