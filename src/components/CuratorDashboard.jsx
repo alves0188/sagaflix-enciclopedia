@@ -1360,24 +1360,20 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           subject: `Notificação de Curadoria - Denúncia: ${book?.title}`,
           status: 'open',
           createdAt: new Date().toISOString(),
-          messages: [{
-            id: 'msg_' + Date.now(),
-            senderId: currentUser.id,
-            senderName: currentUser.name,
-            message: reportInternalComment,
-            createdAt: new Date().toISOString()
-          }],
-          linkedReportId: reportId
+          message: reportInternalComment,
+          replies: [],
+          linkedReportId: reportId,
+          hasUnreadCuratorMessage: true
         });
 
         // Notificar autor da abertura do chamado
         if (!newDb.notifications) newDb.notifications = [];
         newDb.notifications.push({
           id: Date.now().toString(),
-          type: 'warning',
+          type: 'message',
           authorId: authorId,
-          title: 'Nova Mensagem da Curadoria',
-          message: `A curadoria entrou em contato sobre a obra "${book?.title}". Verifique sua caixa de Suporte.`,
+          action: 'Nova Mensagem da Curadoria',
+          details: `A curadoria entrou em contato sobre a obra "${book?.title}". Verifique sua caixa de Suporte.`,
           date: new Date().toISOString(),
           read: false
         });
@@ -1394,14 +1390,16 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             createdAt: new Date().toISOString()
           });
 
+          newDb.supportTickets[ticketIndex].hasUnreadCuratorMessage = true;
+
           // Notificar autor da nova resposta
           if (!newDb.notifications) newDb.notifications = [];
           newDb.notifications.push({
             id: Date.now().toString(),
             type: 'message',
             authorId: authorId,
-            title: 'Nova Resposta da Curadoria',
-            message: `Você recebeu uma nova mensagem no chamado sobre a obra "${book?.title}".`,
+            action: 'Nova Resposta da Curadoria',
+            details: `Você recebeu uma nova mensagem no chamado sobre a obra "${book?.title}".`,
             date: new Date().toISOString(),
             read: false
           });

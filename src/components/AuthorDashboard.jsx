@@ -594,16 +594,32 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                   return (
                     <div 
                       key={t.id}
-                      onClick={() => setSelectedTicketId(t.id)}
+                      onClick={() => {
+                        setSelectedTicketId(t.id);
+                        if (t.hasUnreadCuratorMessage) {
+                          const newDb = { ...db, supportTickets: db.supportTickets.map(st => st.id === t.id ? {...st, hasUnreadCuratorMessage: false} : st) };
+                          onUpdateData(newDb);
+                        }
+                      }}
                       style={{
                         padding: '1.2rem',
                         borderBottom: '1px solid var(--border-color)',
+                        background: isSelected ? 'rgba(212, 175, 55, 0.05)' : 'transparent',
                         cursor: 'pointer',
-                        background: isSelected ? 'rgba(255,255,255,0.02)' : 'transparent',
-                        borderLeft: isSelected ? '4px solid var(--accent-gold)' : '4px solid transparent',
-                        transition: 'all 0.2s'
+                        borderLeft: isSelected ? '3px solid var(--accent-gold)' : '3px solid transparent',
+                        transition: 'all 0.2s',
+                        position: 'relative'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'transparent';
                       }}
                     >
+                      {t.hasUnreadCuratorMessage && (
+                        <div style={{ position: 'absolute', top: '15px', right: '15px', width: '8px', height: '8px', borderRadius: '50%', background: '#f44336' }}></div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.75rem', background: cat.bg, color: cat.color, padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 'bold' }}>{cat.label}</span>
                         <span style={{ 
@@ -652,8 +668,17 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                 {/* Messages List Area */}
                 <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {/* Original message */}
-                  <div style={{ alignSelf: 'flex-start', maxWidth: '80%', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.4rem' }}>{selectedTicket.authorName} (Você)</div>
+                  <div style={{ 
+                    alignSelf: selectedTicket.linkedReportId ? 'flex-end' : 'flex-start', 
+                    maxWidth: '80%', 
+                    background: selectedTicket.linkedReportId ? 'rgba(212,175,55,0.08)' : 'rgba(255,255,255,0.02)', 
+                    border: selectedTicket.linkedReportId ? '1px solid rgba(212,175,55,0.2)' : '1px solid var(--border-color)', 
+                    borderRadius: '8px', 
+                    padding: '1rem' 
+                  }}>
+                    <div style={{ fontSize: '0.75rem', color: selectedTicket.linkedReportId ? 'var(--accent-gold)' : 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.4rem' }}>
+                      {selectedTicket.linkedReportId ? 'Curadoria Sagaflix' : `${selectedTicket.authorName} (Você)`}
+                    </div>
                     <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{selectedTicket.message}</div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '0.4rem' }}>{selectedTicket.createdAt}</div>
                   </div>
@@ -661,6 +686,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                   {/* Replies thread */}
                   {(selectedTicket.replies || []).map(reply => {
                     const isSelf = reply.senderId === currentUser.id;
+                    const isCurator = reply.senderName === 'Curadoria Sagaflix';
                     return (
                       <div 
                         key={reply.id}
@@ -673,7 +699,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                           padding: '1rem'
                         }}
                       >
-                        <div style={{ fontSize: '0.75rem', color: isSelf ? 'var(--accent-gold)' : '#2196F3', fontWeight: 'bold', marginBottom: '0.4rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: isSelf ? 'var(--accent-gold)' : 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.4rem' }}>
                           {isSelf ? `${reply.senderName} (Você)` : reply.senderName}
                         </div>
                         <div style={{ fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{reply.message}</div>
@@ -1123,7 +1149,15 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
         <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
         <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
-        <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}><MessageSquare size={18}/> Suporte e Inbox</button>
+          <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <MessageSquare size={18}/>
+              {(db.supportTickets || []).some(t => t.authorId === currentUser.id && t.hasUnreadCuratorMessage) && (
+                <div style={{ position: 'absolute', top: '-2px', right: '-8px', width: '8px', height: '8px', borderRadius: '50%', background: '#f44336' }}></div>
+              )}
+            </div>
+             Suporte e Inbox
+          </button>
         
         <div style={{ flex: 1 }}></div>
         <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
