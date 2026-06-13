@@ -148,7 +148,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [reportAction, setReportAction] = useState('none'); // 'none' | 'warning' | 'strike' | 'suspend'
   const [reportCuratorNote, setReportCuratorNote] = useState('');
   const [reportMessageToAuthor, setReportMessageToAuthor] = useState('');
-
+  const [reportInternalComment, setReportInternalComment] = useState('');
   // ESTADOS DA EQUIPE DE CURADORES E AUDITORIA
   const [equipeSubTab, setEquipeSubTab] = useState('membros');
   const [showCuratorModal, setShowCuratorModal] = useState(false);
@@ -1308,6 +1308,53 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     alert('Mensagem enviada com sucesso!');
   };
 
+  const handleInvestigateReport = (report) => {
+    let newDb = { ...db };
+    newDb.reports = newDb.reports.map(r => {
+      if (r.id === report.id) {
+        return { 
+          ...r, 
+          status: 'investigating', 
+          assignedCurator: { id: currentUser.id, name: currentUser.name } 
+        };
+      }
+      return r;
+    });
+
+    newDb = logCuratorAction(
+      'Início de Investigação',
+      `Assumiu a investigação da denúncia ID ${report.id}`,
+      newDb
+    );
+
+    onUpdateData(newDb);
+  };
+
+  const handleAddReportComment = () => {
+    if (!reportInternalComment.trim() || !selectedReportForReview) return;
+
+    let newDb = { ...db };
+    newDb.reports = newDb.reports.map(r => {
+      if (r.id === selectedReportForReview.id) {
+        return {
+          ...r,
+          comments: [...(r.comments || []), {
+            id: Date.now().toString(),
+            text: reportInternalComment,
+            authorName: currentUser.name,
+            date: new Date().toISOString()
+          }]
+        };
+      }
+      return r;
+    });
+
+    onUpdateData(newDb);
+    setReportInternalComment('');
+    // Update local state to reflect immediately in the modal
+    setSelectedReportForReview(newDb.reports.find(r => r.id === selectedReportForReview.id));
+  };
+
   const handleResolveReport = () => {
     if (!reportValidation) {
       alert("Por favor, valide se a denúncia é procedente ou infundada.");
@@ -1431,7 +1478,51 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             </p>
           </div>
 
-          <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>1. Validação da Curadoria</h4>
+          {(report.status === 'investigating' || report.status === 'resolved') && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <MessageSquare size={18} /> Timeline de Investigação
+              </h4>
+              <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {report.comments && report.comments.length > 0 ? (
+                  report.comments.map(comment => (
+                    <div key={comment.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '3px solid #2196F3' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                        <strong style={{ color: '#2196F3' }}>{comment.authorName}</strong>
+                        <span style={{ color: 'var(--text-muted)' }}>{new Date(comment.date).toLocaleString('pt-BR')}</span>
+                      </div>
+                      <p style={{ margin: 0, color: 'var(--text-main)' }}>{comment.text}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', margin: 0, textAlign: 'center', fontStyle: 'italic' }}>Nenhum comentário registrado ainda.</p>
+                )}
+
+                {report.status !== 'resolved' && (
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Adicionar comentário (Ex: Enviei mensagem ao autor aguardando prints)..."
+                      value={reportInternalComment}
+                      onChange={(e) => setReportInternalComment(e.target.value)}
+                      style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px' }}
+                      onKeyDown={(e) => { if(e.key === 'Enter') handleAddReportComment(); }}
+                    />
+                    <button 
+                      onClick={handleAddReportComment}
+                      style={{ background: '#2196F3', color: '#fff', border: 'none', padding: '0 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {report.status !== 'resolved' && (
+            <>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>1. Validação Final da Curadoria</h4>
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: reportValidation === 'procedente' ? 'rgba(76, 175, 80, 0.2)' : 'var(--card-bg)', padding: '1rem', borderRadius: '8px', flex: 1, border: reportValidation === 'procedente' ? '1px solid #4CAF50' : '1px solid var(--border-color)' }}>
               <input type="radio" name="validation" value="procedente" checked={reportValidation === 'procedente'} onChange={(e) => setReportValidation(e.target.value)} style={{ accentColor: '#4CAF50' }} />
@@ -1502,6 +1593,19 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <Check size={18} /> Confirmar Decisão
             </button>
           </div>
+          </>
+          )}
+
+          {report.status === 'resolved' && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+              <button 
+                onClick={() => setSelectedReportForReview(null)}
+                style={{ background: 'transparent', color: 'var(--text-main)', border: '1px solid var(--border-color)', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Fechar Visão
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1587,11 +1691,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   // ========== RENDERIZAÇÃO DAS ABAS ==========
   
   const renderDenuncias = () => {
-    let reports = (db.reports || []).filter(r => r.status === 'pending');
+    let allReports = db.reports || [];
 
     if (reportCategoryFilter !== 'all') {
-      reports = reports.filter(r => r.category === reportCategoryFilter);
+      allReports = allReports.filter(r => r.category === reportCategoryFilter);
     }
+
+    const pendingReports = allReports.filter(r => !r.status || r.status === 'pending');
+    const investigatingReports = allReports.filter(r => r.status === 'investigating');
+    const resolvedReports = allReports.filter(r => r.status === 'resolved');
 
     const categoryLabels = {
       sensivel: 'Conteúdo sensível',
@@ -1600,14 +1708,78 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       outro: 'Outros'
     };
 
+    const renderReportCard = (report) => {
+      const book = (db.books || []).find(b => b.id === report.bookId);
+      
+      return (
+        <div key={report.id} style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '1rem', border: '1px solid var(--border-color)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+          <div>
+            <h4 style={{ margin: '0 0 0.2rem 0', color: 'var(--accent-gold)' }}>Livro: {book?.title || 'Desconhecido'}</h4>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Reportado por: <strong>{report.userName}</strong>
+            </div>
+            {report.category && (
+              <span style={{ display: 'inline-block', marginTop: '0.4rem', background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                {categoryLabels[report.category] || report.category}
+              </span>
+            )}
+          </div>
+          
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: '6px', borderLeft: '3px solid #f44336', fontSize: '0.8rem' }}>
+            <p style={{ margin: 0, color: 'var(--text-main)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {report.reason || "Sem descrição..."}
+            </p>
+          </div>
+
+          {report.status === 'investigating' && report.assignedCurator && (
+            <div style={{ background: 'rgba(33, 150, 243, 0.1)', border: '1px solid rgba(33, 150, 243, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#2196F3', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <User size={12} /> {report.assignedCurator.name}
+            </div>
+          )}
+
+          {report.status === 'resolved' && (
+            <div style={{ background: 'rgba(76, 175, 80, 0.1)', border: '1px solid rgba(76, 175, 80, 0.3)', padding: '0.4rem', borderRadius: '6px', fontSize: '0.75rem', color: '#4CAF50', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Check size={12} /> Resolvido ({report.actionTaken === 'none' ? 'Aviso' : report.actionTaken === 'strike' ? 'Strike' : 'Suspensão'})
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+            {(!report.status || report.status === 'pending') && (
+              <button 
+                onClick={() => handleInvestigateReport(report)}
+                style={{ background: 'rgba(33, 150, 243, 0.1)', color: '#2196F3', border: '1px solid rgba(33, 150, 243, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}
+              >
+                Assumir Investigação
+              </button>
+            )}
+            {(report.status === 'investigating' || report.status === 'resolved') && (
+              <button 
+                onClick={() => {
+                  setSelectedReportForReview(report);
+                  setReportValidation(report.validation || '');
+                  setReportAction(report.actionTaken || 'none');
+                  setReportCuratorNote(report.curatorNote || '');
+                  setReportMessageToAuthor('');
+                  setReportInternalComment('');
+                }}
+                style={{ background: 'rgba(255, 152, 0, 0.1)', color: '#ff9800', border: '1px solid rgba(255, 152, 0, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' }}
+              >
+                {report.status === 'investigating' ? 'Abrir Caso' : 'Visualizar'}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     return (
-      <div>
-        <div className="curator-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div className="curator-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
           <div>
             <h2 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <ShieldAlert size={24} /> Denúncias da Comunidade
+              <ShieldAlert size={24} /> CRM de Denúncias
             </h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Capítulos reportados por leitores ({reports.length} pendentes)</p>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Quadro Kanban para gestão de incidentes</p>
           </div>
           <select 
             value={reportCategoryFilter}
@@ -1622,54 +1794,55 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           </select>
         </div>
 
-        {reports.length === 0 ? (
-          <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '2rem', textAlign: 'center', marginTop: '1.5rem' }}>
-            <ShieldAlert size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Nenhuma denúncia pendente</h3>
-            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Não há denúncias nesta categoria no momento.</p>
+        {/* Kanban Board Container */}
+        <div style={{ display: 'flex', gap: '1.5rem', flex: 1, overflowX: 'auto', paddingBottom: '1rem' }}>
+          
+          {/* Column 1: Pendentes */}
+          <div style={{ flex: '0 0 350px', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', padding: '1rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f44336', paddingBottom: '0.5rem' }}>
+              <span>Abertas</span>
+              <span style={{ background: '#f44336', color: '#fff', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>{pendingReports.length}</span>
+            </h3>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {pendingReports.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '2rem' }}>Nenhuma pendência.</p>
+              ) : (
+                pendingReports.map(renderReportCard)
+              )}
+            </div>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gap: '1.5rem', marginTop: '1.5rem' }}>
-            {reports.map(report => {
-              const book = (db.books || []).find(b => b.id === report.bookId);
-              return (
-                <div key={report.id} style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '1.5rem', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div>
-                      <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--accent-gold)' }}>Livro: {book?.title || 'Desconhecido'}</h4>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <span>Reportado por: <strong>{report.userName}</strong> em {new Date(report.createdAt).toLocaleString('pt-BR')}</span>
-                        {report.category && (
-                          <span style={{ background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                            {categoryLabels[report.category] || report.category}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setSelectedReportForReview(report);
-                        setReportValidation('');
-                        setReportAction('none');
-                        setReportCuratorNote('');
-                        setReportMessageToAuthor('');
-                      }}
-                      style={{ background: 'rgba(255, 152, 0, 0.1)', color: '#ff9800', border: '1px solid rgba(255, 152, 0, 0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                      <ShieldAlert size={16} style={{ marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}/> 
-                      Analisar Denúncia
-                    </button>
-                  </div>
-                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #f44336' }}>
-                    <p style={{ margin: 0, color: 'var(--text-main)', lineHeight: '1.5' }}>
-                      {report.reason || "Sem descrição adicional."}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+
+          {/* Column 2: Em Investigação */}
+          <div style={{ flex: '0 0 350px', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', padding: '1rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2196F3', paddingBottom: '0.5rem' }}>
+              <span>Em Investigação</span>
+              <span style={{ background: '#2196F3', color: '#fff', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>{investigatingReports.length}</span>
+            </h3>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {investigatingReports.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '2rem' }}>Nenhuma investigação ativa.</p>
+              ) : (
+                investigatingReports.map(renderReportCard)
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Column 3: Finalizadas */}
+          <div style={{ flex: '0 0 350px', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', padding: '1rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #4CAF50', paddingBottom: '0.5rem' }}>
+              <span>Finalizadas</span>
+              <span style={{ background: '#4CAF50', color: '#fff', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>{resolvedReports.length}</span>
+            </h3>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {resolvedReports.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '2rem' }}>Nenhum caso finalizado.</p>
+              ) : (
+                resolvedReports.map(renderReportCard)
+              )}
+            </div>
+          </div>
+
+        </div>
       </div>
     );
   };
@@ -2212,6 +2385,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   if (selectedAuthor) {
     const authorBooks = db.books.filter(b => b.authorId === selectedAuthor.id);
     const authorNotifs = notifications.filter(n => n.authorId === selectedAuthor.id).reverse();
+    const authorReports = (db.reports || []).filter(r => authorBooks.some(b => b.id === r.bookId));
 
     return (
       <div style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
@@ -2269,6 +2443,48 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 <p style={{ fontSize: '0.85rem', lineHeight: '1.5', margin: 0, color: 'var(--text-main)' }}>
                   {selectedAuthor.bio || 'Autor apaixonado por criar mundos imersivos e complexos. Busca explorar a psique humana através de narrativas de fantasia sombria e aventuras épicas.'}
                 </p>
+              </div>
+
+              {/* Histórico de Denúncias */}
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', width: '100%' }}>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-gold)', marginBottom: '1rem' }}>
+                  <ShieldAlert size={16} /> Histórico de Denúncias ({authorReports.length})
+                </strong>
+                {authorReports.length === 0 ? (
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Nenhuma denúncia registrada para este autor.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    {authorReports.map(report => {
+                      const book = authorBooks.find(b => b.id === report.bookId);
+                      const isResolved = report.status === 'resolved';
+                      const statusColor = report.status === 'pending' || !report.status ? '#f44336' : report.status === 'investigating' ? '#2196F3' : '#4CAF50';
+                      
+                      return (
+                        <div key={report.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '0.8rem', borderRadius: '8px', borderLeft: `3px solid ${statusColor}`, fontSize: '0.8rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                            <strong style={{ color: 'var(--text-main)' }}>Obra: {book?.title || 'Desconhecida'}</strong>
+                            <span style={{ color: statusColor, fontWeight: 'bold' }}>
+                              {report.status === 'pending' || !report.status ? 'Aberta' : report.status === 'investigating' ? 'Em Investigação' : 'Finalizada'}
+                            </span>
+                          </div>
+                          <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)' }}>
+                            Motivo: {report.reason}
+                          </p>
+                          {isResolved && report.validation && (
+                            <div style={{ background: 'var(--bg-main)', padding: '0.4rem', borderRadius: '4px', marginTop: '0.5rem' }}>
+                              <strong style={{ color: report.validation === 'procedente' ? '#4CAF50' : '#f44336' }}>
+                                {report.validation.toUpperCase()}
+                              </strong>
+                              <span style={{ color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                                Ação: {report.actionTaken === 'strike' ? 'Strike Aplicado' : report.actionTaken === 'suspend' ? 'Obra Suspensa' : 'Nenhuma'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
