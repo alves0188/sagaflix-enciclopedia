@@ -84,7 +84,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           text: `
             <div class="reader-cover-page" style="text-align: center; padding: 1rem 0;">
               <h1 class="reader-cover-title" style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: ${themeColors.gold}; margin-bottom: 0.5rem;">${book?.title || 'Sem título'}</h1>
-              <p class="reader-cover-subtitle" style="font-size: 1.1rem; font-style: italic; opacity: 0.8; margin-top: 0; margin-bottom: 1.5rem; color: ${themeColors.gold};">por ${bookAuthor ? bookAuthor.name : 'Autor Desconhecido'}</p>
+              <p class="reader-cover-subtitle" style="font-size: 1.1rem; font-style: italic; opacity: 0.8; margin-top: 0; margin-bottom: 1.5rem; color: ${themeColors.gold};">por ${bookAuthor ? (bookAuthor.displayMode === 'name' ? bookAuthor.name : (bookAuthor.nickname || bookAuthor.name)) : 'Autor Desconhecido'}</p>
               ${book?.cover ? `<img src="${book.cover}" alt="Capa" class="reader-cover-img" style="max-height: 400px; max-width: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); object-fit: contain;"/>` : '<div style="margin-bottom: 1.5rem; opacity: 0.1;"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10M6 10h10"></svg></div>'}
             </div>
           `,
@@ -96,7 +96,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             <div class="reader-author-page" style="padding: 1rem 0;">
               <div class="reader-author-header" style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
                 <div class="reader-author-avatar-wrapper" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid ${themeColors.gold}; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
-                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${bookAuthor.name}" style="width:100%; height:100%; object-fit:cover;"/>` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${themeColors.gold}" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
+                  ${bookAuthor?.avatar ? `<img src="${bookAuthor.avatar}" alt="${(bookAuthor.displayMode === 'name' ? bookAuthor.name : (bookAuthor.nickname || bookAuthor.name))}" style="width:100%; height:100%; object-fit:cover;"/>` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${themeColors.gold}" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`}
                 </div>
                 <div>
                   <h2 class="reader-author-name" style="font-family: 'Playfair Display', serif; margin: 0; color: ${themeColors.gold}; font-size: 1.5rem;">${bookAuthor?.name || 'Autor Desconhecido'}</h2>

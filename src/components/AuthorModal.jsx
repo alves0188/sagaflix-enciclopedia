@@ -18,13 +18,13 @@ export default function AuthorModal({ author, db, onClose }) {
         <div style={{ background: 'linear-gradient(45deg, #1a1a1a, #2a2a2a)', padding: '3rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--bg-main)', border: '2px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
             {author.avatar ? (
-              <img src={author.avatar} alt={author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={author.avatar} alt={(author.displayMode === 'name' ? author.name : (author.nickname || author.name))} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <User size={48} color="var(--accent-gold)" />
             )}
           </div>
           <div>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: '0 0 0.5rem 0', fontSize: '2rem' }}>{author.name}</h2>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: '0 0 0.5rem 0', fontSize: '2rem' }}>{(author.displayMode === 'name' ? author.name : (author.nickname || author.name))}</h2>
             <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
               Idade: {author.age} anos
               {author.tastes && author.tastes.length > 0 && ` • Gosta de: ${author.tastes.join(', ')}`}

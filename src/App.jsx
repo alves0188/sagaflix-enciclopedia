@@ -335,7 +335,9 @@ export default function App() {
 
   const handleOpenProfileModal = () => {
     setProfileForm({
-      name: currentUser.name || '',
+      name: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)) || '',
+      nickname: currentUser.nickname || '',
+      displayMode: currentUser.displayMode || 'nickname',
       email: currentUser.email || '',
       password: currentUser.password || '',
       avatar: currentUser.avatar || '',
@@ -355,9 +357,22 @@ export default function App() {
       return;
     }
 
+    // Verifica se o nickname já existe e não é do próprio usuário
+    if (profileForm.nickname && profileForm.nickname !== currentUser.nickname) {
+      const existingNickname = db.users.find(u => 
+        (u.nickname || '').toLowerCase() === profileForm.nickname.toLowerCase() && u.id !== currentUser.id
+      );
+      if (existingNickname) {
+        alert('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
+        return;
+      }
+    }
+
     const updatedUser = {
       ...currentUser,
       name: profileForm.name,
+      nickname: profileForm.nickname,
+      displayMode: profileForm.displayMode,
       email: profileForm.email,
       password: profileForm.password,
       avatar: profileForm.avatar,
@@ -694,7 +709,7 @@ export default function App() {
             </div>
             {!isMobile && (
               <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Olá, <strong style={{ color: 'var(--text-main)' }}>{currentUser.name}</strong>
+                Olá, <strong style={{ color: 'var(--text-main)' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</strong>
                 <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
               </span>
             )}
@@ -818,7 +833,7 @@ export default function App() {
                       <User size={60} color="var(--accent-gold)" />
                     )}
                   </div>
-                  <h2 style={{ color: 'var(--text-main)', margin: '0.5rem 0 0 0', fontSize: '1.4rem' }}>{currentUser.name}</h2>
+                  <h2 style={{ color: 'var(--text-main)', margin: '0.5rem 0 0 0', fontSize: '1.4rem' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</h2>
                   <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>ID: {currentUser.id}</p>
                 </div>
                 
@@ -897,17 +912,58 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Nome */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Nome Completo</label>
-                <input 
-                  type="text" 
-                  value={profileForm.name || ''} 
-                  onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} 
-                  className="form-input" 
-                  required 
-                />
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <label className="form-label">Nome Completo (Curadoria)</label>
+                  <input 
+                    type="text" 
+                    value={profileForm.name || ''} 
+                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} 
+                    className="form-input" 
+                    required 
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <label className="form-label">Pseudônimo / Apelido</label>
+                  <input 
+                    type="text" 
+                    value={profileForm.nickname || ''} 
+                    onChange={e => setProfileForm({ ...profileForm, nickname: e.target.value })} 
+                    className="form-input" 
+                    required 
+                  />
+                </div>
               </div>
+
+              {currentUser.role === 'author' && (
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+                  <label className="form-label" style={{ marginBottom: '0.5rem' }}>Como deseja ser visto pelos Leitores?</label>
+                  <div style={{ display: 'flex', gap: '1.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                      <input 
+                        type="radio" 
+                        name="displayMode" 
+                        value="nickname" 
+                        checked={profileForm.displayMode === 'nickname'} 
+                        onChange={e => setProfileForm({ ...profileForm, displayMode: e.target.value })} 
+                        style={{ accentColor: 'var(--accent-gold)' }} 
+                      />
+                      Meu Pseudônimo
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+                      <input 
+                        type="radio" 
+                        name="displayMode" 
+                        value="name" 
+                        checked={profileForm.displayMode === 'name'} 
+                        onChange={e => setProfileForm({ ...profileForm, displayMode: e.target.value })} 
+                        style={{ accentColor: 'var(--accent-gold)' }} 
+                      />
+                      Meu Nome Real
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* Email */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

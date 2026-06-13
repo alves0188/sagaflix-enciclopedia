@@ -15,6 +15,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
   const [formData, setFormData] = useState({
     name: '',
     nickname: '',
+    displayMode: 'nickname', // 'name' ou 'nickname'
     email: '',
     password: '',
     age: '',
@@ -86,6 +87,7 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       if (fetchError) throw fetchError;
       const db = result.data;
       
+      // Verifica Email
       const existingUser = db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
       if (existingUser) {
         if (existingUser.status === 'pending_email') {
@@ -118,19 +120,27 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         }
       }
 
-      const existingUserIds = db.users.map(u => u.id.toString());
-      let newId;
-      do {
-        newId = Math.floor(10000000 + Math.random() * 90000000).toString();
-      } while (existingUserIds.includes(newId));
+      // Verifica Nickname Único
+      const newNickname = (formData.nickname || formData.name.split(' ')[0]).trim();
+      const existingNickname = db.users.find(u => 
+        (u.nickname || '').toLowerCase() === newNickname.toLowerCase()
+      );
+      
+      if (existingNickname) {
+        setError('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
+        setIsLoading(false);
+        return;
+      }
 
+      const newId = 'u_' + Date.now();
       const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
       const newUser = {
         id: newId,
         role: role,
         name: formData.name,
-        nickname: formData.nickname || formData.name.split(' ')[0],
+        nickname: newNickname,
+        displayMode: formData.displayMode,
         email: formData.email,
         password: formData.password,
         age: formData.age,
@@ -243,18 +253,48 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nome Completo (Apenas para Curadoria)</label>
-              <input name="name" value={formData.name} onChange={handleChange} type="text" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nome Completo (Para Curadoria)</label>
+              <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="Seu nome real" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nickname (Público)</label>
-              <input name="nickname" value={formData.nickname} onChange={handleChange} type="text" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Pseudônimo / Apelido (Único)</label>
+              <input name="nickname" value={formData.nickname} onChange={handleChange} type="text" placeholder="Ex: Machado de Assis" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />
             </div>
           </div>
           
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          {role === 'author' && (
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Como você deseja ser visto pelos Leitores?</label>
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                  <input 
+                    type="radio" 
+                    name="displayMode" 
+                    value="nickname" 
+                    checked={formData.displayMode === 'nickname'} 
+                    onChange={handleChange} 
+                    style={{ accentColor: 'var(--accent-gold)' }} 
+                  />
+                  Meu Pseudônimo
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                  <input 
+                    type="radio" 
+                    name="displayMode" 
+                    value="name" 
+                    checked={formData.displayMode === 'name'} 
+                    onChange={handleChange} 
+                    style={{ accentColor: 'var(--accent-gold)' }} 
+                  />
+                  Meu Nome Real
+                </label>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <div style={{ flex: 2 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>E-mail</label>
               <input name="email" value={formData.email} onChange={handleChange} type="email" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px' }} required />

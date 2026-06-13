@@ -165,8 +165,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     const authorNames = new Set();
     publishedBooks.forEach(b => {
       const authorObj = db.users.find(u => u.id === b.authorId);
-      if (authorObj && authorObj.name) {
-        authorNames.add(authorObj.name.trim());
+      if (authorObj && (authorObj.displayMode === 'name' ? authorObj.name : (authorObj.nickname || authorObj.name))) {
+        authorNames.add((authorObj.displayMode === 'name' ? authorObj.name : (authorObj.nickname || authorObj.name)).trim());
       }
     });
     return Array.from(authorNames);
@@ -206,7 +206,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     if (selectedAuthorFilter) {
       list = list.filter(b => {
         const authorObj = db.users.find(u => u.id === b.authorId);
-        return authorObj && authorObj.name.toLowerCase().trim() === selectedAuthorFilter.toLowerCase().trim();
+        return authorObj && (authorObj.displayMode === 'name' ? authorObj.name : (authorObj.nickname || authorObj.name)).toLowerCase().trim() === selectedAuthorFilter.toLowerCase().trim();
       });
     }
 
@@ -271,7 +271,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     
     const newRating = {
       userId: currentUser.id,
-      userName: currentUser.name,
+      userName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
       stars: ratingStars,
       comment: ratingComment.trim(),
       date: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -611,7 +611,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             
             <div className="dossier-subheader">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#222' }}>
-                DOSSIÊ DE: {currentUser.nickname ? currentUser.nickname.toUpperCase() : currentUser.name.toUpperCase()}
+                DOSSIÊ DE: {currentUser.nickname ? currentUser.nickname.toUpperCase() : (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)).toUpperCase()}
               </div>
               <div className="dossier-status" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#222' }}>
                 STATUS: 
@@ -638,7 +638,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 <div className="dossier-section-title">ESTATÍSTICAS GERAIS</div>
                 
                 <div className="dossier-personal-data" style={{ color: '#222' }}>
-                  <div><strong>NOME / APELIDO:</strong> {currentUser.nickname || currentUser.name}</div>
+                  <div><strong>NOME / APELIDO:</strong> {currentUser.nickname || (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</div>
                   <div><strong>PÁGINAS LIDAS:</strong> {pagesRead}</div>
                   <div><strong>LIVROS CONCLUÍDOS:</strong> {finishedBooks}</div>
                   <div><strong>TEMPO DE LEITURA:</strong> {Math.floor((stats.totalTime || 0)/60)}h {(stats.totalTime || 0)%60}m</div>
@@ -724,12 +724,12 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.8rem', marginBottom: '2.5rem', padding: '0 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '2rem' }}>
             <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' }}>
               {currentUser.avatar ? (
-                <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={currentUser.avatar} alt={(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <User size={40} color="var(--accent-gold)" />
               )}
             </div>
-            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{currentUser.name}</h3>
+            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', textAlign: 'center', fontWeight: 'bold' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</h3>
             <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.15)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontWeight: 'bold' }}>Leitor Especial</span>
           </div>
 

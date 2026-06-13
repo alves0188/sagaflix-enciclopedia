@@ -210,7 +210,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     newDb.auditLogs.push({
       id: 'audit_' + Date.now() + Math.floor(Math.random() * 1000),
       curatorId: currentUser.id,
-      curatorName: currentUser.name,
+      curatorName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
       action: action,
       details: details,
       date: new Date().toLocaleString('pt-BR')
@@ -1703,12 +1703,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
               <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '2px solid var(--accent-gold)' }}>
                 {author.avatar ? (
-                  <img src={author.avatar} alt={author.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={author.avatar} alt={(author.displayMode === 'name' ? author.name : (author.nickname || author.name))} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <User size={48} color="var(--accent-gold)" style={{ margin: '16px' }} />
                 )}
               </div>
-              <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--text-main)', textAlign: 'center' }}>{author.name}</h3>
+              <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--text-main)', textAlign: 'center' }}>{(author.displayMode === 'name' ? author.name : (author.nickname || author.name))}</h3>
               <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontFamily: 'monospace', background: 'rgba(212, 175, 55, 0.1)', padding: '0.1rem 0.5rem', borderRadius: '4px', marginBottom: '0.5rem', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
                 ID: {author.id}
               </div>
@@ -1908,7 +1908,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <button onClick={() => setSelectedAuthor(null)} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ArrowLeft size={16} /> Voltar
           </button>
-          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Perfil: {selectedAuthor.name}</h2>
+          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Perfil: {(selectedAuthor.displayMode === 'name' ? selectedAuthor.name : (selectedAuthor.nickname || selectedAuthor.name))}</h2>
           <button onClick={() => setViewingAuthorDashId(selectedAuthor.id)} className="btn-primary" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <LayoutDashboard size={16} /> Acessar Dashboard do Autor
           </button>
@@ -1920,12 +1920,12 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto' }}>
             <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '3px solid var(--accent-gold)' }}>
               {selectedAuthor.avatar ? (
-                <img src={selectedAuthor.avatar} alt={selectedAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={selectedAuthor.avatar} alt={(selectedAuthor.displayMode === 'name' ? selectedAuthor.name : (selectedAuthor.nickname || selectedAuthor.name))} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <User size={80} color="var(--accent-gold)" style={{ margin: '20px' }} />
               )}
             </div>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', textAlign: 'center', fontSize: '1.5rem' }}>{selectedAuthor.name}</h3>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', textAlign: 'center', fontSize: '1.5rem' }}>{(selectedAuthor.displayMode === 'name' ? selectedAuthor.name : (selectedAuthor.nickname || selectedAuthor.name))}</h3>
             <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-muted)' }}>{selectedAuthor.email}</p>
 
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -2088,7 +2088,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
                   {author.avatar ? <img src={author.avatar} alt="" style={{width:'40px', height:'40px', borderRadius:'50%'}}/> : <User size={40} />}
-                  <h3 style={{ margin: 0 }}>{author.name}</h3>
+                  <h3 style={{ margin: 0 }}>{(author.displayMode === 'name' ? author.name : (author.nickname || author.name))}</h3>
                   <button onClick={() => setSelectedAuthor(author)} className="btn-secondary" style={{ marginLeft: 'auto', padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Ver Perfil Completo</button>
                 </div>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -2125,7 +2125,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               
               return (
                 <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
-                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {author.name}</h3>
+                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {(author.displayMode === 'name' ? author.name : (author.nickname || author.name))}</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
                     {authorPending.map(book => (
                       <div key={book.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -2171,7 +2171,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
               return (
                 <div key={author.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
-                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {author.name}</h3>
+                  <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Autor: {(author.displayMode === 'name' ? author.name : (author.nickname || author.name))}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {authorRequests.map(notif => (
                       <div key={notif.id} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '8px', borderLeft: '4px solid #2196F3' }}>
@@ -2258,7 +2258,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       const newReply = {
         id: 'reply_' + Date.now() + Math.floor(Math.random() * 1000),
         senderId: currentUser.id,
-        senderName: currentUser.name,
+        senderName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
         message: ticketReplyText,
         createdAt: new Date().toLocaleString('pt-BR')
       };
@@ -2279,7 +2279,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         id: 'notif_' + Date.now() + Math.floor(Math.random() * 1000),
         type: 'message',
         action: 'Resposta de Suporte',
-        details: `O(A) curador(a) ${currentUser.name} respondeu ao chamado de suporte "${selectedTicket.subject}":\n\n"${ticketReplyText}"`,
+        details: `O(A) curador(a) ${(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))} respondeu ao chamado de suporte "${selectedTicket.subject}":\n\n"${ticketReplyText}"`,
         date: new Date().toLocaleString('pt-BR'),
         read: false,
         userId: selectedTicket.authorId
@@ -2312,7 +2312,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         id: 'notif_' + Date.now() + Math.floor(Math.random() * 1000),
         type: 'message',
         action: 'Status de Chamado Alterado',
-        details: `O chamado de suporte "${ticket.subject}" foi marcado como ${newStatus === 'open' ? 'Reaberto' : 'Resolvido'} por ${currentUser.name}.`,
+        details: `O chamado de suporte "${ticket.subject}" foi marcado como ${newStatus === 'open' ? 'Reaberto' : 'Resolvido'} por ${(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}.`,
         date: new Date().toLocaleString('pt-BR'),
         read: false,
         userId: ticket.authorId

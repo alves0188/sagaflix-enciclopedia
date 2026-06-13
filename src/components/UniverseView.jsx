@@ -70,7 +70,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
         id: Date.now().toString(),
         noteId,
         userId: currentUser.id,
-        userName: currentUser.name || currentUser.nickname,
+        userName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)) || currentUser.nickname,
         bookId,
         bookTitle: currentBook.title,
         itemId: selectedItem.id,
@@ -102,7 +102,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
       bookId: bookId,
       bookTitle: currentBook.title,
       authorId: currentUser.id,
-      authorName: currentUser.name,
+      authorName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
       action: action,
       details: details,
       date: new Date().toLocaleString('pt-BR'),
@@ -116,7 +116,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
       newDb.auditLogs.push({
         id: 'audit_' + Date.now() + Math.floor(Math.random() * 1000),
         curatorId: currentUser.id,
-        curatorName: currentUser.name,
+        curatorName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
         action: `CMS: ${action}`,
         details: `No livro "${currentBook.title}": ${details}`,
         date: new Date().toLocaleString('pt-BR')
@@ -184,7 +184,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
           title: currentBook.title,
           description: currentBook.synopsis,
           image: currentBook.cover,
-          author: bookAuthor ? bookAuthor.name : 'Autor Desconhecido',
+          author: bookAuthor ? (bookAuthor.displayMode === 'name' ? bookAuthor.name : (bookAuthor.nickname || bookAuthor.name)) : 'Autor Desconhecido',
           authorObj: bookAuthor
         };
         break;

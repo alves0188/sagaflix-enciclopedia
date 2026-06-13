@@ -471,7 +471,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       const newTicketObj = {
         id: 'ticket_' + Date.now() + Math.floor(Math.random() * 1000),
         authorId: currentUser.id,
-        authorName: currentUser.name,
+        authorName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
         category: newTicket.category,
         subject: newTicket.subject,
         message: newTicket.message,
@@ -498,7 +498,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       const newReply = {
         id: 'reply_' + Date.now() + Math.floor(Math.random() * 1000),
         senderId: currentUser.id,
-        senderName: currentUser.name,
+        senderName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
         message: replyText,
         createdAt: new Date().toLocaleString('pt-BR')
       };
@@ -978,7 +978,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         id: 'book_' + Date.now(),
         title: file.name.replace(/\.[^/.]+$/, ""), // remove extension
         authorId: currentUser.id,
-        authorName: currentUser.name,
+        authorName: (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)),
         cover: null,
         synopsis: 'Livro importado do manuscrito original.',
         genre: 'No definido',
