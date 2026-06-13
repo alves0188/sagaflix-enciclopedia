@@ -1012,6 +1012,29 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                   gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
                   gap: '1rem' 
                 }}>
+                  <div 
+                    onClick={() => {
+                      setSelectedGenre('');
+                      setShowGenresDropdown(false); // Close after selection
+                    }}
+                    style={{
+                      padding: '0.5rem 0',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      color: selectedGenre === '' ? 'var(--accent-gold)' : 'var(--text-main)',
+                      fontWeight: selectedGenre === '' ? 'bold' : 'normal',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedGenre !== '') e.currentTarget.style.color = 'var(--text-muted)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedGenre !== '') e.currentTarget.style.color = 'var(--text-main)';
+                    }}
+                  >
+                    Todos
+                  </div>
                   {GENRES_LIST.map(genre => (
                     <div 
                       key={genre}
