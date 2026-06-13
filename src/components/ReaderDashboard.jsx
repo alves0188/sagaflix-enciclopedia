@@ -1481,23 +1481,22 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                     })}
                   </div>
                   
-                  {/* Campo de comentário de 12 caracteres */}
+                  {/* Campo de comentário de 250 caracteres */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.8rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      <span>Comentário curto (máx. 12 caracteres)</span>
-                      <span style={{ color: ratingComment.length > 12 ? '#ff4444' : 'var(--text-muted)' }}>
-                        {ratingComment.length}/12
+                      <span>Comentário curto (máx. 250 caracteres)</span>
+                      <span style={{ color: ratingComment.length > 250 ? '#ff4444' : 'var(--text-muted)' }}>
+                        {ratingComment.length}/250
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Ex: Fantástico!"
-                        maxLength={12}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                      <textarea
+                        placeholder="Deixe sua avaliação sobre a obra..."
+                        maxLength={250}
                         value={ratingComment}
                         onChange={(e) => setRatingComment(e.target.value)}
                         className="form-input"
-                        style={{ flex: 1, padding: '0.5rem 0.8rem', background: '#1b1d22', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '0.9rem' }}
+                        style={{ flex: 1, padding: '0.8rem', background: '#1b1d22', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', fontSize: '0.9rem', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit' }}
                       />
                       <button 
                         onClick={handleSaveReview}
