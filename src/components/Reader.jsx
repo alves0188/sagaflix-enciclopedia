@@ -637,7 +637,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
           )}
           <button 
             onClick={() => setIsShopModalOpen(true)}
-            title="Presentear o Autor" 
+            title="Incentivar Autor" 
             style={{ 
               background: 'var(--accent-gold)', 
               border: 'none', 
@@ -653,7 +653,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               marginLeft: '0.5rem'
             }}
           >
-            <Gift size={16} /> <span className="hide-on-mobile">Presentear</span>
+            <Gift size={16} /> <span className="hide-on-mobile">Incentivar</span>
           </button>
           <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'none', border: 'none', color: themeColors.text, cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}

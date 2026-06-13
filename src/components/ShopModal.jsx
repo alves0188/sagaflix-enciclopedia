@@ -48,7 +48,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
               className={activeTab === 'crystals' ? 'btn-primary' : 'btn-secondary'}
               style={{ flex: 1, padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', margin: 0 }}
             >
-              <Gem size={18} /> Cristais / Gorjetas
+              <Gem size={18} /> Cristais / Apoio
             </button>
           </div>
         </div>
@@ -61,7 +61,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 2rem 0', color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <li>✨ Acesso Ilimitado a todos os livros da plataforma</li>
                 <li>🚀 Leitura Adiantada de Capítulos (Apoie os Autores!)</li>
-                <li>💎 Ganhe um bônus mensal de Cristais para dar gorjetas</li>
+                <li>💎 Ganhe um bônus mensal de Cristais para incentivar autores</li>
                 <li>👑 Destaque Especial no seu perfil e nos comentários</li>
               </ul>
               
@@ -82,7 +82,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
                 <Gift size={40} color="var(--accent-gold)" style={{ marginBottom: '1rem' }} />
                 <h3 style={{ color: 'var(--text-main)', margin: '0 0 0.5rem 0' }}>Economia de Cristais</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
-                  Use cristais para enviar presentes (gorjetas) aos seus autores favoritos e desbloquear recompensas visuais. Seus primeiros 50 Cristais serão dados no lançamento da loja!
+                  Use cristais para enviar incentivos aos seus autores favoritos, reconhecendo o trabalho deles e desbloqueando recompensas visuais. Seus primeiros 50 Cristais serão dados no lançamento da loja!
                 </p>
 
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>

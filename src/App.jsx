@@ -661,6 +661,25 @@ export default function App() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '1rem' : '2rem' }}>
           
+          <button 
+            onClick={() => setIsShopModalOpen(true)}
+            title="Sagaflix Shop"
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--accent-gold)', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontWeight: 'bold',
+              fontSize: '0.9rem'
+            }}
+          >
+            <Store size={22} />
+            {!isMobile && <span>Loja</span>}
+          </button>
+
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowNotifications(!showNotifications)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }}>
               <Bell size={22} />
@@ -853,18 +872,16 @@ export default function App() {
                       <User size={18} /> {viewRole === 'author' ? 'Mudar para Conta de Leitor' : 'Voltar para o Estúdio (Autor)'}
                     </button>
                   )}
-
-                  <button 
-                    onClick={() => {
-                      handleCloseProfileModal();
-                      setIsShopModalOpen(true);
-                    }}
-                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'var(--bg-main)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 'bold' }}
-                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 215, 0, 0.1)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--bg-main)'; }}
-                  >
-                    <Store size={18} /> Sagaflix Shop
-                  </button>
+                  
+                  {viewRoleOverride && (
+                    <button 
+                      onClick={() => setViewRoleOverride(null)}
+                      className="btn-secondary" 
+                      style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                      Resetar Perfil
+                    </button>
+                  )}
 
                   <button 
                     onClick={() => setIsEditingProfile(true)}
