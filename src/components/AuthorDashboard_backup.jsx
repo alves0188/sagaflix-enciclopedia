@@ -463,42 +463,25 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     );
   };
   
-  
-  const handleUpdateInboxRequestStatus = (reqId, newStatus, isNote) => {
+  const handleUpdateUniverseRequestStatus = (reqId, newStatus) => {
     const newDb = { ...db };
     let found = false;
-
-    if (isNote) {
-      const req = (newDb.noteRequests || []).find(r => r.id === reqId);
-      if (req) {
-        req.status = newStatus;
-        if (newStatus !== 'unread' && newStatus !== 'pending') {
-          req.read = true;
-        } else {
-          req.read = false;
-          req.status = 'pending';
-        }
-        found = true;
-      }
-    } else {
-      for (let book of newDb.books) {
-        if (book.universeRequests) {
-          const req = book.universeRequests.find(r => r.id === reqId);
-          if (req) {
-            req.status = newStatus;
-            if (newStatus !== 'unread' && newStatus !== 'pending') {
-              req.read = true;
-            } else {
-              req.read = false;
-              req.status = 'pending';
-            }
-            found = true;
-            break;
+    for (let book of newDb.books) {
+      if (book.universeRequests) {
+        const req = book.universeRequests.find(r => r.id === reqId);
+        if (req) {
+          req.status = newStatus;
+          if (newStatus !== 'unread' && newStatus !== 'pending') {
+            req.read = true;
+          } else {
+            req.read = false;
+            req.status = 'pending'; // reset status se marcado como não lido
           }
+          found = true;
+          break;
         }
       }
     }
-
     if (found) {
       onUpdateData(newDb);
       if (selectedUniverseRequest && selectedUniverseRequest.id === reqId) {
@@ -507,78 +490,24 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     }
   };
 
-  const markInboxRequestAsRead = (reqId, isNote) => {
+  const markUniverseRequestAsRead = (reqId) => {
     const newDb = { ...db };
-    let found = false;
-
-    if (isNote) {
-      const req = (newDb.noteRequests || []).find(r => r.id === reqId);
-      if (req && !req.read) {
-        req.read = true;
-        found = true;
-      }
-    } else {
-      for (let book of newDb.books) {
-        if (book.universeRequests) {
-          const req = book.universeRequests.find(r => r.id === reqId);
-          if (req && !req.read) {
-            req.read = true;
-            found = true;
-            break;
-          }
+    for (let book of newDb.books) {
+      if (book.universeRequests) {
+        const req = book.universeRequests.find(r => r.id === reqId);
+        if (req && !req.read) {
+          req.read = true;
+          onUpdateData(newDb);
+          break;
         }
       }
-    }
-
-    if (found) {
-      onUpdateData(newDb);
     }
   };
 
   const renderUniverseRequests = () => {
-    const myBooks = db.books.filter(b => b.authorId === effectiveUser.id).map(b => b.id);
-    
-    const universeReqs = db.books
+    const allRequests = db.books
       .filter(b => b.authorId === effectiveUser.id)
-      .flatMap(b => (b.universeRequests || []).map(req => ({ 
-        ...req, 
-        bookTitle: b.title, 
-        bookId: b.id,
-        inboxType: 'universe'
-      })));
-
-    const noteReqs = (db.noteRequests || [])
-      .filter(r => myBooks.includes(r.bookId))
-      .map(req => {
-        let noteTitle = 'Nota Secreta';
-        let noteContent = '';
-        const book = db.books.find(b => b.id === req.bookId);
-        if (book?.universe) {
-          const types = ['characters', 'locations', 'organizations', 'items', 'clues'];
-          for (const t of types) {
-            if (book.universe[t]) {
-              const item = book.universe[t].find(i => i.id === req.itemId);
-              if (item && item.authorNotes) {
-                const note = item.authorNotes.find(n => n.id === req.noteId);
-                if (note) {
-                  noteTitle = note.title || 'Nota Sem Título';
-                  noteContent = note.content || '';
-                }
-              }
-            }
-          }
-        }
-        return {
-          ...req,
-          inboxType: 'note',
-          noteTitle,
-          noteContent,
-          timestamp: req.createdAt,
-          read: req.read !== undefined ? req.read : (req.status !== 'pending')
-        };
-      });
-
-    const allRequests = [...universeReqs, ...noteReqs]
+      .flatMap(b => (b.universeRequests || []).map(req => ({ ...req, bookTitle: b.title, bookId: b.id })))
       .sort((a, b) => new Date(b.timestamp || b.createdAt || 0) - new Date(a.timestamp || a.createdAt || 0));
 
     const unreadCount = allRequests.filter(r => !r.read).length;
@@ -590,89 +519,13 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       filteredRequests = allRequests.filter(r => r.read);
     }
 
-    if (universeRequestTab === 'metrics') {
-      return (
-        <div className="animate-fade-in" style={{ padding: '0 1rem' }}>
-          <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Activity size={24} /> Métricas de Notas
-          </h2>
-          <div className="mobile-horizontal-scroll" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
-            <button onClick={() => setUniverseRequestTab('unread')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}>Voltar para Inbox</button>
-          </div>
-          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ThumbsUp size={20} color="var(--accent-gold)" /> Notas Mais Avaliadas
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {(() => {
-                const authorNotes = [];
-                const feedbackList = db.noteFeedback || [];
-                
-                db.books.filter(b => b.authorId === effectiveUser.id).forEach(book => {
-                  if (!book.universe) return;
-                  const types = ['characters', 'locations', 'organizations', 'items', 'clues'];
-                  types.forEach(t => {
-                    if (book.universe[t]) {
-                      book.universe[t].forEach(item => {
-                        if (item.authorNotes) {
-                          item.authorNotes.forEach(note => {
-                            const likes = feedbackList.filter(f => f.noteId === note.id && f.type === 'like').length;
-                            const dislikes = feedbackList.filter(f => f.noteId === note.id && f.type === 'dislike').length;
-                            if (likes > 0 || dislikes > 0) {
-                              authorNotes.push({
-                                ...note,
-                                bookTitle: book.title,
-                                itemType: t,
-                                itemName: item.name || item.title,
-                                likes,
-                                dislikes
-                              });
-                            }
-                          });
-                        }
-                      });
-                    }
-                  });
-                });
-                
-                authorNotes.sort((a, b) => b.likes - a.likes);
-                
-                if (authorNotes.length === 0) {
-                  return <p style={{ color: 'var(--text-muted)' }}>Suas notas ainda não receberam avaliações.</p>;
-                }
-                
-                return authorNotes.map((note, idx) => (
-                  <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1.5rem' }}>
-                    <div style={{ fontSize: '0.8rem', color: note.isSecret ? '#ff7777' : 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                      {note.isSecret ? 'NOTA SECRETA' : 'NOTA PÚBLICA'}
-                    </div>
-                    <h4 style={{ margin: '0 0 0.5rem 0', color: '#fff' }}>{note.title || 'Sem Título'}</h4>
-                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Em: {note.itemName} ({note.bookTitle})
-                    </p>
-                    <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#4CAF50', fontWeight: 'bold' }}>
-                        <ThumbsUp size={16} /> {note.likes}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f44336', fontWeight: 'bold' }}>
-                        <ThumbsDown size={16} /> {note.dislikes}
-                      </div>
-                    </div>
-                  </div>
-                ));
-              })()}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="animate-fade-in" style={{ padding: '0 1rem' }}>
         <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Inbox size={24} /> Caixa de Entrada Universal
+          <Inbox size={24} /> Caixa de Entrada: Pedidos dos Fãs
         </h2>
         
+        {/* Abas de Navegação Interna */}
         <div className="mobile-horizontal-scroll" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
           <button 
             onClick={() => setUniverseRequestTab('unread')}
@@ -689,14 +542,9 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
             style={{ background: 'none', border: 'none', color: universeRequestTab === 'all' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: universeRequestTab === 'all' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
             Todos
           </button>
-          <button 
-            onClick={() => setUniverseRequestTab('metrics')}
-            style={{ background: 'none', border: 'none', color: universeRequestTab === 'metrics' ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: universeRequestTab === 'metrics' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem', marginLeft: 'auto' }}>
-            <Activity size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '0.3rem' }} />
-            Métricas de Notas
-          </button>
         </div>
 
+        {/* Lista estilo Inbox */}
         <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
           {filteredRequests.length === 0 ? (
             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -707,27 +555,19 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {filteredRequests.map(req => {
                 const isUnread = !req.read;
-                let statusColor = 'var(--text-muted)';
-                let statusLabel = '';
-                
-                if (req.inboxType === 'universe') {
-                  statusColor = req.status === 'relevant' ? '#4CAF50' : req.status === 'interesting' ? '#2196F3' : req.status === 'disposable' ? '#f44336' : 'var(--text-muted)';
-                  statusLabel = req.status === 'relevant' ? 'Relevante' : req.status === 'interesting' ? 'Interessante' : req.status === 'disposable' ? 'Descartável' : '';
-                } else {
-                  statusColor = req.status === 'approved' ? '#4CAF50' : req.status === 'rejected' ? '#f44336' : 'var(--text-muted)';
-                  statusLabel = req.status === 'approved' ? 'Aprovado' : req.status === 'rejected' ? 'Recusado' : '';
-                }
+                const statusColor = req.status === 'relevant' ? '#4CAF50' : req.status === 'interesting' ? '#2196F3' : req.status === 'disposable' ? '#f44336' : 'var(--text-muted)';
+                const statusLabel = req.status === 'relevant' ? 'Relevante' : req.status === 'interesting' ? 'Interessante' : req.status === 'disposable' ? 'Descartável' : '';
 
                 return (
                   <div 
                     key={req.id} 
                     onClick={() => {
                       setSelectedUniverseRequest(req);
-                      if (isUnread) markInboxRequestAsRead(req.id, req.inboxType === 'note');
+                      if (isUnread) markUniverseRequestAsRead(req.id);
                     }}
                     style={{ 
                       display: 'grid', 
-                      gridTemplateColumns: '40px 150px 150px 1fr 100px 100px', 
+                      gridTemplateColumns: '40px 150px 1fr 100px 100px', 
                       gap: '1rem', 
                       padding: '1rem 1.5rem', 
                       borderBottom: '1px solid var(--border-color)', 
@@ -749,12 +589,9 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                     <div style={{ fontWeight: isUnread ? 'bold' : 'normal', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {req.bookTitle}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: req.inboxType === 'note' ? '#ff9800' : 'var(--accent-gold)' }}>
-                      {req.inboxType === 'note' ? 'Acesso à Nota' : 'Expansão de Universo'}
-                    </div>
                     <div style={{ color: isUnread ? 'var(--text-main)' : 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       <span style={{ color: 'var(--accent-gold)', marginRight: '0.5rem' }}>[{req.userName}]</span> 
-                      {req.inboxType === 'note' ? `Acesso à nota: ${req.noteTitle}` : (req.message || '(Sem mensagem - Apenas categorias)')}
+                      {req.message || '(Sem mensagem - Apenas categorias)'}
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       {statusLabel && <span style={{ color: statusColor, fontSize: '0.75rem', border: `1px solid ${statusColor}`, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{statusLabel}</span>}
@@ -771,7 +608,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       </div>
     );
   };
-const renderSuporte = () => {
+  const renderSuporte = () => {
     const tickets = (db.supportTickets || []).filter(t => t.authorId === currentUser.id);
     const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
@@ -1424,12 +1261,10 @@ const renderSuporte = () => {
   };
 
 
-  const myBooksForCalc = db.books.filter(b => b.authorId === effectiveUserId).map(b => b.id);
-  const allInboxRequests = [
-    ...db.books.filter(b => b.authorId === effectiveUserId).flatMap(b => b.universeRequests || []),
-    ...(db.noteRequests || []).filter(r => myBooksForCalc.includes(r.bookId)).map(r => ({...r, read: r.read !== undefined ? r.read : (r.status !== 'pending')}))
-  ];
-  const hasUnreadUniverseRequests = allInboxRequests.some(r => !r.read);
+  const allUniverseRequests = db.books
+    .filter(b => b.authorId === effectiveUserId)
+    .flatMap(b => b.universeRequests || []);
+  const hasUnreadUniverseRequests = allUniverseRequests.some(r => !r.read);
 
   return (
     <div className="author-dashboard-container dashboard-container" style={{ position: 'relative' }}>
@@ -1441,13 +1276,13 @@ const renderSuporte = () => {
       )}
 
       
-      {/* Modal de Inbox Universal */}
+      {/* Modal de Pedido do Universo */}
       {selectedUniverseRequest && (
         <div className="modal-overlay" onClick={() => setSelectedUniverseRequest(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>{selectedUniverseRequest.inboxType === 'note' ? 'Pedido de Acesso à Nota' : 'Pedido de Expansão de Universo'}</h2>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>Pedido de Fã</h2>
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Livro: <strong style={{ color: 'var(--text-main)' }}>{selectedUniverseRequest.bookTitle}</strong></div>
               </div>
               <button onClick={() => setSelectedUniverseRequest(null)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
@@ -1457,89 +1292,59 @@ const renderSuporte = () => {
             
             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <strong style={{ color: 'var(--text-main)' }}>De: {selectedUniverseRequest.userName}</strong>
+                <strong style={{ color: 'var(--text-main)' }}>{selectedUniverseRequest.userName}</strong>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(selectedUniverseRequest.timestamp || selectedUniverseRequest.createdAt).toLocaleString()}</span>
               </div>
               
-              {selectedUniverseRequest.inboxType === 'universe' ? (
-                <>
-                  {selectedUniverseRequest.requestedFeatures && selectedUniverseRequest.requestedFeatures.length > 0 && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Áreas solicitadas:</strong>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {selectedUniverseRequest.requestedFeatures.map(f => {
-                          const labels = { characters: 'Personagens', locations: 'Locais', organizations: 'Organizações', clues: 'Complementos' };
-                          return <span key={f} style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>{labels[f] || f}</span>;
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Mensagem do leitor:</strong>
-                    <p style={{ color: 'var(--text-main)', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0, fontStyle: selectedUniverseRequest.message ? 'normal' : 'italic', opacity: selectedUniverseRequest.message ? 1 : 0.6 }}>
-                      {selectedUniverseRequest.message || 'O leitor não deixou uma mensagem em texto, apenas solicitou a abertura das áreas acima.'}
-                    </p>
+              {selectedUniverseRequest.requestedFeatures && selectedUniverseRequest.requestedFeatures.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Áreas solicitadas:</strong>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {selectedUniverseRequest.requestedFeatures.map(f => {
+                      const labels = { characters: 'Personagens', locations: 'Locais', organizations: 'Organizações', clues: 'Complementos' };
+                      return <span key={f} style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>{labels[f] || f}</span>;
+                    })}
                   </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ marginBottom: '1rem', padding: '1.5rem', background: 'rgba(255, 152, 0, 0.1)', border: '1px dashed rgba(255, 152, 0, 0.3)', borderRadius: '6px' }}>
-                    <strong style={{ color: '#ff9800', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Nota Solicitada: {selectedUniverseRequest.noteTitle}</strong>
-                    <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: '1.5', maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
-                      {selectedUniverseRequest.noteContent || <span style={{opacity: 0.5}}>(Nota sem conteúdo de texto)</span>}
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
+              
+              <div>
+                <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Mensagem do leitor:</strong>
+                <p style={{ color: 'var(--text-main)', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0, fontStyle: selectedUniverseRequest.message ? 'normal' : 'italic', opacity: selectedUniverseRequest.message ? 1 : 0.6 }}>
+                  {selectedUniverseRequest.message || 'O leitor não deixou uma mensagem em texto, apenas solicitou a abertura das áreas acima.'}
+                </p>
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <button 
-                onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'unread', selectedUniverseRequest.inboxType === 'note')} 
+                onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'unread')} 
                 style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Mail size={16} /> Marcar como Não Lido
               </button>
               
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {selectedUniverseRequest.inboxType === 'universe' ? (
-                  <>
-                    <button 
-                      onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'relevant', false)} 
-                      style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <CheckCircle size={16} /> Relevante
-                    </button>
-                    <button 
-                      onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'interesting', false)} 
-                      style={{ background: '#2196F3', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Star size={16} /> Interessante
-                    </button>
-                    <button 
-                      onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'disposable', false)} 
-                      style={{ background: '#f44336', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Trash2 size={16} /> Descartável
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button 
-                      onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'approved', true)} 
-                      style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <CheckCircle size={16} /> Aprovar Acesso
-                    </button>
-                    <button 
-                      onClick={() => handleUpdateInboxRequestStatus(selectedUniverseRequest.id, 'rejected', true)} 
-                      style={{ background: '#f44336', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <XCircle size={16} /> Recusar
-                    </button>
-                  </>
-                )}
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'relevant')} 
+                  style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CheckCircle size={16} /> Relevante
+                </button>
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'interesting')} 
+                  style={{ background: '#2196F3', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Star size={16} /> Interessante
+                </button>
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'disposable')} 
+                  style={{ background: '#f44336', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Trash2 size={16} /> Descartável
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* Overlay do Drawer (Mobile) */}
+\n      {/* Overlay do Drawer (Mobile) */}
       <div 
         className={`drawer-overlay ${isSidebarOpen ? 'open' : ''} mobile-only`} 
         onClick={() => setIsSidebarOpen(false)}
@@ -1566,7 +1371,7 @@ const renderSuporte = () => {
         <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
         <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
-        
+        <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
         <button onClick={() => { setActiveTab('pedidos_fas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'pedidos_fas')}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Inbox size={18}/>
@@ -1598,7 +1403,7 @@ const renderSuporte = () => {
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'livros' && renderBooks()}
         {activeTab === 'ideias' && renderIdeas()}
-        
+        {activeTab === 'solicitacoes_notas' && renderSolicitacoesNotas()}
         {activeTab === 'pedidos_fas' && renderUniverseRequests()}
         {activeTab === 'suporte' && renderSuporte()}
       </div>
