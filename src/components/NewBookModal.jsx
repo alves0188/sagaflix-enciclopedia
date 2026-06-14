@@ -6,7 +6,8 @@ export default function NewBookModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
     title: '',
     synopsis: '',
-    cover: ''
+    cover: '',
+    distributionMode: ''
   });
   const [uploading, setUploading] = useState(false);
 
@@ -44,6 +45,10 @@ export default function NewBookModal({ onClose, onSave }) {
     e.preventDefault();
     if (!formData.title) {
       alert("O título é obrigatório");
+      return;
+    }
+    if (!formData.distributionMode) {
+      alert("Selecione o modelo de lançamento (Distribuição).");
       return;
     }
     const finalData = {
@@ -92,6 +97,25 @@ export default function NewBookModal({ onClose, onSave }) {
               style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', height: '120px', resize: 'vertical' }} 
               placeholder="Um breve resumo da história..."
             ></textarea>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Modelo de Lançamento *</label>
+            <p style={{ margin: '0 0 0.8rem 0', fontSize: '0.85rem', color: '#ff9800' }}>
+              Atenção: Esta escolha é definitiva para este projeto e não poderá ser alterada futuramente.
+            </p>
+            <select 
+              name="distributionMode" 
+              value={formData.distributionMode} 
+              onChange={handleChange} 
+              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', fontSize: '1rem' }}
+              required
+            >
+              <option value="" disabled>Selecione como a obra será lançada...</option>
+              <option value="complete">Conteúdo Completo (O livro todo é lançado de uma vez)</option>
+              <option value="weekly">Distribuição Semanal (Escrito previamente, mas lançado aos poucos)</option>
+              <option value="webnovel">Webnovel / Contínuo (Escrito e lançado por capítulos ativamente)</option>
+            </select>
           </div>
 
           <div>
