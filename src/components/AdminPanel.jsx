@@ -1203,7 +1203,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       <input 
                         type="text" 
                         value={activePage.subtheme || ''} 
-                        onChange={(e) => handlePageChange(activePage.globalIdx, 'subtheme', e.target.value)} 
+                        onChange={(e) => handleSubthemeNameChange(e.target.value)} 
                         disabled={effectiveReadOnly}
                         className="form-input" 
                         placeholder="Nome do Subtema..." 
