@@ -129,7 +129,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
   if (!db || !currentBook) return <div style={{color:'white', padding:'3rem', textAlign:'center'}}>Carregando Universo...</div>;
 
-  const isAuthorOrCurator = currentUser?.role === 'curator' || book?.authorId === currentUser?.id;
+  const isAuthorOrCurator = currentUser?.role === 'curator' || currentBook?.authorId === currentUser?.id;
   const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
 
   const allItems = [...filterDrafts(universe.characters || []), ...filterDrafts(universe.locations || []), ...filterDrafts(universe.clues || []), ...filterDrafts(universe.organizations || [])];
