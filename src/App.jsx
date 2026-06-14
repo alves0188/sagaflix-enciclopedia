@@ -819,6 +819,8 @@ export default function App() {
               cover: bookData.cover,
               authorId: currentUser.id,
               status: 'draft',
+              sku: bookData.sku,
+              distributionMode: bookData.distributionMode,
               universe: {
                 chapters: [],
                 characters: [],
