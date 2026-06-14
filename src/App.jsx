@@ -774,7 +774,10 @@ export default function App() {
             currentUser={currentUser} 
             activeTab={authorActiveTab}
             onTabChange={setAuthorActiveTab}
-            onSelectBook={(bookId) => setCurrentBookId(bookId)}
+            onSelectBook={(bookId) => {
+              setInitialUniverseTab('admin');
+              setCurrentBookId(bookId);
+            }}
             onOpenNewBook={() => setShowNewBook(true)}
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}

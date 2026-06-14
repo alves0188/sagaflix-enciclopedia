@@ -225,10 +225,14 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     const pos = currentUser.readingPositions?.[bookId];
     if (!pos) return null;
     const chIdx = pos.chapterIdx;
-    if (chIdx === 0) return 'Capa';
-    if (chIdx === 1) return 'Sobre o Autor';
-    if (chIdx === 2) return 'Sinopse';
-    return `Cap. ${chIdx - 2}`;
+    if (chIdx === 0) {
+      const subIdx = pos.subthemeIdx || 0;
+      if (subIdx === 0) return 'Capa';
+      if (subIdx === 1) return 'Sobre o Autor';
+      if (subIdx === 2) return 'Sinopse';
+      return 'Introdução';
+    }
+    return `Cap. ${chIdx}`;
   };
 
   // Toggle favorite (Minha Lista)
