@@ -129,8 +129,11 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
   if (!db || !currentBook) return <div style={{color:'white', padding:'3rem', textAlign:'center'}}>Carregando Universo...</div>;
 
-  const allItems = [...(universe.characters || []), ...(universe.locations || []), ...(universe.clues || []), ...(universe.organizations || [])];
-  const allPosts = [...(universe.posts || [])].reverse(); 
+  const isAuthorOrCurator = currentUser?.role === 'curator' || book?.authorId === currentUser?.id;
+  const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
+
+  const allItems = [...filterDrafts(universe.characters || []), ...filterDrafts(universe.locations || []), ...filterDrafts(universe.clues || []), ...filterDrafts(universe.organizations || [])];
+  const allPosts = [...filterDrafts(universe.posts || [])].reverse(); 
   
   const globalGallery = allItems.flatMap(item => item.gallery || []).reverse(); 
 

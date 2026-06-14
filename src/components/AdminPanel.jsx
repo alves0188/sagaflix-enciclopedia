@@ -78,13 +78,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || isSerialPublishing || currentUser?.role === 'curator');
   
   let isLockedBy24h = false;
-  if (isSerialPublishing && currentUser?.role !== 'curator' && editingItem && editingItem !== 'new') {
-    if (formData?.createdAt) {
-      const createdDate = new Date(formData.createdAt);
-      const diffHours = (new Date() - createdDate) / (1000 * 60 * 60);
+  // O capítulo só bloqueia se não for rascunho e já tiver passado 24h desde a publicação.
+  // Rascunhos nunca travam.
+  if (isSerialPublishing && currentUser?.role !== 'curator' && editingItem && editingItem !== 'new' && formData?.status !== 'draft') {
+    // Usar publishedAt se existir, senão fallback para createdAt para arquivos antigos.
+    const dateToCheck = formData?.publishedAt || formData?.createdAt;
+    if (dateToCheck) {
+      const lockDate = new Date(dateToCheck);
+      const diffHours = (new Date() - lockDate) / (1000 * 60 * 60);
       if (diffHours > 24) isLockedBy24h = true;
     } else {
-      isLockedBy24h = true;
+      isLockedBy24h = true; // Arquivos antigos sem data
     }
   }
 
@@ -134,18 +138,19 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (activeList === 'chapters') type = 'chapter';
     if (activeList === 'events') type = 'evento';
     
+    const baseInitialData = { id: Date.now().toString(), type, createdAt: new Date().toISOString(), status: 'draft' };
     if (type === 'pista') {
-      setFormData({ id: Date.now().toString(), type, name: '', image: '', found: '', wrong_view: '', reality: '', gallery: [], createdAt: new Date().toISOString() });
+      setFormData({ ...baseInitialData, name: '', image: '', found: '', wrong_view: '', reality: '', gallery: [] });
     } else if (type === 'post') {
-      setFormData({ id: Date.now().toString(), type, title: '', content: '', image: '', date: new Date().toLocaleDateString('pt-BR'), createdAt: new Date().toISOString() });
+      setFormData({ ...baseInitialData, title: '', content: '', image: '', date: new Date().toLocaleDateString('pt-BR') });
     } else if (type === 'chapter') {
-      setFormData({ id: Date.now().toString(), type, title: '', pages: [{ subtheme: 'Novo Subtema', text: '', image: '' }], createdAt: new Date().toISOString() });
+      setFormData({ ...baseInitialData, title: '', pages: [{ subtheme: 'Novo Subtema', text: '', image: '' }] });
       setActiveSubthemeStr('Novo Subtema');
       setActivePageIdxWithinSubtheme(0);
     } else if (type === 'evento') {
-      setFormData({ id: Date.now().toString(), type, name: '', content: '', tags: '', createdAt: new Date().toISOString() });
+      setFormData({ ...baseInitialData, name: '', content: '', tags: '' });
     } else {
-      setFormData({ id: Date.now().toString(), type, name: '', role: '', territory: '', age: '', image: '', description: '', motivations: '', curiosities: '', connections: [], gallery: [], customFields: [], privateNotes: '', createdAt: new Date().toISOString() });
+      setFormData({ ...baseInitialData, name: '', role: '', territory: '', age: '', image: '', description: '', motivations: '', curiosities: '', connections: [], gallery: [], customFields: [], privateNotes: '' });
     }
   };
 
@@ -208,6 +213,33 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     }
 
     onUpdate({ ...data, [listKey]: updatedList });
+  };
+
+  const handleTogglePublishStatus = () => {
+    if (isReadOnly || effectiveReadOnly) return;
+    
+    if (formData.status === 'draft') {
+      const updated = { ...formData, status: 'published', publishedAt: new Date().toISOString() };
+      setFormData(updated);
+      
+      const listKey = getListKey(formData.type);
+      let updatedList;
+      if (editingItem === 'new') {
+        updatedList = [...(data[listKey] || []), updated];
+        setEditingItem(updated.id);
+      } else {
+        updatedList = (data[listKey] || []).map(item => item.id === updated.id ? updated : item);
+      }
+      onUpdate({ ...data, [listKey]: updatedList });
+      
+    } else {
+      const updated = { ...formData, status: 'draft' };
+      setFormData(updated);
+      
+      const listKey = getListKey(formData.type);
+      let updatedList = (data[listKey] || []).map(item => item.id === updated.id ? updated : item);
+      onUpdate({ ...data, [listKey]: updatedList });
+    }
   };
 
   const handleChange = (e) => {
@@ -929,7 +961,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       <img src={item.image} alt={item.title || item.name} />
                     )}
                     <div className="admin-list-card-content">
-                      <div className="admin-list-card-title">{item.title || item.name}</div>
+                      <div className="admin-list-card-title">
+                        {item.status === 'draft' && <span style={{ color: '#f44336', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '0.5rem', background: 'rgba(244,67,54,0.1)', padding: '2px 6px', borderRadius: '4px' }}>[RASCUNHO]</span>}
+                        {item.title || item.name}
+                      </div>
                       <div className="admin-list-card-desc">
                         {item.type === 'post' ? item.date : 
                          item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
@@ -1024,7 +1059,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ArrowLeft size={18} /> Voltar
               </button>
-              {!effectiveReadOnly && <button className="btn-primary" onClick={handleSave}><Save size={18} /> Salvar</button>}
+              {!effectiveReadOnly && (
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    onClick={handleTogglePublishStatus} 
+                    style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    {formData.status === 'draft' ? 'Publicar' : 'Reverter para Rascunho'}
+                  </button>
+                  <button className="btn-primary" onClick={handleSave}><Save size={18} /> Salvar</button>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -1064,7 +1109,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ArrowLeft size={16} /> Voltar
               </button>
-              {!effectiveReadOnly && <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>}
+              {!effectiveReadOnly && (
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    onClick={handleTogglePublishStatus} 
+                    style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                  </button>
+                  <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>
+                </div>
+              )}
             </div>
           </div>
           

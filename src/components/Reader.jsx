@@ -18,7 +18,10 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const nonChapterTypes = ['prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'];
   const book = db?.books?.find(b => b.id === bookId);
   const data = book?.universe || {};
-  const rawChapters = data?.chapters || [];
+  
+  // Apenas o autor ou curador podem ler rascunhos. Leitores normais veem apenas o que não é 'draft' (ou arquivos antigos sem status).
+  const isAuthorOrCurator = currentUser?.role === 'curator' || book?.authorId === currentUser?.id;
+  const rawChapters = (data?.chapters || []).filter(ch => isAuthorOrCurator || ch.status !== 'draft');
   const notes = data?.notes || [];
 
   const preambleChapters = rawChapters.filter(ch => nonChapterTypes.includes(ch.type) || ch.isPreamble);
