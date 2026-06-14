@@ -520,7 +520,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     return (
       <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Solicitações de Notas Secretas</h1>
+          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Comentários do Manuscrito</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Gerencie comentários e notas enviados por leitores beta.</p>
         </div>
 
