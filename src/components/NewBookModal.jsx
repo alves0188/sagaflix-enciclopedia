@@ -7,8 +7,7 @@ export default function NewBookModal({ onClose, onSave }) {
     title: '',
     synopsis: '',
     cover: '',
-    distributionMode: '',
-    bookType: 'complete'
+    distributionMode: ''
   });
   const [uploading, setUploading] = useState(false);
 
@@ -89,20 +88,6 @@ export default function NewBookModal({ onClose, onSave }) {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Tipo de Obra *</label>
-            <select 
-              name="bookType" 
-              value={formData.bookType} 
-              onChange={handleChange} 
-              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', fontSize: '1rem' }}
-              required
-            >
-              <option value="complete">Série / Webnovel (Permite Universo Expandido)</option>
-              <option value="short_story">História Curta / Conto (Foco apenas no texto)</option>
-            </select>
-          </div>
-
-          <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Sinopse</label>
             <textarea 
               name="synopsis" 
@@ -129,6 +114,7 @@ export default function NewBookModal({ onClose, onSave }) {
               <option value="complete">Conteúdo Completo (O livro todo é lançado de uma vez)</option>
               <option value="weekly">Distribuição Semanal (Escrito previamente, mas lançado aos poucos)</option>
               <option value="webnovel">Webnovel / Contínuo (Escrito e lançado por capítulos ativamente)</option>
+              <option value="short_story">Histórias Curtas / Contos (Foco exclusivo no texto, sem Universo)</option>
             </select>
           </div>
 

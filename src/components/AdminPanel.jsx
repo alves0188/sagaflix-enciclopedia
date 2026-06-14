@@ -26,6 +26,7 @@ const editorConfig = {
 
 export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly = false, restrictedTabs = null }) {
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
+  const [notesFilter, setNotesFilter] = useState('notes'); // 'notes' or 'requests'
   const [editingItem, setEditingItem] = useState(null);
   const handleCloseEdit = useHashHistory(!!editingItem, 'editando', () => setEditingItem(null));
   const [formData, setFormData] = useState({});
@@ -113,7 +114,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const isTabVisible = (tabKey) => {
     if (tabKey === 'posts') return false; // Hiding blog posts tab temporarily as requested
     
-    if (currentBook?.bookType === 'short_story') {
+    if (currentBook?.distributionMode === 'short_story') {
       const hiddenForShortStory = ['pages', 'characters', 'locations', 'organizations', 'clues', 'events', 'requests'];
       if (hiddenForShortStory.includes(tabKey)) return false;
     }
@@ -511,48 +512,6 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     onUpdate({ ...data, notes: updatedNotes });
   };
 
-  const renderRequestsTab = () => {
-    const requests = currentBook?.universeRequests || [];
-    return (
-      <div className="admin-content-card" style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
-        <h1 className="admin-content-title" style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 1.5rem 0' }}>Pedidos dos Fãs</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Leitores que solicitaram a criação de áreas do Universo Expandido para esta obra.</p>
-        
-        {requests.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-            Nenhum pedido recebido ainda.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {requests.map(req => (
-              <div key={req.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <strong style={{ color: 'var(--accent-gold)' }}>Solicitação de Leitor</strong>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(req.timestamp).toLocaleDateString()}</span>
-                </div>
-                <div style={{ marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Áreas de Interesse: </span>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                    {req.requestedFeatures.map(f => (
-                      <span key={f} style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>
-                        {f === 'characters' ? 'Personagens' : f === 'locations' ? 'Locais' : f === 'organizations' ? 'Organizações' : f === 'clues' ? 'Complementos' : 'Eventos'}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {req.message && (
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '4px', fontStyle: 'italic', fontSize: '0.95rem' }}>
-                    "{req.message}"
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderNotesTab = () => {
     const notes = data.notes || [];
     const pendingNotes = notes.filter(n => n.status === 'pending');
@@ -561,8 +520,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     return (
       <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Notas dos Leitores</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Aprove ou rejeite comentários feitos pelos leitores em trechos do livro.</p>
+          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Solicitações de Notas Secretas</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Gerencie comentários e notas enviados por leitores beta.</p>
         </div>
 
         {pendingNotes.length === 0 ? (
@@ -608,6 +567,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       </div>
     );
   };
+
+
 
   const renderReviewsTab = () => {
     const ratings = currentBook?.ratings || [];
@@ -910,13 +871,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </button>
         )}
         <button style={navItemStyle(activeList === 'notes')} onClick={() => {setActiveList('notes'); setEditingItem(null);}}>
-            <MessageSquare size={18} /> Notas dos Leitores
+            <MessageSquare size={18} /> Solicitações e Notas
         </button>
-        {isTabVisible('requests') && (
-          <button style={navItemStyle(activeList === 'requests')} onClick={() => {setActiveList('requests'); setEditingItem(null);}}>
-            <Bell size={18} /> Pedidos dos Fãs
-          </button>
-        )}
+
         <button style={navItemStyle(activeList === 'trash')} onClick={() => {setActiveList('trash'); setEditingItem(null);}}>
             <Trash2 size={18} /> Lixeira
         </button>
@@ -934,8 +891,6 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           renderReviewsTab()
         ) : activeList === 'notes' ? (
           renderNotesTab()
-        ) : activeList === 'requests' ? (
-          renderRequestsTab()
         ) : activeList === 'trash' ? (
           renderTrashTab()
         ) : activeList === 'ideias' ? (
@@ -1171,12 +1126,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 <>
                   {/* Botões grandes apenas no desktop */}
                   <div className="desktop-only" style={{ display: 'flex', gap: '1rem' }}>
-                    <button 
-                      onClick={handleTogglePublishStatus} 
-                      style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                      {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
-                    </button>
+                    {currentBook?.distributionMode !== 'complete' && (
+                      <button 
+                        onClick={handleTogglePublishStatus} 
+                        style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      >
+                        {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                      </button>
+                    )}
                     <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>
                   </div>
                   {/* Botão de salvar icone apenas no mobile */}
@@ -1348,14 +1305,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       {!effectiveReadOnly && (
                         <div style={{ flex: 1, minWidth: '200px', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                           {/* Botão de Publicar apenas no mobile aqui no final */}
-                          <div className="mobile-only" style={{ flex: 1, minWidth: '150px' }}>
-                            <button 
-                              onClick={() => { handleTogglePublishStatus(); setShowMobileSidebar(false); }} 
-                              style={{ width: '100%', background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                            >
-                              {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
-                            </button>
-                          </div>
+                          {currentBook?.distributionMode !== 'complete' && (
+                            <div className="mobile-only" style={{ flex: 1, minWidth: '150px' }}>
+                              <button 
+                                onClick={() => { handleTogglePublishStatus(); setShowMobileSidebar(false); }} 
+                                style={{ width: '100%', background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                              >
+                                {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                              </button>
+                            </div>
+                          )}
                           
                           <button onClick={() => {
                             handleRemoveGlobalPage(activePage.globalIdx);

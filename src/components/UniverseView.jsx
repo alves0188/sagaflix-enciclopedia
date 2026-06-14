@@ -38,23 +38,49 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
   const handleCloseAuthor = useHashHistory(!!selectedAuthor, 'autor', () => setSelectedAuthor(null));
   const [lightboxImage, setLightboxImage] = useState(null);
   const handleCloseLightbox = useHashHistory(!!lightboxImage, 'imagem', () => setLightboxImage(null));
+  
+  const [showUniverseRequestModal, setShowUniverseRequestModal] = useState(false);
+  const [universeRequestData, setUniverseRequestData] = useState({
+    message: '',
+    requestedFeatures: []
+  });
 
   const bookIndex = db.books.findIndex(b => b.id === bookId);
   const currentBook = db.books[bookIndex];
   const universe = currentBook?.universe || {};
   const visibility = currentBook?.universeVisibility || {};
 
+  const isAuthorOrCurator = currentUser?.role === 'curator' || currentBook?.authorId === currentUser?.id;
+  const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
+
+  // Determinar se existem itens publicados nas abas do Universo
+  const hasPublishedCharacters = filterDrafts(universe.characters || []).length > 0;
+  const hasPublishedLocations = filterDrafts(universe.locations || []).length > 0;
+  const hasPublishedOrganizations = filterDrafts(universe.organizations || []).length > 0;
+  const hasPublishedClues = filterDrafts(universe.clues || []).length > 0;
+
+  // Uma aba é visível se o autor não a desativou explicitamente E (possui itens OU usuário é o autor/curador)
+  const isTabVisible = (key, hasPublished) => {
+    const authorEnabled = visibility[key] !== false; // Se undefined, padrão é true
+    return authorEnabled && (hasPublished || isAuthorOrCurator);
+  };
+
+  const showHome = visibility.home !== false;
+  const showCharacters = isTabVisible('characters', hasPublishedCharacters);
+  const showLocations = isTabVisible('locations', hasPublishedLocations);
+  const showOrganizations = isTabVisible('organizations', hasPublishedOrganizations);
+  const showClues = isTabVisible('clues', hasPublishedClues);
+
   useEffect(() => {
     let defaultTab = 'home';
-    if (!visibility.home) {
-      if (visibility.characters) defaultTab = 'characters';
-      else if (visibility.locations) defaultTab = 'locations';
-      else if (visibility.organizations) defaultTab = 'organizations';
-      else if (visibility.clues) defaultTab = 'clues';
-      else if (visibility.events) defaultTab = 'events'; // Eventos could be added if requested
+    if (!showHome) {
+      if (showCharacters) defaultTab = 'characters';
+      else if (showLocations) defaultTab = 'locations';
+      else if (showOrganizations) defaultTab = 'organizations';
+      else if (showClues) defaultTab = 'clues';
     }
     setActiveTab(initialTab || defaultTab);
-  }, [bookId, initialTab, visibility]);
+  }, [bookId, initialTab, showHome, showCharacters, showLocations, showOrganizations, showClues]);
 
   const handleUpdateUniverse = (newUniverse) => {
     const newDb = { ...db };
@@ -136,10 +162,36 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
     onUpdateData(newDb);
   };
 
+  const handleSubmitUniverseRequest = () => {
+    if (universeRequestData.requestedFeatures.length === 0) {
+      alert('Selecione pelo menos uma área do universo que deseja que o autor adicione.');
+      return;
+    }
+    
+    const newDb = { ...db };
+    if (!newDb.books[bookIndex].universeRequests) {
+      newDb.books[bookIndex].universeRequests = [];
+    }
+    
+    newDb.books[bookIndex].universeRequests.push({
+      id: 'req_' + Date.now(),
+      userId: currentUser?.id,
+      userName: currentUser ? ((currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name)) || currentUser.nickname) : 'Anônimo',
+      requestedFeatures: universeRequestData.requestedFeatures,
+      message: universeRequestData.message,
+      timestamp: new Date().toISOString(),
+      status: 'pending'
+    });
+    
+    onUpdateData(newDb);
+    setShowUniverseRequestModal(false);
+    setUniverseRequestData({ message: '', requestedFeatures: [] });
+    alert('Sua solicitação foi enviada ao autor com sucesso!');
+  };
+
   if (!db || !currentBook) return <div style={{color:'white', padding:'3rem', textAlign:'center'}}>Carregando Universo...</div>;
 
-  const isAuthorOrCurator = currentUser?.role === 'curator' || currentBook?.authorId === currentUser?.id;
-  const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
+
 
   const allItems = [...filterDrafts(universe.characters || []), ...filterDrafts(universe.locations || []), ...filterDrafts(universe.clues || []), ...filterDrafts(universe.organizations || [])];
   const allPosts = [...filterDrafts(universe.posts || [])].reverse(); 
@@ -236,27 +288,27 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
           <span style={{ fontSize: '0.6rem', color: 'var(--accent-gold)' }}>Sair</span>
         </div>
         <div className="nav-links">
-          {visibility.home && (
+          {showHome && (
             <div className={`nav-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')} title="Início">
               <Home size={24} />
             </div>
           )}
-          {visibility.characters && (
+          {showCharacters && (
             <div className={`nav-item ${activeTab === 'characters' ? 'active' : ''}`} onClick={() => setActiveTab('characters')} title="Personagens">
               <Users size={24} />
             </div>
           )}
-          {visibility.locations && (
+          {showLocations && (
             <div className={`nav-item ${activeTab === 'locations' ? 'active' : ''}`} onClick={() => setActiveTab('locations')} title="Locais">
               <Map size={24} />
             </div>
           )}
-          {visibility.organizations && (
+          {showOrganizations && (
             <div className={`nav-item ${activeTab === 'organizations' ? 'active' : ''}`} onClick={() => setActiveTab('organizations')} title="Organizações">
               <Building size={24} />
             </div>
           )}
-          {visibility.clues && (
+          {showClues && (
             <div className={`nav-item ${activeTab === 'clues' ? 'active' : ''}`} onClick={() => setActiveTab('clues')} title="Complementos">
               <Key size={24} />
             </div>
@@ -348,9 +400,16 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
 
                   <div className="custom-split-footer">
                     {showBookCover ? (
-                      <button className="btn-primary" onClick={() => setActiveTab('reader')} style={{ width: 'auto', padding: '0.8rem 1.5rem' }}>
-                        <BookOpen size={18} /> LER LIVRO
-                      </button>
+                      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <button className="btn-primary" onClick={() => setActiveTab('reader')} style={{ width: 'auto', padding: '0.8rem 1.5rem' }}>
+                          <BookOpen size={18} /> LER LIVRO
+                        </button>
+                        {currentUser && currentUser.id !== currentBook.authorId && currentBook.distributionMode !== 'short_story' && (
+                          <button onClick={() => setShowUniverseRequestModal(true)} style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', border: '1px solid var(--accent-gold)', padding: '0.8rem 1.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                            <Settings size={18} /> PEDIR ADIÇÃO AO UNIVERSO
+                          </button>
+                        )}
+                      </div>
                     ) : featuredItem.isSection ? (
                       <></> // No button for section headers
                     ) : (
@@ -459,8 +518,62 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
           onUpdateData={onUpdateData}
         />
       )}
+      {/* Author Profile Modal */}
       {selectedAuthor && (
         <AuthorModal author={selectedAuthor} db={db} onClose={handleCloseAuthor} />
+      )}
+
+      {/* Universe Request Modal */}
+      {showUniverseRequestModal && (
+        <div className="modal-overlay" onClick={() => setShowUniverseRequestModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginBottom: '1.5rem', marginTop: 0 }}>Pedir Universo Expandido</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              Mostre ao autor que você quer explorar mais sobre este mundo! Selecione quais áreas você gostaria que fossem criadas.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+              {[
+                { id: 'characters', label: 'Dossiês de Personagens' },
+                { id: 'locations', label: 'Detalhes de Locais e Territórios' },
+                { id: 'organizations', label: 'Organizações e Grupos' },
+                { id: 'clues', label: 'Complementos e Objetos' }
+              ].map(opt => (
+                <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    style={{ width: '18px', height: '18px', accentColor: 'var(--accent-gold)' }}
+                    checked={universeRequestData.requestedFeatures.includes(opt.id)}
+                    onChange={(e) => {
+                      const newFeatures = e.target.checked 
+                        ? [...universeRequestData.requestedFeatures, opt.id]
+                        : universeRequestData.requestedFeatures.filter(f => f !== opt.id);
+                      setUniverseRequestData({ ...universeRequestData, requestedFeatures: newFeatures });
+                    }}
+                  />
+                  <span style={{ color: 'var(--text-main)' }}>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Mensagem para o Autor (Opcional)</label>
+              <textarea 
+                value={universeRequestData.message}
+                onChange={e => setUniverseRequestData({ ...universeRequestData, message: e.target.value })}
+                className="form-input"
+                placeholder="Ex: Eu adoraria saber mais sobre a história do vilão!"
+                rows="3"
+                style={{ width: '100%', padding: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-main)' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button className="btn-secondary" onClick={() => setShowUniverseRequestModal(false)}>Cancelar</button>
+              <button className="btn-primary" onClick={handleSubmitUniverseRequest}>Enviar Pedido</button>
+            </div>
+          </div>
+        </div>
       )}
       
       {/* Lightbox */}

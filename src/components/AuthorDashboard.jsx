@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
 import HQModal from './HQModal';
@@ -35,6 +35,8 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [importProgress, setImportProgress] = useState('');
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
+  const [universeRequestTab, setUniverseRequestTab] = useState('unread');
+  const [selectedUniverseRequest, setSelectedUniverseRequest] = useState(null);
   
   // Filtros de Livros
   const [searchText, setSearchText] = useState('');
@@ -454,6 +456,152 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           ) : (
             <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
               Crie um livro para começar a ter ideias.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
+  const handleUpdateUniverseRequestStatus = (reqId, newStatus) => {
+    const newDb = { ...db };
+    let found = false;
+    for (let book of newDb.books) {
+      if (book.universeRequests) {
+        const req = book.universeRequests.find(r => r.id === reqId);
+        if (req) {
+          req.status = newStatus;
+          if (newStatus !== 'unread' && newStatus !== 'pending') {
+            req.read = true;
+          } else {
+            req.read = false;
+            req.status = 'pending'; // reset status se marcado como não lido
+          }
+          found = true;
+          break;
+        }
+      }
+    }
+    if (found) {
+      onUpdateData(newDb);
+      if (selectedUniverseRequest && selectedUniverseRequest.id === reqId) {
+        setSelectedUniverseRequest(null);
+      }
+    }
+  };
+
+  const markUniverseRequestAsRead = (reqId) => {
+    const newDb = { ...db };
+    for (let book of newDb.books) {
+      if (book.universeRequests) {
+        const req = book.universeRequests.find(r => r.id === reqId);
+        if (req && !req.read) {
+          req.read = true;
+          onUpdateData(newDb);
+          break;
+        }
+      }
+    }
+  };
+
+  const renderUniverseRequests = () => {
+    const allRequests = db.books
+      .filter(b => b.authorId === effectiveUser.id)
+      .flatMap(b => (b.universeRequests || []).map(req => ({ ...req, bookTitle: b.title, bookId: b.id })))
+      .sort((a, b) => new Date(b.timestamp || b.createdAt || 0) - new Date(a.timestamp || a.createdAt || 0));
+
+    const unreadCount = allRequests.filter(r => !r.read).length;
+    
+    let filteredRequests = allRequests;
+    if (universeRequestTab === 'unread') {
+      filteredRequests = allRequests.filter(r => !r.read);
+    } else if (universeRequestTab === 'read') {
+      filteredRequests = allRequests.filter(r => r.read);
+    }
+
+    return (
+      <div className="animate-fade-in" style={{ padding: '0 1rem' }}>
+        <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Inbox size={24} /> Caixa de Entrada: Pedidos dos Fãs
+        </h2>
+        
+        {/* Abas de Navegação Interna */}
+        <div className="mobile-horizontal-scroll" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+          <button 
+            onClick={() => setUniverseRequestTab('unread')}
+            style={{ background: 'none', border: 'none', color: universeRequestTab === 'unread' ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: universeRequestTab === 'unread' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            Não Lidos {unreadCount > 0 && <span style={{ background: '#f44336', color: 'white', borderRadius: '12px', padding: '0.1rem 0.5rem', fontSize: '0.75rem' }}>{unreadCount}</span>}
+          </button>
+          <button 
+            onClick={() => setUniverseRequestTab('read')}
+            style={{ background: 'none', border: 'none', color: universeRequestTab === 'read' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: universeRequestTab === 'read' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
+            Lidos / Classificados
+          </button>
+          <button 
+            onClick={() => setUniverseRequestTab('all')}
+            style={{ background: 'none', border: 'none', color: universeRequestTab === 'all' ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: universeRequestTab === 'all' ? 'bold' : 'normal', cursor: 'pointer', fontSize: '1rem' }}>
+            Todos
+          </button>
+        </div>
+
+        {/* Lista estilo Inbox */}
+        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+          {filteredRequests.length === 0 ? (
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <MailOpen size={48} style={{ opacity: 0.2, margin: '0 auto 1rem' }} />
+              <p>Nenhum pedido encontrado nesta pasta.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {filteredRequests.map(req => {
+                const isUnread = !req.read;
+                const statusColor = req.status === 'relevant' ? '#4CAF50' : req.status === 'interesting' ? '#2196F3' : req.status === 'disposable' ? '#f44336' : 'var(--text-muted)';
+                const statusLabel = req.status === 'relevant' ? 'Relevante' : req.status === 'interesting' ? 'Interessante' : req.status === 'disposable' ? 'Descartável' : '';
+
+                return (
+                  <div 
+                    key={req.id} 
+                    onClick={() => {
+                      setSelectedUniverseRequest(req);
+                      if (isUnread) markUniverseRequestAsRead(req.id);
+                    }}
+                    style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: '40px 150px 1fr 100px 100px', 
+                      gap: '1rem', 
+                      padding: '1rem 1.5rem', 
+                      borderBottom: '1px solid var(--border-color)', 
+                      background: isUnread ? 'rgba(255,255,255,0.03)' : 'transparent',
+                      cursor: 'pointer',
+                      alignItems: 'center',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.05)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = isUnread ? 'rgba(255,255,255,0.03)' : 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isUnread ? (
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#2196F3' }}></div>
+                      ) : (
+                        <MailOpen size={16} color="var(--text-muted)" />
+                      )}
+                    </div>
+                    <div style={{ fontWeight: isUnread ? 'bold' : 'normal', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {req.bookTitle}
+                    </div>
+                    <div style={{ color: isUnread ? 'var(--text-main)' : 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ color: 'var(--accent-gold)', marginRight: '0.5rem' }}>[{req.userName}]</span> 
+                      {req.message || '(Sem mensagem - Apenas categorias)'}
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      {statusLabel && <span style={{ color: statusColor, fontSize: '0.75rem', border: `1px solid ${statusColor}`, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{statusLabel}</span>}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                      {new Date(req.timestamp || req.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1112,6 +1260,12 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     setIsImporting(false);
   };
 
+
+  const allUniverseRequests = db.books
+    .filter(b => b.authorId === effectiveUserId)
+    .flatMap(b => b.universeRequests || []);
+  const hasUnreadUniverseRequests = allUniverseRequests.some(r => !r.read);
+
   return (
     <div className="author-dashboard-container dashboard-container" style={{ position: 'relative' }}>
       
@@ -1121,7 +1275,76 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
       )}
 
-      {/* Overlay do Drawer (Mobile) */}
+      
+      {/* Modal de Pedido do Universo */}
+      {selectedUniverseRequest && (
+        <div className="modal-overlay" onClick={() => setSelectedUniverseRequest(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+              <div>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>Pedido de Fã</h2>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Livro: <strong style={{ color: 'var(--text-main)' }}>{selectedUniverseRequest.bookTitle}</strong></div>
+              </div>
+              <button onClick={() => setSelectedUniverseRequest(null)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                <strong style={{ color: 'var(--text-main)' }}>{selectedUniverseRequest.userName}</strong>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(selectedUniverseRequest.timestamp || selectedUniverseRequest.createdAt).toLocaleString()}</span>
+              </div>
+              
+              {selectedUniverseRequest.requestedFeatures && selectedUniverseRequest.requestedFeatures.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Áreas solicitadas:</strong>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {selectedUniverseRequest.requestedFeatures.map(f => {
+                      const labels = { characters: 'Personagens', locations: 'Locais', organizations: 'Organizações', clues: 'Complementos' };
+                      return <span key={f} style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>{labels[f] || f}</span>;
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Mensagem do leitor:</strong>
+                <p style={{ color: 'var(--text-main)', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0, fontStyle: selectedUniverseRequest.message ? 'normal' : 'italic', opacity: selectedUniverseRequest.message ? 1 : 0.6 }}>
+                  {selectedUniverseRequest.message || 'O leitor não deixou uma mensagem em texto, apenas solicitou a abertura das áreas acima.'}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <button 
+                onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'unread')} 
+                style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Mail size={16} /> Marcar como Não Lido
+              </button>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'relevant')} 
+                  style={{ background: '#4CAF50', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CheckCircle size={16} /> Relevante
+                </button>
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'interesting')} 
+                  style={{ background: '#2196F3', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Star size={16} /> Interessante
+                </button>
+                <button 
+                  onClick={() => handleUpdateUniverseRequestStatus(selectedUniverseRequest.id, 'disposable')} 
+                  style={{ background: '#f44336', color: 'white', border: 'none', padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Trash2 size={16} /> Descartável
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+\n      {/* Overlay do Drawer (Mobile) */}
       <div 
         className={`drawer-overlay ${isSidebarOpen ? 'open' : ''} mobile-only`} 
         onClick={() => setIsSidebarOpen(false)}
@@ -1149,6 +1372,15 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
         <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
         <button onClick={() => { setActiveTab('solicitacoes_notas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'solicitacoes_notas')}><Key size={18}/> Solicitações de Notas</button>
+        <button onClick={() => { setActiveTab('pedidos_fas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'pedidos_fas')}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Inbox size={18}/>
+            {hasUnreadUniverseRequests && (
+              <div style={{ position: 'absolute', top: '-2px', right: '-8px', width: '8px', height: '8px', borderRadius: '50%', background: '#f44336' }}></div>
+            )}
+          </div>
+          &nbsp;Pedidos dos Fãs
+        </button>
           <button onClick={() => { setActiveTab('suporte'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'suporte')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <MessageSquare size={18}/>
@@ -1172,6 +1404,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         {activeTab === 'livros' && renderBooks()}
         {activeTab === 'ideias' && renderIdeas()}
         {activeTab === 'solicitacoes_notas' && renderSolicitacoesNotas()}
+        {activeTab === 'pedidos_fas' && renderUniverseRequests()}
         {activeTab === 'suporte' && renderSuporte()}
       </div>
 
