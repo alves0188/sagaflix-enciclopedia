@@ -1,4 +1,12 @@
 import { useState, useEffect } from 'react';
+
+const REPORT_CATEGORY_LABELS = {
+  sensivel: 'Conteúdo sensível',
+  explicito: 'Conteúdo explícito (+18)',
+  plagio: 'Plágio / Direitos Autorais',
+  outro: 'Outros'
+};
+
 import { User, Users, BookOpen, AlertCircle, Check, X, MessageSquare, ArrowLeft, Bell, FileText, Send, CheckCircle, ShieldAlert, BarChart2, TrendingUp, Clock, Smartphone, MapPin, Edit3, Calendar, Activity, DollarSign, Target, PieChart, Star, UserPlus, Trash2, Image, Search, LayoutDashboard, Award, Upload, Save, Edit, Plus, Ban, Download } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
@@ -1538,7 +1546,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     const report = selectedReportForReview;
     const book = (db.books || []).find(b => b.id === report.bookId);
 
-    const categoryLabels = {
+    const REPORT_CATEGORY_LABELS = {
       sensivel: 'Conteúdo sensível',
       explicito: 'Conteúdo explícito (+18)',
       plagio: 'Plágio / Direitos Autorais',
@@ -1561,7 +1569,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               </div>
               {report.category && (
                 <div>
-                  <strong>Categoria:</strong> <span style={{ background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>{categoryLabels[report.category] || report.category}</span>
+                  <strong>Categoria:</strong> <span style={{ background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>{REPORT_CATEGORY_LABELS[report.category] || report.category}</span>
                 </div>
               )}
             </div>
@@ -1867,7 +1875,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     const investigatingReports = allReports.filter(r => r.status === 'investigating');
     const resolvedReports = allReports.filter(r => r.status === 'resolved');
 
-    const categoryLabels = {
+    const REPORT_CATEGORY_LABELS = {
       sensivel: 'Conteúdo sensível',
       explicito: 'Conteúdo explícito (+18)',
       plagio: 'Plágio / Direitos Autorais',
@@ -1886,7 +1894,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             </div>
             {report.category && (
               <span style={{ display: 'inline-block', marginTop: '0.4rem', background: 'rgba(255, 152, 0, 0.2)', color: '#ff9800', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                {categoryLabels[report.category] || report.category}
+                {REPORT_CATEGORY_LABELS[report.category] || report.category}
               </span>
             )}
           </div>
@@ -2627,7 +2635,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                       {Object.entries(authorReports.reduce((acc, r) => {
-                        const cat = categoryLabels[r.category] || r.category || 'Outros';
+                        const cat = REPORT_CATEGORY_LABELS[r.category] || r.category || 'Outros';
                         acc[cat] = (acc[cat] || 0) + 1;
                         return acc;
                       }, {})).map(([cat, count]) => (
