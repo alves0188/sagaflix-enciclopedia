@@ -65,7 +65,13 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     else setLocalActiveTab(tab);
   };
   const [searchText, setSearchText] = useState('');
-  const [selectedBook, setSelectedBook] = useState(null); // Book selected for Netflix-style popover
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [bookForRequest, setBookForRequest] = useState(null);
+  const [requestForm, setRequestForm] = useState({
+    features: [],
+    message: ''
+  }); // Book selected for Netflix-style popover
 
   // Filtros avançados
   const [showGenresDropdown, setShowGenresDropdown] = useState(false);
@@ -138,6 +144,31 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     }, 5000);
     return () => clearInterval(interval);
   }, [activeTab, activeBanners.length]);
+
+  const handleSendRequest = () => {
+    if (requestForm.features.length === 0) {
+      alert("Por favor, selecione pelo menos uma área de interesse.");
+      return;
+    }
+    
+    const newDb = { ...db };
+    const bookIndex = newDb.books.findIndex(b => b.id === bookForRequest.id);
+    if (bookIndex !== -1) {
+      newDb.books[bookIndex].universeRequests = newDb.books[bookIndex].universeRequests || [];
+      newDb.books[bookIndex].universeRequests.push({
+        id: 'req_' + Date.now(),
+        userId: currentUser.id,
+        timestamp: new Date().toISOString(),
+        requestedFeatures: requestForm.features,
+        message: requestForm.message
+      });
+      onUpdateData(newDb);
+    }
+    
+    alert("Seu pedido foi enviado ao autor!");
+    setShowRequestModal(false);
+    setRequestForm({ features: [], message: '' });
+  };
 
   // Extração de metadados únicos das obras para os filtros
   const getUniqueGenres = () => {
@@ -1405,8 +1436,16 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                 {/* Explorar Universo */}
                 <button 
                   onClick={() => {
-                    onSelectBookUniverse(activeBook.id);
-                    setSelectedBook(null);
+                    const visibility = activeBook.universeVisibility;
+                    const hasVisibleAreas = visibility && typeof visibility === 'object' && Object.values(visibility).some(v => v === true);
+                    
+                    if (activeBook.bookType === 'short_story' || !hasVisibleAreas) {
+                      setBookForRequest(activeBook);
+                      setShowRequestModal(true);
+                    } else {
+                      onSelectBookUniverse(activeBook.id);
+                      setSelectedBook(null);
+                    }
                   }}
                   className="btn-secondary"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.8rem 1.5rem', fontSize: '0.95rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
@@ -1582,6 +1621,78 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         )}
 
       </div>
+
+      {/* Modal de Pedido de Universo */}
+      {showRequestModal && bookForRequest && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000, padding: '1rem', backdropFilter: 'blur(5px)' }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--accent-gold)', borderRadius: '12px', padding: '2rem', maxWidth: '500px', width: '100%', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+            <button 
+              onClick={() => { setShowRequestModal(false); setRequestForm({ features: [], message: '' }); }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+            
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0, marginBottom: '0.5rem' }}>
+              Universo Não Disponível
+            </h2>
+            <p style={{ color: 'var(--text-main)', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              O autor de <strong>{bookForRequest.title}</strong> ainda não publicou áreas do Universo Expandido para esta obra. Gostaria de incentivá-lo a criar?
+            </p>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Quais áreas você mais gostaria de explorar?</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {[
+                  { id: 'characters', label: 'Personagens' },
+                  { id: 'locations', label: 'Locais' },
+                  { id: 'organizations', label: 'Organizações' },
+                  { id: 'clues', label: 'Complementos' },
+                  { id: 'events', label: 'Eventos' }
+                ].map(opt => (
+                  <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', background: 'rgba(212,175,55,0.1)', padding: '0.4rem 0.8rem', borderRadius: '4px', border: `1px solid ${requestForm.features.includes(opt.id) ? 'var(--accent-gold)' : 'transparent'}`, color: requestForm.features.includes(opt.id) ? 'var(--accent-gold)' : 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <input 
+                      type="checkbox"
+                      checked={requestForm.features.includes(opt.id)}
+                      onChange={(e) => {
+                        const newFeatures = e.target.checked 
+                          ? [...requestForm.features, opt.id]
+                          : requestForm.features.filter(f => f !== opt.id);
+                        setRequestForm({ ...requestForm, features: newFeatures });
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Mensagem de incentivo (opcional)</label>
+              <textarea 
+                value={requestForm.message}
+                onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
+                placeholder="Ex: Estou adorando a história! Gostaria muito de saber mais sobre..."
+                maxLength={200}
+                style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', resize: 'vertical', minHeight: '80px', fontSize: '0.9rem' }}
+              />
+              <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                {requestForm.message.length}/200
+              </div>
+            </div>
+
+            <button 
+              onClick={handleSendRequest}
+              className="btn-primary"
+              style={{ width: '100%', padding: '0.8rem', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+            >
+              Enviar Pedido ao Autor
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

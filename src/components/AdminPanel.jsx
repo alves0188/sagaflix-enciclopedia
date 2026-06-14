@@ -112,8 +112,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
   const isTabVisible = (tabKey) => {
     if (tabKey === 'posts') return false; // Hiding blog posts tab temporarily as requested
+    
+    if (currentBook?.bookType === 'short_story') {
+      const hiddenForShortStory = ['pages', 'characters', 'locations', 'organizations', 'clues', 'events', 'requests'];
+      if (hiddenForShortStory.includes(tabKey)) return false;
+    }
+
     if (!restrictedTabs) return true;
     if (tabKey === 'ideias') return true; // Ideias board is always visible unless specifically restricted
+    if (tabKey === 'synopsis') return true; // Configurações should be visible
     return restrictedTabs.includes(tabKey);
   };
 
@@ -504,6 +511,48 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     onUpdate({ ...data, notes: updatedNotes });
   };
 
+  const renderRequestsTab = () => {
+    const requests = currentBook?.universeRequests || [];
+    return (
+      <div className="admin-content-card" style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
+        <h1 className="admin-content-title" style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 1.5rem 0' }}>Pedidos dos Fãs</h1>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Leitores que solicitaram a criação de áreas do Universo Expandido para esta obra.</p>
+        
+        {requests.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+            Nenhum pedido recebido ainda.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {requests.map(req => (
+              <div key={req.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <strong style={{ color: 'var(--accent-gold)' }}>Solicitação de Leitor</strong>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(req.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Áreas de Interesse: </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                    {req.requestedFeatures.map(f => (
+                      <span key={f} style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                        {f === 'characters' ? 'Personagens' : f === 'locations' ? 'Locais' : f === 'organizations' ? 'Organizações' : f === 'clues' ? 'Complementos' : 'Eventos'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                {req.message && (
+                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '4px', fontStyle: 'italic', fontSize: '0.95rem' }}>
+                    "{req.message}"
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderNotesTab = () => {
     const notes = data.notes || [];
     const pendingNotes = notes.filter(n => n.status === 'pending');
@@ -818,6 +867,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
         <div style={{ borderBottom: '1px solid var(--border-color)', margin: '0 1.5rem 2rem 1.5rem' }}></div>
 
+        {!isReadOnly && isTabVisible('synopsis') && (
+          <button style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
+            <Settings size={18} /> Configurações da Obra
+          </button>
+        )}
+
         {isTabVisible('chapters') && (
           <button style={navItemStyle(activeList === 'chapters')} onClick={() => {setActiveList('chapters'); setEditingItem(null);}}>
             <Book size={18} /> Livro / Capítulos
@@ -857,15 +912,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         <button style={navItemStyle(activeList === 'notes')} onClick={() => {setActiveList('notes'); setEditingItem(null);}}>
             <MessageSquare size={18} /> Notas dos Leitores
         </button>
+        {isTabVisible('requests') && (
+          <button style={navItemStyle(activeList === 'requests')} onClick={() => {setActiveList('requests'); setEditingItem(null);}}>
+            <Bell size={18} /> Pedidos dos Fãs
+          </button>
+        )}
         <button style={navItemStyle(activeList === 'trash')} onClick={() => {setActiveList('trash'); setEditingItem(null);}}>
             <Trash2 size={18} /> Lixeira
         </button>
         
         <div style={{ flex: 1 }}></div>
-
-        {!isReadOnly && isTabVisible('synopsis') && (
-          <button style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>Publicar obra</button>
-        )}
       </div>
 
       {/* Center Area: List */}
@@ -878,6 +934,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           renderReviewsTab()
         ) : activeList === 'notes' ? (
           renderNotesTab()
+        ) : activeList === 'requests' ? (
+          renderRequestsTab()
         ) : activeList === 'trash' ? (
           renderTrashTab()
         ) : activeList === 'ideias' ? (
@@ -1097,28 +1155,35 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         }}>
           {/* Header */}
           <div className="editor-header-container" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+              <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Menu size={24} />
               </button>
-              <h2 style={{ fontSize: '1.3rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>
-                {isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo' : 'Editar Capítulo')}
+              <h2 style={{ fontSize: '1.1rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {formData.title || (isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo' : 'Editar Capítulo'))}
               </h2>
             </div>
-            <div className="editor-header-buttons" style={{ display: 'flex', gap: '1rem' }}>
-              <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ArrowLeft size={16} /> Voltar
+            <div className="editor-header-buttons" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <ArrowLeft size={16} /> <span>Voltar</span>
               </button>
               {!effectiveReadOnly && (
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button 
-                    onClick={handleTogglePublishStatus} 
-                    style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                <>
+                  {/* Botões grandes apenas no desktop */}
+                  <div className="desktop-only" style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      onClick={handleTogglePublishStatus} 
+                      style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                    </button>
+                    <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>
+                  </div>
+                  {/* Botão de salvar icone apenas no mobile */}
+                  <button className="mobile-only" onClick={handleSave} style={{ background: 'transparent', color: 'var(--text-main)', border: 'none', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title="Salvar">
+                    <Save size={20} />
                   </button>
-                  <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -1154,6 +1219,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     <option value="acknowledgements">Agradecimentos</option>
                     <option value="epilogue">Epílogo</option>
                   </select>
+                </div>
+                
+                <div className="mobile-only" style={{ ...formFieldStyle, marginTop: '1rem' }}>
+                  {!effectiveReadOnly && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <button className="btn-primary" onClick={() => { handleSave(); setShowMobileSidebar(false); }} style={{ padding: '0.8rem', fontSize: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <Save size={16} /> Salvar Alterações
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1207,7 +1282,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         disabled={effectiveReadOnly}
                         className="form-input" 
                         placeholder="Nome do Subtema..." 
-                        style={{ fontSize: '2rem', padding: '1rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderBottom: '2px solid var(--border-color)', borderRadius: 0, color: 'var(--accent-gold)', opacity: effectiveReadOnly ? 0.8 : 1 }} 
+                        style={{ fontSize: '1.2rem', padding: '0.5rem 1rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--accent-gold)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', borderBottom: 'none' }} 
                       />
 
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
@@ -1271,10 +1346,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
 
                       {!effectiveReadOnly && (
-                        <div style={{ flex: 1, minWidth: '200px', display: 'flex', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1, minWidth: '200px', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                          {/* Botão de Publicar apenas no mobile aqui no final */}
+                          <div className="mobile-only" style={{ flex: 1, minWidth: '150px' }}>
+                            <button 
+                              onClick={() => { handleTogglePublishStatus(); setShowMobileSidebar(false); }} 
+                              style={{ width: '100%', background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                            >
+                              {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                            </button>
+                          </div>
+                          
                           <button onClick={() => {
                             handleRemoveGlobalPage(activePage.globalIdx);
-                          }} style={{ width: '100%', background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', border: '1px solid rgba(255, 68, 68, 0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                          }} style={{ flex: 1, minWidth: '150px', background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', border: '1px solid rgba(255, 68, 68, 0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
                             <Trash2 size={18} /> Excluir Sessão Atual
                           </button>
                         </div>

@@ -39,13 +39,22 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
   const [lightboxImage, setLightboxImage] = useState(null);
   const handleCloseLightbox = useHashHistory(!!lightboxImage, 'imagem', () => setLightboxImage(null));
 
-  useEffect(() => {
-    setActiveTab(initialTab || 'home');
-  }, [bookId, initialTab]);
-
   const bookIndex = db.books.findIndex(b => b.id === bookId);
   const currentBook = db.books[bookIndex];
   const universe = currentBook?.universe || {};
+  const visibility = currentBook?.universeVisibility || {};
+
+  useEffect(() => {
+    let defaultTab = 'home';
+    if (!visibility.home) {
+      if (visibility.characters) defaultTab = 'characters';
+      else if (visibility.locations) defaultTab = 'locations';
+      else if (visibility.organizations) defaultTab = 'organizations';
+      else if (visibility.clues) defaultTab = 'clues';
+      else if (visibility.events) defaultTab = 'events'; // Eventos could be added if requested
+    }
+    setActiveTab(initialTab || defaultTab);
+  }, [bookId, initialTab, visibility]);
 
   const handleUpdateUniverse = (newUniverse) => {
     const newDb = { ...db };
@@ -227,21 +236,31 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
           <span style={{ fontSize: '0.6rem', color: 'var(--accent-gold)' }}>Sair</span>
         </div>
         <div className="nav-links">
-          <div className={`nav-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')} title="Início">
-            <Home size={24} />
-          </div>
-          <div className={`nav-item ${activeTab === 'characters' ? 'active' : ''}`} onClick={() => setActiveTab('characters')} title="Personagens">
-            <Users size={24} />
-          </div>
-          <div className={`nav-item ${activeTab === 'locations' ? 'active' : ''}`} onClick={() => setActiveTab('locations')} title="Locais">
-            <Map size={24} />
-          </div>
-          <div className={`nav-item ${activeTab === 'organizations' ? 'active' : ''}`} onClick={() => setActiveTab('organizations')} title="Organizações">
-            <Building size={24} />
-          </div>
-          <div className={`nav-item ${activeTab === 'clues' ? 'active' : ''}`} onClick={() => setActiveTab('clues')} title="Complementos">
-            <Key size={24} />
-          </div>
+          {visibility.home && (
+            <div className={`nav-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')} title="Início">
+              <Home size={24} />
+            </div>
+          )}
+          {visibility.characters && (
+            <div className={`nav-item ${activeTab === 'characters' ? 'active' : ''}`} onClick={() => setActiveTab('characters')} title="Personagens">
+              <Users size={24} />
+            </div>
+          )}
+          {visibility.locations && (
+            <div className={`nav-item ${activeTab === 'locations' ? 'active' : ''}`} onClick={() => setActiveTab('locations')} title="Locais">
+              <Map size={24} />
+            </div>
+          )}
+          {visibility.organizations && (
+            <div className={`nav-item ${activeTab === 'organizations' ? 'active' : ''}`} onClick={() => setActiveTab('organizations')} title="Organizações">
+              <Building size={24} />
+            </div>
+          )}
+          {visibility.clues && (
+            <div className={`nav-item ${activeTab === 'clues' ? 'active' : ''}`} onClick={() => setActiveTab('clues')} title="Complementos">
+              <Key size={24} />
+            </div>
+          )}
           {currentUser && (currentUser.role === 'author' || currentUser.role === 'curator') && (
             <div className={`nav-item admin-nav-item ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} title="Painel CMS">
               <Settings size={24} />

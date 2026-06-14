@@ -99,8 +99,14 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
       <div 
         ref={editorRef}
         contentEditable={!disabled}
+        tabIndex={0}
         onInput={handleInput}
         onBlur={handleInput}
+        onClick={() => {
+          if (!disabled && editorRef.current) {
+            editorRef.current.focus();
+          }
+        }}
         style={{
           flex: 1,
           padding: '1rem',
@@ -109,7 +115,11 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
           opacity: disabled ? 0.7 : 1,
           fontFamily: 'inherit',
           lineHeight: '1.6',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          WebkitUserSelect: 'text',
+          userSelect: 'text',
+          cursor: 'text',
+          WebkitTouchCallout: 'default'
         }}
         data-placeholder={placeholder}
         // Sem dangerouslySetInnerHTML aqui para evitar conflitos pesados do React 

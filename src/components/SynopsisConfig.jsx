@@ -15,7 +15,15 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     genres: book.genres || (book.category ? book.category.split(',').map(g => g.trim()) : []),
     coAuthorId: book.coAuthorId || '',
     publicationStatus: book.publicationStatus || 'ongoing',
-    distributionMode: book.distributionMode || ''
+    distributionMode: book.distributionMode || '',
+    universeVisibility: book.universeVisibility || {
+      home: false,
+      characters: false,
+      locations: false,
+      organizations: false,
+      clues: false,
+      events: false
+    }
   });
   const [uploading, setUploading] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -23,6 +31,16 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleToggleVisibility = (key) => {
+    setFormData({
+      ...formData,
+      universeVisibility: {
+        ...formData.universeVisibility,
+        [key]: !formData.universeVisibility[key]
+      }
+    });
   };
 
   const handleFileUpload = async (e) => {
@@ -230,6 +248,39 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
             </div>
           </div>
 
+          {book.bookType !== 'short_story' && (
+            <div style={{ ...formFieldStyle, background: 'rgba(212, 175, 55, 0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.2)', marginBottom: '2rem' }}>
+              <label style={{ color: 'var(--accent-gold)', fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                Visibilidade do Universo Expandido
+              </label>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: 1.4 }}>
+                Selecione quais áreas do seu Universo Expandido ficarão visíveis para os leitores que clicarem em "Explorar Universo". Por padrão, tudo é oculto (para Histórias Curtas, este painel não aparece).
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {[
+                  { key: 'home', label: 'Página Inicial (Home)' },
+                  { key: 'characters', label: 'Personagens' },
+                  { key: 'locations', label: 'Locais' },
+                  { key: 'organizations', label: 'Organizações' },
+                  { key: 'clues', label: 'Complementos / Pistas' },
+                  { key: 'events', label: 'Eventos' }
+                ].map(opt => (
+                  <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isReadOnly ? 'default' : 'pointer', fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                    <input 
+                      type="checkbox" 
+                      disabled={isReadOnly}
+                      checked={formData.universeVisibility && formData.universeVisibility[opt.key]}
+                      onChange={() => { if(!isReadOnly) handleToggleVisibility(opt.key); }}
+                      style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px' }}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Marcação de Coautor */}
           <div style={formFieldStyle}>
             <label style={{ color: 'var(--text-muted)' }}>ID do Coautor (Opcional)</label>
@@ -303,6 +354,8 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
               </select>
             </div>
           )}
+
+
           <div style={{ height: '120px' }} />
         </div>
 

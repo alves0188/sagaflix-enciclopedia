@@ -2380,39 +2380,41 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 }}>
                   Editar
                 </button>
-                <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
-                  e.stopPropagation();
-                  if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele será movido para Reprovados, mas manterá seus livros e acesso como leitor.')) {
-                    let newDb = { ...db };
-                    const userIndex = newDb.users.findIndex(u => u.id === author.id);
-                    if (userIndex !== -1) {
-                      newDb.users[userIndex].role = 'reader';
-                      newDb.users[userIndex].status = 'rejected';
-                    }
-                    let hasRequest = false;
-                    if (newDb.authorRequests) {
-                      const reqIndex = newDb.authorRequests.findIndex(r => r.userId === author.id);
-                      if (reqIndex !== -1) {
-                        newDb.authorRequests[reqIndex].status = 'rejected';
-                        hasRequest = true;
+                {!author.isPermanent && (
+                  <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
+                    e.stopPropagation();
+                    if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele será movido para Reprovados, mas manterá seus livros e acesso como leitor.')) {
+                      let newDb = { ...db };
+                      const userIndex = newDb.users.findIndex(u => u.id === author.id);
+                      if (userIndex !== -1) {
+                        newDb.users[userIndex].role = 'reader';
+                        newDb.users[userIndex].status = 'rejected';
                       }
+                      let hasRequest = false;
+                      if (newDb.authorRequests) {
+                        const reqIndex = newDb.authorRequests.findIndex(r => r.userId === author.id);
+                        if (reqIndex !== -1) {
+                          newDb.authorRequests[reqIndex].status = 'rejected';
+                          hasRequest = true;
+                        }
+                      }
+                      if (!hasRequest) {
+                        newDb.authorRequests = newDb.authorRequests || [];
+                        newDb.authorRequests.push({
+                          id: 'req_revoked_' + Date.now(),
+                          userId: author.id,
+                          status: 'rejected',
+                          bookTitle: 'Acesso de Autor Revogado',
+                          synopsis: 'Acesso de autor foi revogado pela curadoria.',
+                          createdAt: new Date().toISOString()
+                        });
+                      }
+                      onUpdateData(newDb);
                     }
-                    if (!hasRequest) {
-                      newDb.authorRequests = newDb.authorRequests || [];
-                      newDb.authorRequests.push({
-                        id: 'req_revoked_' + Date.now(),
-                        userId: author.id,
-                        status: 'rejected',
-                        bookTitle: 'Acesso de Autor Revogado',
-                        synopsis: 'Acesso de autor foi revogado pela curadoria.',
-                        createdAt: new Date().toISOString()
-                      });
-                    }
-                    onUpdateData(newDb);
-                  }
-                }}>
-                  <Trash2 size={14} />
-                </button>
+                  }}>
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             </div>
           )})}
@@ -3329,13 +3331,15 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                     }}>
                       <Edit3 size={14} />
                     </button>
-                    <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={() => {
-                      if(window.confirm('Tem certeza que deseja deletar este leitor?')) {
-                        onUpdateData({ ...db, users: db.users.filter(u => u.id !== leitor.id) });
-                      }
-                    }}>
-                      <Trash2 size={14} />
-                    </button>
+                    {!leitor.isPermanent && (
+                      <button className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={() => {
+                        if(window.confirm('Tem certeza que deseja deletar este leitor?')) {
+                          onUpdateData({ ...db, users: db.users.filter(u => u.id !== leitor.id) });
+                        }
+                      }}>
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

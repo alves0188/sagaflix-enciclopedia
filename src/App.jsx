@@ -192,19 +192,34 @@ export default function App() {
       if (error) throw error;
       const data = result.data;
       
-      // Injeta o prêmio "Detetive do Ano" se não existir
+      let needsDbSave = false;
       if (!data.gamificationBadges) data.gamificationBadges = [];
       if (!data.gamificationBadges.find(b => b.name === 'Detetive do ano')) {
         data.gamificationBadges.push({
           id: 'bdg_detetive_ano',
           name: 'Detetive do ano',
           description: 'Mestre da investigação: solicitou e teve acesso aprovado a mais de 100 notas secretas de autores.',
-          icon: '🕵️‍♂️',
+          icon: '🕵️',
           conditionTarget: 'secretNotesApproved',
           conditionOperator: '>=',
           conditionValue: 100,
           color: '#FFCC80'
         });
+        needsDbSave = true;
+      }
+
+      // Migrate users to be permanent (protection against deletion)
+      if (data.users) {
+        data.users = data.users.map(u => {
+          if (u.isPermanent === undefined) {
+            needsDbSave = true;
+            return { ...u, isPermanent: true };
+          }
+          return u;
+        });
+      }
+
+      if (needsDbSave) {
         await supabase.from('sagaflix_db').update({ data: data }).eq('id', 1);
       }
 
@@ -824,6 +839,16 @@ export default function App() {
               status: 'draft',
               sku: bookData.sku,
               distributionMode: bookData.distributionMode,
+              bookType: bookData.bookType || 'complete',
+              universeVisibility: {
+                home: false,
+                characters: false,
+                locations: false,
+                organizations: false,
+                clues: false,
+                events: false
+              },
+              universeRequests: [],
               universe: {
                 chapters: [],
                 characters: [],
@@ -909,14 +934,16 @@ export default function App() {
 
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '1rem 0' }}></div>
                   
-                  <button 
-                    onClick={handleDeleteAccount}
-                    style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255, 0, 0, 0.1)', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem', fontWeight: 'bold' }}
-                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,0,0,0.3)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  >
-                    <Trash2 size={16} /> Apagar Minha Conta (LGPD)
-                  </button>
+                  {!currentUser.isPermanent && (
+                    <button 
+                      onClick={handleDeleteAccount}
+                      style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255, 0, 0, 0.1)', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem', fontWeight: 'bold' }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(255,0,0,0.3)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 0, 0, 0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
+                      <Trash2 size={16} /> Apagar Minha Conta (LGPD)
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
