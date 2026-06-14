@@ -7,7 +7,8 @@ export default function NewBookModal({ onClose, onSave }) {
     title: '',
     synopsis: '',
     cover: '',
-    distributionMode: ''
+    distributionMode: '',
+    workType: ''
   });
   const [uploading, setUploading] = useState(false);
 
@@ -49,6 +50,10 @@ export default function NewBookModal({ onClose, onSave }) {
     }
     if (!formData.distributionMode) {
       alert("Selecione o modelo de lançamento (Distribuição).");
+      return;
+    }
+    if (!formData.workType) {
+      alert("Selecione o tipo de obra.");
       return;
     }
     const finalData = {
@@ -96,6 +101,22 @@ export default function NewBookModal({ onClose, onSave }) {
               style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', height: '120px', resize: 'vertical' }} 
               placeholder="Um breve resumo da história..."
             ></textarea>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Tipo de Obra *</label>
+            <select 
+              name="workType" 
+              value={formData.workType} 
+              onChange={handleChange} 
+              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', fontSize: '1rem' }}
+              required
+            >
+              <option value="" disabled>Selecione o tipo de obra...</option>
+              <option value="Literatura">Literatura (Livro, Conto, Webnovel)</option>
+              <option value="Mangá/HQ">Mangá / HQ / Comic</option>
+              <option value="Roteiro/Script">Roteiro / Script (Cinema, Teatro, Áudio)</option>
+            </select>
           </div>
 
           <div>
