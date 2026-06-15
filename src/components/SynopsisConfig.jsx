@@ -371,11 +371,11 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontFamily: 'monospace' }}>ID: {caId}</span>
                           </div>
                         </div>
-                        {!isReadOnly && (
+                        {!isReadOnly && (!isCoAuthor || caId === currentUser?.id) && (
                           <button 
                             onClick={(e) => { e.preventDefault(); handleRemoveCoAuthor(caId); }}
                             style={{ background: 'rgba(255,59,48,0.1)', color: '#ff3b30', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            title="Remover Coautor"
+                            title={isCoAuthor ? "Remover-se da Coautoria" : "Remover Coautor"}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -387,7 +387,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
               )}
 
               {/* Adicionar novo coautor */}
-              {!isReadOnly && (
+              {!isReadOnly && !isCoAuthor && (
                 <div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input 
