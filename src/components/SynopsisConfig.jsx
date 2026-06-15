@@ -168,7 +168,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
             </span>
           )}
           {!isReadOnly && (
-            <button className="btn-primary" onClick={handleTogglePublish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
+            <button id="tour-btn-publish" className="btn-primary" onClick={handleTogglePublish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
               {book.status === 'draft' ? 'Publicar Obra' : 'Despublicar'}
             </button>
           )}

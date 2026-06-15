@@ -838,13 +838,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         <div style={{ borderBottom: '1px solid var(--border-color)', margin: '0 1.5rem 2rem 1.5rem' }}></div>
 
         {!isReadOnly && isTabVisible('synopsis') && (
-          <button style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
+          <button id="tour-tab-synopsis" style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
             <Settings size={18} /> Configurações da Obra
           </button>
         )}
 
         {isTabVisible('chapters') && (
-          <button style={navItemStyle(activeList === 'chapters')} onClick={() => {setActiveList('chapters'); setEditingItem(null);}}>
+          <button id="tour-tab-chapters" style={navItemStyle(activeList === 'chapters')} onClick={() => {setActiveList('chapters'); setEditingItem(null);}}>
             <Book size={18} /> Livro / Capítulos
           </button>
         )}
@@ -852,7 +852,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <button style={navItemStyle(activeList === 'pages')} onClick={() => {setActiveList('pages'); setEditingItem(null);}}>Bio e Apresentações</button>
         )}
         {isTabVisible('characters') && (
-          <button style={navItemStyle(activeList === 'characters')} onClick={() => {setActiveList('characters'); setEditingItem(null);}}>Personagens</button>
+          <button id="tour-tab-universe" style={navItemStyle(activeList === 'characters')} onClick={() => {setActiveList('characters'); setEditingItem(null);}}>Personagens</button>
         )}
         {isTabVisible('locations') && (
           <button style={navItemStyle(activeList === 'locations')} onClick={() => {setActiveList('locations'); setEditingItem(null);}}>Locais</button>

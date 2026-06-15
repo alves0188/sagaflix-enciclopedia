@@ -13,6 +13,7 @@ import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store } from 'lucide-react';
 import { useHashHistory } from './hooks/useHashHistory';
 import { useHashTabs } from './hooks/useHashTabs';
+import TutorialManager from './components/TutorialManager';
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -193,6 +194,10 @@ export default function App() {
       const data = result.data;
       
       let needsDbSave = false;
+      if (!data.tutorials) {
+        data.tutorials = [];
+        needsDbSave = true;
+      }
       if (!data.gamificationBadges) data.gamificationBadges = [];
       if (!data.gamificationBadges.find(b => b.name === 'Detetive do ano')) {
         data.gamificationBadges.push({
@@ -437,6 +442,24 @@ export default function App() {
     }
     setProfileUploading(false);
     e.target.value = null;
+  };
+
+  const handleCompleteTutorial = async (tutorialId) => {
+    if (!currentUser) return;
+    const completed = currentUser.completedTutorials || [];
+    if (!completed.includes(tutorialId)) {
+      const updatedUser = { ...currentUser, completedTutorials: [...completed, tutorialId] };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
+      
+      const newData = { ...db };
+      const userIndex = newData.users.findIndex(u => u.id === currentUser.id);
+      if (userIndex !== -1) {
+        newData.users[userIndex] = updatedUser;
+        setDb(newData);
+        await supabase.from('sagaflix_db').update({ data: newData }).eq('id', 1);
+      }
+    }
   };
 
   if (loading || !db) return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Plataforma...</div>;
@@ -1126,6 +1149,12 @@ export default function App() {
           userName={currentUser?.nickname || currentUser?.name} 
         />
       )}
+      
+      <TutorialManager 
+        db={db} 
+        currentUser={currentUser} 
+        onCompleteTutorial={handleCompleteTutorial} 
+      />
     </div>
   );
 }

@@ -3406,6 +3406,189 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     }
   };
 
+  const renderTutoriais = () => {
+    const tutorials = db.tutorials || [];
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Lightbulb size={24} color="var(--accent-gold)" /> Gestão de Tutoriais (Onboarding)
+          </h2>
+          <button className="btn-primary" onClick={() => {
+            const newTutorial = {
+              id: 'tut_' + Date.now(),
+              title: 'Novo Tutorial',
+              targetAudience: 'author', // author, reader, all
+              isActive: false,
+              steps: [
+                {
+                  target: '',
+                  title: 'Bem vindo!',
+                  content: 'Este é o primeiro passo.',
+                  placement: 'center',
+                  disableBeacon: true
+                }
+              ]
+            };
+            handleUpdateDb({ ...db, tutorials: [...tutorials, newTutorial] });
+          }}>
+            <Plus size={18} /> Novo Tutorial
+          </button>
+        </div>
+
+        <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Crie roteiros guiados para ensinar novos usuários a usar a plataforma. Você pode apontar para IDs específicos na tela (ex: <code>#tour-btn-new-book</code>).
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {tutorials.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>Nenhum tutorial criado.</p>
+            ) : tutorials.map(tutorial => (
+              <div key={tutorial.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                  <input 
+                    type="text" 
+                    value={tutorial.title} 
+                    onChange={e => {
+                      const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, title: e.target.value } : t);
+                      handleUpdateDb({ ...db, tutorials: updated });
+                    }} 
+                    className="form-input" 
+                    style={{ flex: 2 }} 
+                    placeholder="Nome do Tutorial (Ex: Onboarding Autor)"
+                  />
+                  <select 
+                    value={tutorial.targetAudience} 
+                    onChange={e => {
+                      const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, targetAudience: e.target.value } : t);
+                      handleUpdateDb({ ...db, tutorials: updated });
+                    }} 
+                    className="form-input" 
+                    style={{ flex: 1 }}
+                  >
+                    <option value="author">Apenas Autores</option>
+                    <option value="reader">Apenas Leitores</option>
+                    <option value="all">Todos os Usuários</option>
+                  </select>
+                  <button 
+                    onClick={() => {
+                      const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, isActive: !t.isActive } : t);
+                      handleUpdateDb({ ...db, tutorials: updated });
+                    }}
+                    style={{ background: tutorial.isActive ? '#4CAF50' : 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    {tutorial.isActive ? 'Ativo' : 'Inativo'}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Excluir este tutorial?')) {
+                        handleUpdateDb({ ...db, tutorials: tutorials.filter(t => t.id !== tutorial.id) });
+                      }
+                    }}
+                    style={{ background: '#f44336', color: '#fff', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
+                {/* Passos do Tutorial */}
+                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem' }}>Passos ({tutorial.steps?.length || 0})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {(tutorial.steps || []).map((step, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', background: 'var(--card-bg)', padding: '1rem', borderRadius: '4px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input 
+                            type="text" 
+                            value={step.target} 
+                            onChange={e => {
+                              const newSteps = [...tutorial.steps];
+                              newSteps[idx].target = e.target.value;
+                              const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                              handleUpdateDb({ ...db, tutorials: updated });
+                            }} 
+                            className="form-input" 
+                            style={{ flex: 1 }} 
+                            placeholder="Alvo (ID). Ex: #tour-btn-new-book ou vazio p/ centro"
+                          />
+                          <select 
+                            value={step.placement} 
+                            onChange={e => {
+                              const newSteps = [...tutorial.steps];
+                              newSteps[idx].placement = e.target.value;
+                              const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                              handleUpdateDb({ ...db, tutorials: updated });
+                            }} 
+                            className="form-input" 
+                            style={{ width: '120px' }}
+                          >
+                            <option value="center">Centro</option>
+                            <option value="top">Topo</option>
+                            <option value="bottom">Baixo</option>
+                            <option value="left">Esquerda</option>
+                            <option value="right">Direita</option>
+                          </select>
+                        </div>
+                        <input 
+                          type="text" 
+                          value={step.title} 
+                          onChange={e => {
+                            const newSteps = [...tutorial.steps];
+                            newSteps[idx].title = e.target.value;
+                            const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                            handleUpdateDb({ ...db, tutorials: updated });
+                          }} 
+                          className="form-input" 
+                          placeholder="Título do Balão (Ex: Crie sua Obra)"
+                        />
+                        <textarea 
+                          value={step.content} 
+                          onChange={e => {
+                            const newSteps = [...tutorial.steps];
+                            newSteps[idx].content = e.target.value;
+                            const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                            handleUpdateDb({ ...db, tutorials: updated });
+                          }} 
+                          className="form-input" 
+                          placeholder="Texto de explicação..."
+                          style={{ minHeight: '60px' }}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newSteps = [...tutorial.steps];
+                          newSteps.splice(idx, 1);
+                          const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                          handleUpdateDb({ ...db, tutorials: updated });
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#f44336', cursor: 'pointer', padding: '0.5rem' }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => {
+                      const newSteps = [...(tutorial.steps || []), { target: '', title: '', content: '', placement: 'center' }];
+                      const updated = tutorials.map(t => t.id === tutorial.id ? { ...t, steps: newSteps } : t);
+                      handleUpdateDb({ ...db, tutorials: updated });
+                    }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px dashed var(--border-color)', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', textAlign: 'center', marginTop: '0.5rem' }}
+                  >
+                    + Adicionar Passo
+                  </button>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
   const renderGamificacao = () => {
     const badges = db.gamificationBadges || [];
     const leitores = db.users.filter(u => u.role === 'reader');
@@ -3874,6 +4057,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> Gamificação</button>}
         {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('tutoriais')} style={navItemStyle(activeTab === 'tutoriais')}><Lightbulb size={18}/> Tutoriais</button>}
 
         <div style={{ flex: 1 }}></div>
         <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -3896,6 +4080,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         {activeTab === 'banners' && hasAccess('banners') && renderBanners()}
         {activeTab === 'gamificacao' && hasAccess('curadoria') && renderGamificacao()}
         {activeTab === 'equipe' && hasAccess('equipe') && renderEquipe()}
+        {activeTab === 'tutoriais' && hasAccess('curadoria') && renderTutoriais()}
       </div>
 
       {showUserForm && (

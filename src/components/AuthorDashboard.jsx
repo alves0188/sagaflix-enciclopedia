@@ -326,7 +326,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Minhas Histórias</h2>
-            <button className="btn-primary" onClick={() => setShowCreationChoice(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+            <button id="tour-btn-new-book" className="btn-primary" onClick={() => setShowCreationChoice(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: '4px', whiteSpace: 'nowrap' }}>
               <Plus size={16} /> <span style={{ fontSize: '0.9rem' }}>NOVA HISTÓRIA</span>
             </button>
           </div>
@@ -360,7 +360,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
         </div>
 
         {/* Grid de Livros */}
-        <div className="author-books-grid">
+        <div id="tour-book-grid" className="author-books-grid">
           {filteredBooks.map(book => {
             const ratings = book.ratings || [];
             const count = ratings.length;
@@ -1623,7 +1623,7 @@ const renderSuporte = () => {
         {/* Links Menu */}
         <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
-        <button onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'ideias')}><Palette size={18}/> Painel de Ideias</button>
+        <button id="tour-ideas-board" onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle('ideias')}><Palette size={18}/> Painel de Ideias</button>
         
         <button onClick={() => { setActiveTab('pedidos_fas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'pedidos_fas')}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
