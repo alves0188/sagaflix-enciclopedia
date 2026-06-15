@@ -55,10 +55,10 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
 
   const handleConfirmCoAuthor = () => {
     if (pendingCoAuthor) {
-      setFormData(prev => ({
-        ...prev,
-        coAuthorIds: [...prev.coAuthorIds, pendingCoAuthor.id]
-      }));
+      const newCoAuthorIds = [...formData.coAuthorIds, pendingCoAuthor.id];
+      const newFormData = { ...formData, coAuthorIds: newCoAuthorIds };
+      setFormData(newFormData);
+      onUpdateBook(book.id, newFormData);
       setPendingCoAuthor(null);
       setCoAuthorInput('');
       setCoAuthorError('');
@@ -66,10 +66,10 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   };
 
   const handleRemoveCoAuthor = (idToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      coAuthorIds: prev.coAuthorIds.filter(id => id !== idToRemove)
-    }));
+    const newCoAuthorIds = formData.coAuthorIds.filter(id => id !== idToRemove);
+    const newFormData = { ...formData, coAuthorIds: newCoAuthorIds };
+    setFormData(newFormData);
+    onUpdateBook(book.id, newFormData);
   };
 
 
