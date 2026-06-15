@@ -346,20 +346,127 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
 
           {/* Marcação de Coautor */}
           <div style={formFieldStyle}>
-            <label style={{ color: 'var(--text-muted)' }}>ID do Coautor (Opcional)</label>
-            <input 
-              type="text" 
-              name="coAuthorId" 
-              value={formData.coAuthorId} 
-              onChange={handleChange} 
-              disabled={isReadOnly} 
-              className="form-input" 
-              placeholder="Ex: 83920147" 
-              style={{ padding: '0.6rem', opacity: isReadOnly ? 0.7 : 1 }} 
-            />
-            <small style={{ color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block', lineHeight: '1.4' }}>
-              Ao colocar o ID de outro autor ativo, a obra ficará visível em seu painel como um espelho de edição (o que um alterar altera no outro).
-            </small>
+            <label style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Gerenciar Coautores (Opcional)</label>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              
+              {/* Lista de coautores atuais */}
+              {formData.coAuthorIds.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                  {formData.coAuthorIds.map(caId => {
+                    const caUser = db?.users?.find(u => u.id === caId);
+                    return (
+                      <div key={caId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--accent-gold)' }}>
+                            {caUser?.avatar ? (
+                              <img src={caUser.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', background: 'var(--bg-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
+                                <UserCheck size={20} />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <strong style={{ display: 'block', color: 'var(--text-main)', fontSize: '0.95rem' }}>{caUser?.name || 'Usuário Desconhecido'}</strong>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontFamily: 'monospace' }}>ID: {caId}</span>
+                          </div>
+                        </div>
+                        {!isReadOnly && (
+                          <button 
+                            onClick={(e) => { e.preventDefault(); handleRemoveCoAuthor(caId); }}
+                            style={{ background: 'rgba(255,59,48,0.1)', color: '#ff3b30', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Remover Coautor"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Adicionar novo coautor */}
+              {!isReadOnly && (
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Cole aqui o ID do autor..." 
+                      value={coAuthorInput}
+                      onChange={(e) => {
+                        setCoAuthorInput(e.target.value);
+                        setCoAuthorError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSearchCoAuthor();
+                        }
+                      }}
+                      style={{ flex: 1, padding: '0.6rem' }}
+                    />
+                    <button 
+                      onClick={(e) => { e.preventDefault(); handleSearchCoAuthor(); }}
+                      className="btn-secondary"
+                      style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      <UserPlus size={16} /> OK
+                    </button>
+                  </div>
+                  {coAuthorError && (
+                    <small style={{ color: '#ff3b30', display: 'block', marginTop: '0.5rem' }}>{coAuthorError}</small>
+                  )}
+                  <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '0.5rem', lineHeight: '1.4' }}>
+                    Ao vincular o ID de outro autor ativo, a obra ficará visível no painel dele como um espelho de edição (o que um alterar, altera no outro).
+                  </small>
+                </div>
+              )}
+            </div>
+
+            {/* Modal de Confirmação de Coautor */}
+            {pendingCoAuthor && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'var(--card-bg)', width: '90%', maxWidth: '400px', borderRadius: '12px', padding: '2rem', border: '1px solid var(--accent-gold)', position: 'relative' }}>
+                  <h2 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)', textAlign: 'center', fontFamily: "'Playfair Display', serif" }}>Confirmar Coautor</h2>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--accent-gold)', marginBottom: '1rem' }}>
+                      {pendingCoAuthor.avatar ? (
+                        <img src={pendingCoAuthor.avatar} alt={pendingCoAuthor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: 'var(--bg-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
+                          <UserCheck size={40} />
+                        </div>
+                      )}
+                    </div>
+                    <strong style={{ fontSize: '1.2rem', color: 'var(--text-main)', marginBottom: '0.2rem' }}>{pendingCoAuthor.name}</strong>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem', fontFamily: 'monospace' }}>ID: {pendingCoAuthor.id}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Membro desde: {pendingCoAuthor.createdAt ? new Date(pendingCoAuthor.createdAt).toLocaleDateString('pt-BR') : 'Data desconhecida'}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPendingCoAuthor(null);
+                        setCoAuthorInput('');
+                      }}
+                      style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid var(--text-muted)', color: 'var(--text-muted)', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Não é esse
+                    </button>
+                    <button 
+                      onClick={(e) => { e.preventDefault(); handleConfirmCoAuthor(); }}
+                      style={{ flex: 1, padding: '0.8rem', background: 'var(--accent-gold)', border: 'none', color: 'var(--bg-color)', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Sim, é este!
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div style={formFieldStyle}>
