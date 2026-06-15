@@ -27,6 +27,8 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   });
   const [uploading, setUploading] = useState(false);
 
+  const isCoAuthor = formData.coAuthorIds.includes(currentUser?.id);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
