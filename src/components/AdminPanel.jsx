@@ -1342,7 +1342,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
       {showRequestModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '12px', width: '500px', border: '1px solid var(--border-color)' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '12px', width: '500px', border: '1px solid var(--border-color)', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0 }}>Pedido de Alteração</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>O livro já foi publicado ou enviado. A criação de novos capítulos e personagens passará por avaliação.</p>
             

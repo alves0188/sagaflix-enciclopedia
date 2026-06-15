@@ -71,9 +71,9 @@ export default function NewBookModal({ onClose, onSave }) {
     }}>
       <div style={{
         background: 'var(--card-bg)', width: '100%', maxWidth: '600px',
-        borderRadius: '12px', border: '1px solid var(--accent-gold)', overflow: 'hidden'
+        borderRadius: '12px', border: '1px solid var(--accent-gold)', overflowY: 'auto', maxHeight: '90vh'
       }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, backgroundColor: 'var(--card-bg)', zIndex: 10 }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0 }}>Nova História</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={24} /></button>
         </div>
@@ -98,9 +98,9 @@ export default function NewBookModal({ onClose, onSave }) {
               name="synopsis" 
               value={formData.synopsis} 
               onChange={handleChange} 
-              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', height: '120px', resize: 'vertical' }} 
+              style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.8rem', borderRadius: '4px', minHeight: '120px', resize: 'vertical' }} 
               placeholder="Um breve resumo da história..."
-            ></textarea>
+            />
           </div>
 
           <div>
@@ -113,7 +113,7 @@ export default function NewBookModal({ onClose, onSave }) {
               required
             >
               <option value="" disabled>Selecione o tipo de obra...</option>
-              <option value="Literatura">Literatura (Livro, Conto, Webnovel)</option>
+              <option value="Literatura">Literatura (Saga, Livro, Conto, etc.)</option>
               <option value="Mangá/HQ">Mangá / HQ / Comic</option>
               <option value="Roteiro/Script">Roteiro / Script (Cinema, Teatro, Áudio)</option>
             </select>
