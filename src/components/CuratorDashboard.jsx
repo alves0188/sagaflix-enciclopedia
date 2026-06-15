@@ -2589,7 +2589,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
               )}
             </div>
             <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', textAlign: 'center', fontSize: '1.5rem' }}>{(selectedAuthor.displayMode === 'name' ? selectedAuthor.name : (selectedAuthor.nickname || selectedAuthor.name))}</h3>
-            <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-muted)' }}>{selectedAuthor.email}</p>
+            <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)' }}>{selectedAuthor.email}</p>
+            <p style={{ margin: '0 0 1.5rem 0', color: 'var(--text-muted)', fontSize: '0.8rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>ID: {selectedAuthor.id}</p>
 
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
