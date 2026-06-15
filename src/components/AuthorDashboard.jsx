@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
 import HQModal from './HQModal';
@@ -38,6 +38,46 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [universeRequestTab, setUniverseRequestTab] = useState('unread');
   const [selectedUniverseRequest, setSelectedUniverseRequest] = useState(null);
   
+  const handleDownloadBackup = (book) => {
+    if (!book.universe || !book.universe.chapters || book.universe.chapters.length === 0) {
+      alert("Não há capítulos salvos para fazer backup.");
+      return;
+    }
+    let content = `=========================================\n`;
+    content += `LIVRO: ${book.title}\n`;
+    content += `=========================================\n\n`;
+    if (book.synopsis) {
+      content += `SINOPSE:\n${book.synopsis}\n\n`;
+    }
+    
+    const chapters = book.universe.chapters;
+    chapters.forEach(ch => {
+      content += `\n=========================================\n`;
+      content += `${ch.title || 'Capítulo sem título'}\n`;
+      content += `=========================================\n\n`;
+      
+      if (ch.pages) {
+        ch.pages.forEach(p => {
+          if (p.subtheme && !/^in.cio$/i.test(p.subtheme)) {
+             content += `--- ${p.subtheme} ---\n\n`;
+          }
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = p.text || '';
+          content += tempDiv.innerText + `\n\n`;
+        });
+      }
+    });
+
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Backup_${book.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Filtros de Livros
   const [searchText, setSearchText] = useState('');
   const [letterFilter, setLetterFilter] = useState('');
@@ -398,6 +438,15 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                     <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>⭐ {avg}</span>
                     <span style={{ color: 'var(--text-muted)' }}>({count})</span>
                   </div>
+                  
+                  {/* Export Button */}
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDownloadBackup(book); }}
+                    className="btn-secondary" 
+                    style={{ marginTop: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.8rem', padding: '0.5rem', borderColor: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}
+                  >
+                    <Download size={14} /> Exportar (.txt)
+                  </button>
                 </div>
               </div>
             );
