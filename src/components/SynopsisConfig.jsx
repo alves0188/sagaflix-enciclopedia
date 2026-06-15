@@ -323,7 +323,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
             </div>
           </div>
 
-          {book.distributionMode !== 'short_story' && (
+          {formData.distributionMode !== 'short_story' && (
             <div style={{ ...formFieldStyle, background: 'rgba(212, 175, 55, 0.05)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.2)', marginBottom: '2rem' }}>
               <label style={{ color: 'var(--accent-gold)', fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 Visibilidade do Universo Expandido
