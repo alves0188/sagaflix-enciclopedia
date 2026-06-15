@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Upload, Save } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 
 export default function NewBookModal({ onClose, onSave }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, []);
+
   const [formData, setFormData] = useState({
     title: '',
     synopsis: '',

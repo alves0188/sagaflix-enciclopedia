@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Crown, Gem, AlertTriangle, Gift } from 'lucide-react';
 
 const ShopModal = ({ isOpen, onClose, userName }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
+
   const [activeTab, setActiveTab] = useState('premium'); // 'premium' ou 'crystals'
 
   if (!isOpen) return null;

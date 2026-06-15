@@ -1,6 +1,12 @@
+import { useEffect } from 'react';
 import { X, BookOpen, User } from 'lucide-react';
 
 export default function AuthorModal({ author, db, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, []);
+
   if (!author) return null;
 
   // Encontrar todas as obras publicadas deste autor

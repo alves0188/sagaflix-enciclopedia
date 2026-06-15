@@ -39,6 +39,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMobileIdeas, setShowMobileIdeas] = useState(false);
+
+  useEffect(() => {
+    if (showRequestModal || showTutorialModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [showRequestModal, showTutorialModal]);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   useEffect(() => {

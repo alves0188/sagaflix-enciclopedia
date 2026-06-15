@@ -48,6 +48,15 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [newTicket, setNewTicket] = useState({ category: 'technical', subject: '', message: '' });
   const [replyText, setReplyText] = useState('');
 
+  useEffect(() => {
+    if (showNewTicketModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [showNewTicketModal]);
+
   // Se a curadoria está visualizando um autor específico
   const effectiveUserId = forceUserId || currentUser.id;
   const effectiveUser = db.users.find(u => u.id === effectiveUserId) || currentUser;
