@@ -215,24 +215,26 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
             <textarea name="synopsis" value={formData.synopsis} onChange={handleChange} disabled={isReadOnly} className="form-input" rows="12" style={{ lineHeight: '1.6', fontSize: '1.05rem', opacity: isReadOnly ? 0.7 : 1 }} placeholder="Escreva a sinopse que vai atrair seus leitores..."></textarea>
           </div>
 
-          {/* Modelo de Lançamento (Imutável) */}
+          {/* Modelo de Lançamento */}
           <div style={formFieldStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
               <label style={{ color: 'var(--text-muted)', margin: 0 }}>Modelo de Lançamento</label>
               <span style={{ fontSize: '0.75rem', color: '#ff9800', fontStyle: 'italic' }}>
-                * Definido na criação da obra. Inalterável.
+                * Altere o modelo se necessário.
               </span>
             </div>
             <select 
               name="distributionMode" 
               value={formData.distributionMode || 'complete'} 
-              disabled={true} 
+              onChange={handleChange}
+              disabled={isReadOnly}
               className="form-input" 
-              style={{ padding: '0.6rem', opacity: 0.6, cursor: 'not-allowed' }}
+              style={{ padding: '0.6rem', opacity: isReadOnly ? 0.7 : 1 }}
             >
               <option value="complete">Conteúdo Completo</option>
               <option value="weekly">Distribuição Semanal</option>
               <option value="webnovel">Webnovel / Contínuo</option>
+              <option value="short_story">Histórias Curtas / Contos (Sem Universo)</option>
             </select>
           </div>
 
