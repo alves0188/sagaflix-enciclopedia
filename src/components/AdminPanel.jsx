@@ -891,7 +891,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       </div>
 
       {/* Center Area: List */}
-      <div className={`admin-content-wrapper ${editingItem ? 'hide-on-mobile-edit' : ''}`} style={{ flex: 1, padding: '3rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
+      <div className={`admin-content-wrapper ${editingItem ? 'hide-on-mobile-edit' : ''}`} style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (

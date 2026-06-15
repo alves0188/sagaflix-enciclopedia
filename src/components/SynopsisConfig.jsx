@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck } from 'lucide-react';
+import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
@@ -26,6 +26,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     }
   });
   const [uploading, setUploading] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const isCoAuthor = formData.coAuthorIds.includes(currentUser?.id);
 
@@ -153,50 +154,57 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
 
   return (
     <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ padding: '2.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--text-main)' }}>Sinopse e Capa Oficial</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className="synopsis-header-top" style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', fontSize: '1.5rem', flex: '1 1 100%', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          Sinopse e Capa Oficial
+          <button onClick={() => setShowInfo(!showInfo)} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', padding: '0.2rem' }}>
+            <Info size={20} />
+          </button>
+        </h2>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {book.status !== 'draft' && (
-            <span style={{ color: '#ff9800', fontWeight: 'bold', marginRight: '1rem' }}>
+            <span style={{ color: '#ff9800', fontWeight: 'bold' }}>
               Status: {(book.status || 'draft').toUpperCase()}
             </span>
           )}
           {!isReadOnly && (
-            <button className="btn-primary" onClick={handleTogglePublish} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
-              {book.status === 'draft' ? 'Publicar Obra' : 'Despublicar Obra'}
+            <button className="btn-primary" onClick={handleTogglePublish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
+              {book.status === 'draft' ? 'Publicar Obra' : 'Despublicar'}
             </button>
           )}
           {!isReadOnly && (
-            <button className="btn-primary" onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Save size={18} /> Salvar Dados do Livro
+            <button className="btn-primary" onClick={handleSave} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', paddingRight: '2.5rem' }}>
+              <Save size={18} /> Salvar
             </button>
           )}
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
         
         {/* Tutorial Box */}
-        <div style={{ 
-          background: 'rgba(212, 175, 55, 0.05)', 
-          border: '1px solid rgba(212, 175, 55, 0.2)', 
-          borderRadius: '8px', 
-          padding: '1.2rem', 
-          marginBottom: '2rem',
-          fontSize: '0.9rem',
-          lineHeight: 1.5,
-          color: '#e2d4b7'
-        }}>
-          <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>
-            🚀 Sinopse, Capa e Configurações de Publicação do Livro
+        {showInfo && (
+          <div style={{ 
+            background: 'rgba(212, 175, 55, 0.05)', 
+            border: '1px solid rgba(212, 175, 55, 0.2)', 
+            borderRadius: '8px', 
+            padding: '1.2rem', 
+            marginBottom: '2rem',
+            fontSize: '0.9rem',
+            lineHeight: 1.5,
+            color: '#e2d4b7'
+          }}>
+            <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>
+              🚀 Sinopse, Capa e Configurações de Publicação do Livro
+            </div>
+            <p style={{ margin: '0 0 0.5rem 0' }}><strong>Para que serve:</strong> Centralizar os metadados fundamentais da obra (título, sinopse, classificação etária, múltiplos gêneros) e controlar a publicação (modo de liberação de capítulos, ID de coautor para escrita compartilhada e envio à curadoria).</p>
+            <p style={{ margin: '0 0 0.5rem 0' }}><strong>Onde o leitor acessa:</strong> Na vitrine principal da plataforma. Os leitores verão a capa (proporção 2:3), gêneros, classificação indicativa e coautor nos cards do livro, nos popovers e na página inicial.</p>
+            <p style={{ margin: 0 }}><strong>Configuração de Capa:</strong> O upload aceita qualquer imagem, mas para manter a padronização visual da plataforma e evitar distorções, recomendamos o formato vertical clássico de livros em **proporção 2:3 (como 800 x 1200 pixels)**.</p>
           </div>
-          <p style={{ margin: '0 0 0.5rem 0' }}><strong>Para que serve:</strong> Centralizar os metadados fundamentais da obra (título, sinopse, classificação etária, múltiplos gêneros) e controlar a publicação (modo de liberação de capítulos, ID de coautor para escrita compartilhada e envio à curadoria).</p>
-          <p style={{ margin: '0 0 0.5rem 0' }}><strong>Onde o leitor acessa:</strong> Na vitrine principal da plataforma. Os leitores verão a capa (proporção 2:3), gêneros, classificação indicativa e coautor nos cards do livro, nos popovers e na página inicial.</p>
-          <p style={{ margin: 0 }}><strong>Configuração de Capa:</strong> O upload aceita qualquer imagem, mas para manter a padronização visual da plataforma e evitar distorções, recomendamos o formato vertical clássico de livros em **proporção 2:3 (como 800 x 1200 pixels)**.</p>
-        </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '3rem' }}>
-          <div style={{ flex: 1, paddingBottom: '3rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem' }}>
+          <div style={{ flex: '1 1 300px', paddingBottom: '3rem' }}>
           <div style={formFieldStyle}>
             <label style={{ color: 'var(--text-muted)' }}>Título do Livro</label>
             <input type="text" name="title" value={formData.title} onChange={handleChange} disabled={isReadOnly} className="form-input" style={{ fontSize: '1.2rem', padding: '0.8rem', opacity: isReadOnly ? 0.7 : 1 }} />
@@ -531,7 +539,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           <div style={{ height: '120px' }} />
         </div>
 
-        <div style={{ width: '350px', paddingBottom: '3rem' }}>
+        <div style={{ flex: '1 1 300px', maxWidth: '350px', paddingBottom: '3rem', margin: '0 auto' }}>
           <div style={formFieldStyle}>
             <label style={{ color: 'var(--text-muted)' }}>Capa Oficial do Livro</label>
             <div style={{ width: '100%', aspectRatio: '2/3', backgroundColor: '#000', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
