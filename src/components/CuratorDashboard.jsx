@@ -2561,7 +2561,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   // ========== VIEW: PERFIL DO AUTOR (Sobrepõe abas, mantido para legado) ==========
   if (selectedAuthor) {
-    const authorBooks = db.books.filter(b => b.authorId === selectedAuthor.id);
+    const authorBooks = db.books.filter(b => b.authorId === selectedAuthor.id || b.coAuthorId === selectedAuthor.id || (b.coAuthorIds && b.coAuthorIds.includes(selectedAuthor.id)));
     const authorNotifs = notifications.filter(n => n.authorId === selectedAuthor.id).reverse();
     const authorReports = (db.reports || []).filter(r => authorBooks.some(b => b.id === r.bookId));
 
