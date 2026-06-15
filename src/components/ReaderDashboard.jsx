@@ -86,7 +86,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   const [hoverStars, setHoverStars] = useState(0);
 
   const activeBook = selectedBook ? db.books.find(b => b.id === selectedBook.id) : null;
-  const coAuthorObj = (activeBook && activeBook.coAuthorId) ? db.users.find(u => u.id === activeBook.coAuthorId) : null;
+  const coAuthors = (activeBook && activeBook.coAuthorIds) ? activeBook.coAuthorIds.map(id => db.users.find(u => u.id === id)).filter(Boolean) : (activeBook && activeBook.coAuthorId ? [db.users.find(u => u.id === activeBook.coAuthorId)].filter(Boolean) : []);
 
   useEffect(() => {
     if (activeBook) {

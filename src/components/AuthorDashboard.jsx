@@ -52,7 +52,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const effectiveUserId = forceUserId || currentUser.id;
   const effectiveUser = db.users.find(u => u.id === effectiveUserId) || currentUser;
 
-  const authorBooks = db.books.filter(b => b.authorId === effectiveUserId || b.coAuthorId === effectiveUserId);
+  const authorBooks = db.books.filter(b => b.authorId === effectiveUserId || b.coAuthorId === effectiveUserId || (b.coAuthorIds && b.coAuthorIds.includes(effectiveUserId)));
 
   // Carregar dados de Ideias e Legendas do perfil do usuário ativo
   const ideas = effectiveUser.ideas || [];

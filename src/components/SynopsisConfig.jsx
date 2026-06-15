@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X } from 'lucide-react';
+import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
@@ -13,7 +13,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     releaseWeekday: book.releaseWeekday !== undefined ? book.releaseWeekday : 1,
     ageRating: book.ageRating || 'Livre',
     genres: book.genres || (book.category ? book.category.split(',').map(g => g.trim()) : []),
-    coAuthorId: book.coAuthorId || '',
+    coAuthorIds: book.coAuthorIds || (book.coAuthorId ? [book.coAuthorId] : []),
     publicationStatus: book.publicationStatus || 'ongoing',
     distributionMode: book.distributionMode || '',
     universeVisibility: book.universeVisibility || {
@@ -31,6 +31,47 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  const [coAuthorInput, setCoAuthorInput] = useState('');
+  const [pendingCoAuthor, setPendingCoAuthor] = useState(null);
+  const [coAuthorError, setCoAuthorError] = useState('');
+
+  const handleSearchCoAuthor = () => {
+    if (!coAuthorInput.trim()) return;
+    const found = db?.users?.find(u => u.id === coAuthorInput.trim() && u.id !== currentUser.id);
+    if (found) {
+      if (formData.coAuthorIds.includes(found.id)) {
+        setCoAuthorError('Este autor já é coautor desta obra.');
+        setPendingCoAuthor(null);
+      } else {
+        setPendingCoAuthor(found);
+        setCoAuthorError('');
+      }
+    } else {
+      setCoAuthorError('Nenhum usuário encontrado com este ID (ou você tentou adicionar a si mesmo).');
+      setPendingCoAuthor(null);
+    }
+  };
+
+  const handleConfirmCoAuthor = () => {
+    if (pendingCoAuthor) {
+      setFormData(prev => ({
+        ...prev,
+        coAuthorIds: [...prev.coAuthorIds, pendingCoAuthor.id]
+      }));
+      setPendingCoAuthor(null);
+      setCoAuthorInput('');
+      setCoAuthorError('');
+    }
+  };
+
+  const handleRemoveCoAuthor = (idToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      coAuthorIds: prev.coAuthorIds.filter(id => id !== idToRemove)
+    }));
+  };
+
 
   const handleConfirmDelete = () => {
     if (!passwordInput) {
