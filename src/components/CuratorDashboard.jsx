@@ -2513,7 +2513,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             <button onClick={handleDownloadBackup} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}>
               <Download size={16} /> Exportar Backup (.txt)
             </button>
-            <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{selectedBook.status.toUpperCase()}</strong></span>
+            <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{(selectedBook.status || 'draft').toUpperCase()}</strong></span>
             {permissions.approve_books && selectedBook.status === 'pending' && (
               <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: '#4CAF50' }}>
                 <Check size={16} /> Aprovar Publicação
@@ -2699,7 +2699,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                       </div>
                     )}
                     <p style={{ margin: 0, fontSize: '0.8rem', color: book.status === 'published' ? '#4CAF50' : book.status === 'pending' ? '#ff9800' : 'var(--text-muted)' }}>
-                      Status: {book.status.toUpperCase()}
+                      Status: {(book.status || 'draft').toUpperCase()}
                     </p>
                     <button onClick={() => setSelectedBook(book)} className="btn-secondary" style={{ width: '100%', marginTop: '1rem', padding: '0.5rem', fontSize: '0.8rem' }}>
                       Acessar CMS do Livro

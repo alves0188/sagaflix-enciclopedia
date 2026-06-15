@@ -156,7 +156,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {book.status !== 'draft' && (
             <span style={{ color: '#ff9800', fontWeight: 'bold', marginRight: '1rem' }}>
-              Status: {book.status.toUpperCase()}
+              Status: {(book.status || 'draft').toUpperCase()}
             </span>
           )}
           {!isReadOnly && (

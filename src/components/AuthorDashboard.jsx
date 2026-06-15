@@ -381,7 +381,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                     </div>
                   )}
                   <p style={{ margin: 0, fontSize: '0.8rem', color: book.status === 'published' ? '#4CAF50' : book.status === 'pending' ? '#ff9800' : 'var(--text-muted)' }}>
-                    Status: {book.status.toUpperCase()}
+                    Status: {(book.status || 'draft').toUpperCase()}
                   </p>
                   
                   {/* Avaliação Estrelas no Card */}
