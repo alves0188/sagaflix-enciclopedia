@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Save, Upload } from 'lucide-react';
+import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
-export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange }) {
+export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange, currentUser, db, onUpdateData, onLeave }) {
   const [formData, setFormData] = useState({
     title: book.title || '',
     synopsis: book.synopsis || '',
@@ -26,6 +26,28 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     }
   });
   const [uploading, setUploading] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleConfirmDelete = () => {
+    if (!passwordInput) {
+      setDeleteError("Por favor, digite sua senha.");
+      return;
+    }
+    if (passwordInput === currentUser?.password) {
+      if (db && onUpdateData && onLeave) {
+        const newDb = { ...db, books: db.books.filter(b => b.id !== book.id) };
+        onUpdateData(newDb);
+        onLeave();
+      }
+    } else {
+      setDeleteError("Senha incorreta.");
+    }
+  };
+
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({ what: '', why: '', impact: '' });
 
@@ -412,6 +434,91 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           </div>
         </div>
       </div>
+
+      {/* ZONA DE PERIGO */}
+      {!isReadOnly && currentUser?.role === 'author' && (
+        <div style={{ marginTop: '3rem', borderTop: '1px solid rgba(255,59,48,0.2)', paddingTop: '2rem' }}>
+          <h3 style={{ color: '#ff3b30', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', fontSize: '1.2rem' }}>
+            <AlertTriangle size={20} /> Zona de Perigo
+          </h3>
+          <div style={{ background: 'rgba(255,59,48,0.05)', border: '1px solid rgba(255,59,48,0.1)', padding: '1.5rem', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '0.3rem' }}>Excluir Obra Permanentemente</strong>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Esta ação não poderá ser desfeita. Todo o conteúdo, personagens, locais e complementos vinculados a esta obra serão perdidos.</span>
+            </div>
+            <button 
+              onClick={() => {
+                if (window.confirm(`Tem certeza absoluta que deseja excluir a obra "${book.title}"?\n\nEsta ação é IRREVERSÍVEL!`)) {
+                  setShowDeleteModal(true);
+                  setPasswordInput('');
+                  setDeleteError('');
+                }
+              }}
+              style={{ background: '#ff3b30', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              Excluir Obra
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE SENHA PARA EXCLUSÃO */}
+      {showDeleteModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--card-bg)', width: '90%', maxWidth: '400px', borderRadius: '12px', padding: '2rem', border: '1px solid rgba(255,59,48,0.3)', position: 'relative' }}>
+            <button 
+              onClick={() => setShowDeleteModal(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              <X size={20} />
+            </button>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,59,48,0.1)', color: '#ff3b30', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <Trash2 size={30} />
+              </div>
+              <h2 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.3rem' }}>Confirmar Exclusão</h2>
+              <p style={{ margin: '0.5rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                Para confirmar a exclusão de <strong>{book.title}</strong>, digite sua senha de autor.
+              </p>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Senha</label>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '0 1rem' }}>
+                <Lock size={16} color="var(--text-muted)" />
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Sua senha..."
+                  style={{ flex: 1, background: 'none', border: 'none', color: '#fff', padding: '0.8rem', outline: 'none' }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleConfirmDelete()}
+                  autoFocus
+                />
+                <button 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0' }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {deleteError && (
+                <div style={{ color: '#ff3b30', fontSize: '0.85rem', marginTop: '0.5rem', textAlign: 'center' }}>
+                  {deleteError}
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={handleConfirmDelete}
+              style={{ width: '100%', background: '#ff3b30', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
+            >
+              Confirmar Exclusão
+            </button>
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   );

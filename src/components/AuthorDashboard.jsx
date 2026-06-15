@@ -271,13 +271,6 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     );
   };
 
-  const handleDeleteBook = (bookId, title) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${title}"?\nEsta ação não pode ser desfeita.`)) {
-      const newDb = { ...db, books: db.books.filter(b => b.id !== bookId) };
-      onUpdateData(newDb);
-    }
-  };
-
   const renderBooks = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -381,16 +374,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                   )}
                 </div>
                 <div style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--accent-gold)', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</h3>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDeleteBook(book.id, book.title); }} 
-                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }} 
-                      title="Excluir Obra"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  <h3 style={{ margin: '0 0 0.2rem 0', color: 'var(--accent-gold)', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</h3>
                   {book.sku && (
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontFamily: 'monospace', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.3rem', borderRadius: '4px', display: 'inline-block' }}>
                       SKU: {book.sku}

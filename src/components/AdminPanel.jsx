@@ -24,7 +24,7 @@ const editorConfig = {
   buttons: ['bold', 'italic', 'underline', 'strikethrough', '|', 'ul', 'ol', '|', 'paragraph', 'align', '|', 'quote', '|', 'undo', 'redo']
 };
 
-export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly = false, restrictedTabs = null }) {
+export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
   const [notesFilter, setNotesFilter] = useState('notes'); // 'notes' or 'requests'
   const [editingItem, setEditingItem] = useState(null);
@@ -886,7 +886,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (
-          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} />
+          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
         ) : activeList === 'notes' ? (

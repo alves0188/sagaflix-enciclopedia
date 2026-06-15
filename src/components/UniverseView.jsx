@@ -340,6 +340,9 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
             onUpdateBook={handleUpdateBook} 
             currentUser={currentUser}
             onLogChange={handleLogChange}
+            db={db}
+            onUpdateData={onUpdateData}
+            onLeave={onLeave}
           />
         ) : (
           <>
