@@ -704,7 +704,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         
         {/* Left Column: Chapters & Subthemes */}
-        <div className={`reader-sidebar ${isSidebarOpen ? 'open' : ''}`} style={{
+        <div className={`reader-toc-sidebar ${isSidebarOpen ? 'open' : ''}`} style={{
           width: '280px', backgroundColor: themeColors.panelBg, borderRight: `1px solid ${themeColors.border}`,
           overflowY: 'auto', padding: '1.5rem 0',
           display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0
@@ -1206,8 +1206,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
           .reader-illustration { display: none !important; }
-          .reader-sidebar { position: absolute; z-index: 10; height: 100%; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-          .reader-sidebar.open { transform: translateX(0); }
+          .reader-toc-sidebar { position: absolute; z-index: 10; height: 100%; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+          .reader-toc-sidebar.open { transform: translateX(0); }
           .mobile-only { display: flex !important; }
         }
         
