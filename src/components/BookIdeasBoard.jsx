@@ -177,10 +177,11 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       {/* Mural de Cortiça Corkboard */}
       <div className="corkboard" style={{ 
         flex: 1,
-        background: 'radial-gradient(circle, #2d2e33 0%, #151619 100%)', 
+        background: 'var(--card-bg)', 
         padding: '2.5rem 0',
         borderRadius: '16px',
-        marginTop: '1.5rem'
+        marginTop: '1.5rem',
+        border: '1px solid var(--border-color)'
       }}>
         {ideas.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)' }}>

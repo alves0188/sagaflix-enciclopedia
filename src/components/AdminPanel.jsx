@@ -1310,7 +1310,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     </div>
 
                     <div className="editor-footer-container" style={{ marginTop: '1rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
-                      <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
                         {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
