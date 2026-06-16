@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon } from 'lucide-react';
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon, Sun, Moon } from 'lucide-react';
 
 export default function CustomEditor({ value, onChange, disabled, placeholder }) {
   const editorRef = useRef(null);
@@ -51,11 +51,14 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
     }
   };
 
+  const [isLight, setIsLight] = useState(false);
+  const toggleTheme = () => setIsLight(prev => !prev);
+
   const toolbarStyle = {
     display: 'flex',
     gap: '0.5rem',
     padding: '0.5rem',
-    background: 'var(--card-bg)',
+    background: isLight ? '#f5f5f5' : 'var(--card-bg)',
     borderBottom: '1px solid var(--border-color)',
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
@@ -94,6 +97,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
 
         <button type="button" onClick={() => execCommand('insertUnorderedList')} style={btnStyle} title="Lista"><List size={16} /></button>
         <button type="button" onClick={handleImageInsert} style={btnStyle} title="Inserir Imagem"><ImageIcon size={16} /></button>
+        <button type="button" onClick={toggleTheme} style={btnStyle} title="Alternar Tema">{isLight ? <Moon size={16} /> : <Sun size={16} />}</button>
       </div>
       
       <div 
@@ -112,6 +116,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
           padding: '1rem',
           outline: 'none',
           color: 'var(--text-main)',
+          background: isLight ? '#ffffff' : 'var(--bg-color)',
           opacity: disabled ? 0.7 : 1,
           fontFamily: 'inherit',
           lineHeight: '1.6',
