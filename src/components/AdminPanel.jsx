@@ -1120,16 +1120,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       {editingItem && isChapterLike && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
-          backgroundColor: 'var(--bg-color)', display: 'flex', flexDirection: 'column',
-          color: 'var(--text-main)'
+          backgroundColor: ec.bg, display: 'flex', flexDirection: 'column',
+          color: ec.text, transition: 'background-color 0.3s ease, color 0.3s ease'
         }}>
           {/* Header */}
-          <div className="editor-header-container" style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1a1c20' }}>
+          <div className="editor-header-container" style={{ borderBottom: `1px solid ${ec.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: ec.panelBg, transition: 'background-color 0.3s ease' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
               <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Menu size={24} />
               </button>
-              <h2 style={{ fontSize: '1.1rem', margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <h2 style={{ fontSize: '1.1rem', margin: 0, fontFamily: "'Playfair Display', serif", color: ec.gold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {formData.title || (isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo' : 'Editar Capítulo'))}
               </h2>
             </div>
@@ -1140,7 +1140,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button
                 onClick={() => setEditorTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                 title={editorTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-                style={{ background: 'none', border: '1px solid var(--border-color)', color: editorTheme === 'dark' ? 'var(--text-main)' : ec.gold, padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+                style={{ background: 'none', border: `1px solid ${ec.border}`, color: ec.text, padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
               >
                 {editorTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                 <span className="desktop-only">{editorTheme === 'dark' ? 'Claro' : 'Escuro'}</span>
@@ -1355,7 +1355,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 3: Right (Ideias) */}
-            <div className="desktop-only" style={{ width: '420px', borderLeft: '1px solid var(--border-color)', backgroundColor: '#1a1c20', display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden' }}>
+            <div className="desktop-only" style={{ width: '420px', borderLeft: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden', transition: 'background-color 0.3s ease' }}>
               {currentBook && (
                 <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
               )}
