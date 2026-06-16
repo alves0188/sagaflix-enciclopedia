@@ -1118,7 +1118,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
       {/* Full Screen Modal: Chapter Editor (3 Columns) */}
       {editingItem && isChapterLike && (
-        <div style={{
+        <div
+          className={editorTheme === 'light' ? 'editor-light-theme' : ''}
+          style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
           backgroundColor: ec.bg, display: 'flex', flexDirection: 'column',
           color: ec.text, transition: 'background-color 0.3s ease, color 0.3s ease'

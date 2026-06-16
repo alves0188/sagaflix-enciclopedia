@@ -1591,3 +1591,39 @@ select option, select optgroup {
     justify-content: center;
   }
 }
+
+/* ================= EDITOR LIGHT THEME ================= */
+.editor-light-theme {
+  --bg-color: #fdfcf0;
+  --sidebar-bg: #f4f2e6;
+  --accent-gold: #b8942b;
+  --text-main: #2d2d2d;
+  --text-muted: #6b6b6b;
+  --card-bg: #edeadb;
+  --card-hover: #e5e2d3;
+  --border-color: #e0ddd0;
+}
+
+.editor-light-theme .form-input,
+.editor-light-theme select,
+.editor-light-theme input[type="text"] {
+  background-color: #ffffff !important;
+  color: #2d2d2d !important;
+  border-color: #e0ddd0 !important;
+}
+
+.editor-light-theme .btn-secondary {
+  background: #edeadb !important;
+  color: #2d2d2d !important;
+  border-color: #e0ddd0 !important;
+}
+
+.editor-light-theme .btn-primary {
+  background: #b8942b !important;
+  color: #ffffff !important;
+}
+
+.editor-light-theme .editor-mobile-sidebar {
+  background-color: #f4f2e6 !important;
+  border-color: #e0ddd0 !important;
+}
