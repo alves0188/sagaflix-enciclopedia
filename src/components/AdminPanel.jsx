@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, Moon } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -39,6 +39,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMobileIdeas, setShowMobileIdeas] = useState(false);
+  const [editorTheme, setEditorTheme] = useState('dark');
+  const editorColors = {
+    dark: { bg: '#121212', text: '#e0e0e0', panelBg: '#1e1e1e', border: '#333', gold: '#d4af37', toolbarBg: 'var(--card-bg)' },
+    light: { bg: '#fdfcf0', text: '#2d2d2d', panelBg: '#f4f2e6', border: '#e0ddd0', gold: '#b8942b', toolbarBg: '#f4f2e6' }
+  };
+  const ec = editorColors[editorTheme];
 
   useEffect(() => {
     if (showRequestModal || showTutorialModal) {
@@ -1131,6 +1137,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <ArrowLeft size={16} /> <span>Voltar</span>
               </button>
+              <button
+                onClick={() => setEditorTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+                title={editorTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+                style={{ background: 'none', border: '1px solid var(--border-color)', color: editorTheme === 'dark' ? 'var(--text-main)' : ec.gold, padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+              >
+                {editorTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                <span className="desktop-only">{editorTheme === 'dark' ? 'Claro' : 'Escuro'}</span>
+              </button>
               {!effectiveReadOnly && (
                 <>
                   {/* Botões grandes apenas no desktop */}
@@ -1228,7 +1242,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 2: Center (Editor de Texto) */}
-            <div style={{ flex: 1, backgroundColor: 'var(--bg-color)', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto' }}>
+            <div style={{ flex: 1, backgroundColor: ec.bg, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', transition: 'background-color 0.3s ease, color 0.3s ease', color: ec.text }}>
               
               {uniqueSubthemes.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhum subtema configurado.</div>
@@ -1288,6 +1302,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         }}
                         disabled={effectiveReadOnly}
                         placeholder="Escreva a sessão do capítulo aqui..."
+                        themeColors={ec}
+                        editorTheme={editorTheme}
                       />
                     </div>
 

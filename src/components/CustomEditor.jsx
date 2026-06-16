@@ -1,11 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon, Sun, Moon } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon } from 'lucide-react';
 
-export default function CustomEditor({ value, onChange, disabled, placeholder }) {
+export default function CustomEditor({ value, onChange, disabled, placeholder, themeColors, editorTheme }) {
   const editorRef = useRef(null);
   
   // Guardamos o HTML atual para não acionar o onChange à toa e para saber se o value mudou de fora
   const lastHtml = useRef(value || '');
+
+  // Cores do tema — usa props se recebidas, senão usa cores padrão (escuro)
+  const isLight = editorTheme === 'light';
+  const tc = themeColors || {
+    bg: '#121212', text: '#e0e0e0', panelBg: '#1e1e1e',
+    border: '#333', gold: '#d4af37', toolbarBg: 'var(--card-bg)'
+  };
 
   // Sincroniza estado inicial no mount
   useEffect(() => {
@@ -51,53 +58,51 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
     }
   };
 
-  const [isLight, setIsLight] = useState(false);
-  const toggleTheme = () => setIsLight(prev => !prev);
-
   const toolbarStyle = {
     display: 'flex',
     gap: '0.5rem',
     padding: '0.5rem',
-    background: isLight ? '#f5f5f5' : 'var(--card-bg)',
-    borderBottom: '1px solid var(--border-color)',
+    background: tc.toolbarBg || tc.panelBg,
+    borderBottom: `1px solid ${tc.border}`,
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
     position: 'sticky',
     top: 0,
-    zIndex: 10
+    zIndex: 10,
+    transition: 'background 0.3s ease'
   };
 
   const btnStyle = {
     background: 'none',
     border: 'none',
-    color: 'var(--text-main)',
+    color: tc.text,
     cursor: 'pointer',
     padding: '0.4rem',
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'color 0.3s ease'
   };
 
   return (
-    <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-color)', display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px' }}>
+    <div style={{ border: `1px solid ${tc.border}`, borderRadius: '8px', overflow: 'hidden', background: tc.bg, display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px', transition: 'background 0.3s ease, border-color 0.3s ease' }}>
       <div style={toolbarStyle}>
         <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
         <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
         <button type="button" onClick={() => execCommand('underline')} style={btnStyle} title="Sublinhado"><Underline size={16} /></button>
         
-        <div style={{ width: '1px', background: 'var(--border-color)', margin: '0 0.5rem' }}></div>
+        <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
         
         <button type="button" onClick={() => execCommand('justifyLeft')} style={btnStyle} title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
         <button type="button" onClick={() => execCommand('justifyCenter')} style={btnStyle} title="Centralizar"><AlignCenter size={16} /></button>
         <button type="button" onClick={() => execCommand('justifyRight')} style={btnStyle} title="Alinhar à Direita"><AlignRight size={16} /></button>
 
-        <div style={{ width: '1px', background: 'var(--border-color)', margin: '0 0.5rem' }}></div>
+        <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
 
         <button type="button" onClick={() => execCommand('insertUnorderedList')} style={btnStyle} title="Lista"><List size={16} /></button>
         <button type="button" onClick={handleImageInsert} style={btnStyle} title="Inserir Imagem"><ImageIcon size={16} /></button>
-        <button type="button" onClick={toggleTheme} style={btnStyle} title="Alternar Tema">{isLight ? <Moon size={16} /> : <Sun size={16} />}</button>
       </div>
       
       <div 
@@ -106,6 +111,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
         tabIndex={0}
         onInput={handleInput}
         onBlur={handleInput}
+        spellCheck="true"
         onClick={() => {
           if (!disabled && editorRef.current) {
             editorRef.current.focus();
@@ -115,8 +121,8 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
           flex: 1,
           padding: '1rem',
           outline: 'none',
-          color: 'var(--text-main)',
-          background: isLight ? '#ffffff' : 'var(--bg-color)',
+          color: tc.text,
+          background: tc.bg,
           opacity: disabled ? 0.7 : 1,
           fontFamily: 'inherit',
           lineHeight: '1.6',
@@ -124,7 +130,8 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
           WebkitUserSelect: 'text',
           userSelect: 'text',
           cursor: 'text',
-          WebkitTouchCallout: 'default'
+          WebkitTouchCallout: 'default',
+          transition: 'background 0.3s ease, color 0.3s ease'
         }}
         data-placeholder={placeholder}
         // Sem dangerouslySetInnerHTML aqui para evitar conflitos pesados do React 
@@ -135,7 +142,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder })
       <style>{`
         div[contenteditable]:empty:before {
           content: attr(data-placeholder);
-          color: var(--text-muted);
+          color: ${isLight ? '#999' : 'var(--text-muted)'};
           pointer-events: none;
           display: block; /* For Firefox */
         }
