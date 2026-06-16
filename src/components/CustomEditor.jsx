@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon, Sun, Moon } from 'lucide-react';
 
 export default function CustomEditor({ value, onChange, disabled, placeholder }) {
