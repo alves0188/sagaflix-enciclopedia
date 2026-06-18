@@ -928,21 +928,24 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
               {/* Filtro por Letra A-Z */}
               <div className="reader-az-bar" style={{ 
                 display: 'flex', 
+                flexDirection: 'row',
                 flexWrap: 'nowrap', 
                 overflowX: 'auto',
                 whiteSpace: 'nowrap',
-                gap: '0.3rem', 
+                gap: '0.15rem', 
                 alignItems: 'center',
-                flex: 1,
+                width: '100%',
+                maxWidth: '100%',
                 scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
               }}>
 
                 <button 
                   onClick={() => setLetterFilter('')} 
                   style={{ 
-                    padding: '0.3rem 0.6rem', 
-                    fontSize: '0.8rem', 
+                    padding: '0.3rem 0.5rem', 
+                    fontSize: '0.75rem', 
                     background: letterFilter === '' ? 'var(--accent-gold)' : 'transparent', 
                     color: letterFilter === '' ? '#000' : 'var(--text-main)', 
                     border: 'none', 
@@ -960,15 +963,15 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                     key={letter}
                     onClick={() => setLetterFilter(letter)} 
                     style={{ 
-                      padding: '0.3rem 0.5rem', 
-                      fontSize: '0.8rem', 
+                      padding: '0.3rem 0.35rem', 
+                      fontSize: '0.75rem', 
                       background: letterFilter === letter ? 'var(--accent-gold)' : 'transparent', 
                       color: letterFilter === letter ? '#000' : 'var(--text-main)', 
                       border: 'none', 
                       borderRadius: '4px', 
                       cursor: 'pointer', 
                       fontWeight: 'bold',
-                      minWidth: '24px',
+                      minWidth: '20px',
                       textAlign: 'center',
                       transition: 'all 0.2s',
                       flexShrink: 0
