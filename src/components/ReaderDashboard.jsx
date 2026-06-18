@@ -770,7 +770,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           </div>
 
           {/* Links Menu */}
-          <button onClick={() => { setActiveTab('vitrine'); setSelectedBook(null); }} style={navItemStyle('vitrine')}><BookOpen size={18}/> Vitrine de Obras</button>
+          <button onClick={() => { setActiveTab('vitrine'); setSelectedBook(null); }} style={navItemStyle('vitrine')}><BookOpen size={18}/> Estante de Obras</button>
           <button onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} style={navItemStyle('favoritos')}><Star size={18}/> Minha Lista</button>
           <button onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} style={navItemStyle('lendo')}><Bookmark size={18}/> Lendo</button>
           <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
@@ -803,7 +803,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             }}
           >
             <BookOpen size={20} />
-            <span>Vitrine</span>
+            <span>Estante</span>
           </button>
           <button 
             onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} 
@@ -861,7 +861,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         gap: isMobile ? '0' : '2rem'
       }}>
         
-        {/* Top Header para abas que não sejam a Vitrine e não sejam Dossiê */}
+        {/* Top Header para abas que não sejam a Estante e não sejam Dossiê */}
         {activeTab !== 'vitrine' && activeTab !== 'dossie' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize', fontSize: isMobile ? '1.5rem' : '2rem' }}>
@@ -902,7 +902,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           }
         `}</style>
 
-        {/* Carousel Banner no topo da Vitrine */}
+        {/* Carousel Banner no topo da Estante */}
         {activeTab === 'vitrine' && (
           <div style={{ marginBottom: isMobile ? '1.2rem' : '0' }}>
             {renderBannerCarousel()}

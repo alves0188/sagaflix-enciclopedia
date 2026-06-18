@@ -1627,3 +1627,18 @@ select option, select optgroup {
   background-color: #f4f2e6 !important;
   border-color: #e0ddd0 !important;
 }
+
+/* Fix alphabet filter horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .reader-az-bar {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .reader-az-bar::-webkit-scrollbar {
+    display: none;
+  }
+}

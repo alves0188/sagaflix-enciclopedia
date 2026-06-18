@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, Moon } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -45,6 +45,26 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     light: { bg: '#fdfcf0', text: '#2d2d2d', panelBg: '#f4f2e6', border: '#e0ddd0', gold: '#b8942b', toolbarBg: '#f4f2e6' }
   };
   const ec = editorColors[editorTheme];
+
+  const [draggedChapterIdx, setDraggedChapterIdx] = useState(null);
+
+  const handleChapterDragStart = (idx) => {
+    setDraggedChapterIdx(idx);
+  };
+
+  const handleChapterDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleChapterDrop = (targetIdx) => {
+    if (draggedChapterIdx === null || draggedChapterIdx === targetIdx) return;
+    const listKey = 'chapters';
+    const items = [...(data[listKey] || [])];
+    const [moved] = items.splice(draggedChapterIdx, 1);
+    items.splice(targetIdx, 0, moved);
+    onUpdate({ ...data, [listKey]: items });
+    setDraggedChapterIdx(null);
+  };
 
   useEffect(() => {
     if (showRequestModal || showTutorialModal) {
@@ -976,15 +996,25 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               {(data[activeList] || []).length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
               ) : (
-                (data[activeList] || []).map(item => (
+                (data[activeList] || []).map((item, idx) => (
                   <div 
                     key={item.id} 
                     className="admin-list-card" 
+                    draggable={activeList === 'chapters' && !isReadOnly}
+                    onDragStart={() => activeList === 'chapters' && handleChapterDragStart(idx)}
+                    onDragOver={activeList === 'chapters' ? handleChapterDragOver : undefined}
+                    onDrop={() => activeList === 'chapters' && handleChapterDrop(idx)}
+                    style={{ opacity: draggedChapterIdx === idx ? 0.5 : 1, cursor: activeList === 'chapters' && !isReadOnly ? 'grab' : 'pointer' }}
                     onClick={() => {
                       if (!canViewChapter && activeList === 'chapters') return;
                       handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
                     }}
                   >
+                    {activeList === 'chapters' && !isReadOnly && (
+                      <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', cursor: 'grab', padding: '0 0.5rem 0 0', flexShrink: 0 }}>
+                        <GripVertical size={16} />
+                      </div>
+                    )}
                     {activeList !== 'chapters' && item.image && (
                       <img src={item.image} alt={item.title || item.name} />
                     )}
@@ -1001,7 +1031,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     </div>
                     {/* Botões de ação rápida para desktop */}
                     {!isReadOnly && !(activeList === 'chapters' && !canEditChapter) && (
-                      <div className="desktop-only" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
