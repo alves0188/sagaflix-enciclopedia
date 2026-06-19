@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send, Gift, ThumbsUp, ThumbsDown, AlertTriangle } from 'lucide-react';
 import ShopModal from './ShopModal';
+import { processGamificationEvent } from '../utils/gamificationEngine';
 
 const cleanChapterTitle = (title) => {
   if (!title) return '';
@@ -345,27 +346,17 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       stats: newStats
     };
 
-    // Check for new badges
-    const currentBadges = currentUser.badges || [];
-    let updatedBadges = [...currentBadges];
-    let badgeUnlocked = false;
-    const availableBadges = db.badgesConfig || [];
-    
-    availableBadges.forEach(badge => {
-      const alreadyHas = currentBadges.some(b => b.id === badge.id);
-      if (!alreadyHas && badge.minPages > 0 && newStats.totalPages >= badge.minPages) {
-        updatedBadges.push(badge);
-        badgeUnlocked = true;
-      }
-    });
-
-    if (badgeUnlocked) {
-      updatedUser.badges = updatedBadges;
-    }
-
-    const newDb = { ...db };
+    let newDb = { ...db };
     newDb.users = newDb.users.map(u => u.id === currentUser.id ? updatedUser : u);
-    onUpdateData(newDb);
+
+    // Motor de Gamificação
+    let engineResult = processGamificationEvent(newDb, currentUser.id, 'chapters_read', { amount: 1 });
+    engineResult = processGamificationEvent(engineResult.newDb, currentUser.id, 'total_mins_read', { minsRead: Math.floor(timeSpentRef.current / 60) });
+    
+    // Se quiser mostrar os toasts, precisa passar os unlockedBadges para cima ou usar notificações do DB.
+    // O motor já cria notificações em engineResult.newDb.notifications
+
+    onUpdateData(engineResult.newDb);
   }, [activeChapterIdx, activeSubthemeIdx, activeColumnIdx]);
 
   // Measure columns and global pages

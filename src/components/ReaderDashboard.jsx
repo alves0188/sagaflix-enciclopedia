@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown } from 'lucide-react';
+import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown, Award } from 'lucide-react';
 import { GENRES_LIST } from '../lib/genres';
+import { BADGES_DB, BADGE_CATEGORIES, TIER_INFO, calculateLevel } from '../utils/gamificationConfig';
+import { processGamificationEvent } from '../utils/gamificationEngine';
 
 const DEFAULT_BANNERS = [
   {
@@ -59,6 +61,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
   }, []);
 
   const [localActiveTab, setLocalActiveTab] = useState('vitrine');
+  const [openBadgeDetails, setOpenBadgeDetails] = useState(null);
   const activeTab = initialActiveTab || localActiveTab;
   const setActiveTab = (tab) => {
     if (onTabChange) onTabChange(tab);
@@ -658,8 +661,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
             </div>
 
             <div className="dossier-grid">
-              {/* Esquerda: Foto e Dados */}
-              <div>
+              {/* Esquerda: Foto e Dados (agora centralizado) */}
+              <div style={{ margin: '0 auto', maxWidth: '500px' }}>
                 <div className="dossier-photo-container">
                   <div className="dossier-photo-title">FOTO DE IDENTIFICAÇÃO</div>
                   <div style={{ background: '#222', height: '260px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #555', overflow: 'hidden' }}>
@@ -671,65 +674,109 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
                   </div>
                 </div>
                 
-                <div className="dossier-section-title">ESTATÍSTICAS GERAIS</div>
+                <div className="dossier-section-title" style={{ textAlign: 'center' }}>ESTATÍSTICAS GERAIS</div>
                 
                 <div className="dossier-personal-data" style={{ color: '#222' }}>
                   <div><strong>NOME / APELIDO:</strong> {currentUser.nickname || (currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</div>
                   <div><strong>PÁGINAS LIDAS:</strong> {pagesRead}</div>
                   <div><strong>LIVROS CONCLUÍDOS:</strong> {finishedBooks}</div>
                   <div><strong>TEMPO DE LEITURA:</strong> {Math.floor((stats.totalTime || 0)/60)}h {(stats.totalTime || 0)%60}m</div>
-                  <div><strong>TÍTULOS (BADGES):</strong> {badges.length} / {allBadges.length}</div>
                   <div><strong>MEMBRO DESDE:</strong> 2026</div>
-                </div>
-              </div>
-
-              {/* Direita: Badges e Premiações */}
-              <div className="dossier-main-content">
-                <div className="dossier-section-title">CONDECORAÇÕES & PREMIAÇÕES</div>
-                <p style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.4', color: '#222' }}>
-                  O leitor a seguir possui as credenciais abaixo baseadas no seu engajamento no sistema. Documentos sem carimbo constam como não alcançados.
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
-                  {allBadges.length === 0 ? (
-                    <div style={{ fontStyle: 'italic', color: '#666' }}>Nenhum título no sistema.</div>
-                  ) : (
-                    allBadges.map((badge, idx) => {
-                      const hasBadge = badges.some(ub => ub.id === badge.id || ub === badge.id || ub.name === badge.name);
-                      return (
-                        <div key={idx} style={{ 
-                          border: '1px solid #999', 
-                          padding: '1rem', 
-                          borderRadius: '2px', 
-                          textAlign: 'center', 
-                          background: hasBadge ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.3)',
-                          filter: hasBadge ? 'none' : 'grayscale(100%)',
-                          opacity: hasBadge ? 1 : 0.6,
-                          position: 'relative'
-                        }}>
-                          {hasBadge && (
-                             <div style={{ position: 'absolute', top: '5px', right: '5px', color: '#b8860b' }}>
-                               <Star size={14} fill="#b8860b" />
-                             </div>
-                          )}
-                          <div style={{ width: '40px', height: '40px', margin: '0 auto 0.8rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
-                            {badge.icon ? (
-                              badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
-                                ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> 
-                                : <span>{badge.icon}</span>
-                            ) : <Star size={32} color="#444" />}
-                          </div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#111', marginBottom: '0.3rem' }}>{badge.name}</div>
-                          <div style={{ fontSize: '0.7rem', color: '#444' }}>{hasBadge ? badge.description : badge.rule || badge.description}</div>
-                        </div>
-                      );
-                    })
-                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+  const renderConquistas = () => {
+    const user = db.users.find(u => u.id === currentUser.id);
+    const xp = user.xp || 0;
+    const streakDays = user.streakDays || 0;
+    const unlockedBadges = user.unlockedBadges || [];
+    const badgeProgress = user.badgeProgress || {};
+    const levelInfo = calculateLevel(xp);
+
+    return (
+      <div style={{ paddingBottom: '2rem', animation: 'fadeIn 0.3s ease-in-out' }}>
+        <h2 className="sr-only">Sistema de gamificação BookFlix — categorias de selos e conquistas</h2>
+
+        <div className="stats-strip">
+          <div className="stat-card"><div className="stat-label">XP total</div><div className="stat-val">{xp}</div></div>
+          <div className="stat-card"><div className="stat-label">Selos conquistados</div><div className="stat-val">{unlockedBadges.length} / 42</div></div>
+          <div className="stat-card"><div className="stat-label">Nível atual</div><div className="stat-val">{levelInfo.title}</div></div>
+          <div className="stat-card"><div className="stat-label">Sequência</div><div className="stat-val">{streakDays} dias</div></div>
+        </div>
+
+        {openBadgeDetails && (
+          <div className="detail-panel active">
+            <div className="detail-top">
+              <div className="detail-icon-lg" style={{ background: openBadgeDetails.bg }}>
+                <i className={`ti ${openBadgeDetails.icon}`} style={{ color: openBadgeDetails.ic, fontSize: '28px' }} aria-hidden="true"></i>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="detail-title">{openBadgeDetails.name}</div>
+                  <div className={`tier-pill ${TIER_INFO[openBadgeDetails.tier].pillClass}`}>{TIER_INFO[openBadgeDetails.tier].label}</div>
+                  {unlockedBadges.some(ub => ub.id === openBadgeDetails.id) && (
+                    <div style={{ fontSize: '11px', background: '#EAF3DE', color: '#27500A', padding: '2px 8px', borderRadius: '20px' }}>Conquistado</div>
+                  )}
+                </div>
+                <div className="detail-desc">{openBadgeDetails.desc}</div>
+              </div>
+              <button className="close-btn" onClick={() => setOpenBadgeDetails(null)} aria-label="Fechar">&times;</button>
+            </div>
+            
+            {(() => {
+              const b = openBadgeDetails;
+              const isUnlocked = unlockedBadges.some(ub => ub.id === b.id);
+              const currentProg = isUnlocked ? b.progMax : (badgeProgress[b.id] || 0);
+              const pct = Math.min(100, Math.round((currentProg / b.progMax) * 100));
+              const fill = TIER_INFO[b.tier].fill;
+              return (
+                <>
+                  <div className="progress-bar"><div className="progress-fill" style={{ width: `${pct}%`, background: fill }}></div></div>
+                  <div className="progress-label"><span>{isUnlocked ? 'Concluído' : `${currentProg} / ${b.progMax}`}</span><span>{pct}%</span></div>
+                </>
+              );
+            })()}
+
+            <div className="xp-strip">
+              <i className="ti ti-sparkles" style={{ color: '#854F0B', fontSize: '16px' }} aria-hidden="true"></i>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Recompensa:</span>
+              <span className="xp-val">+{openBadgeDetails.xp} XP</span>
+              {unlockedBadges.some(ub => ub.id === openBadgeDetails.id) && (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 'auto' }}>Já creditado na sua conta</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {BADGE_CATEGORIES.map(cat => (
+          <div key={cat.id}>
+            <div className="cat-header">
+              <div className="cat-icon" style={{ background: cat.bg }}><i className={`ti ${cat.icon}`} style={{ color: cat.color }} aria-hidden="true"></i></div>
+              <span className="cat-title">{cat.name}</span>
+              <span className="cat-sub">{cat.sub}</span>
+            </div>
+            <div className="badges-grid">
+              {BADGES_DB[cat.id].map(b => {
+                const isUnlocked = unlockedBadges.some(ub => ub.id === b.id);
+                return (
+                  <div key={b.id} className={`badge-card ${isUnlocked ? '' : 'locked'}`} onClick={() => setOpenBadgeDetails(openBadgeDetails?.id === b.id ? null : b)}>
+                    <div className="badge-icon" style={{ background: b.bg }}>
+                      <i className={`ti ${b.icon}`} style={{ color: b.ic, fontSize: '22px' }} aria-hidden="true"></i>
+                    </div>
+                    <div className="badge-name">{b.name}</div>
+                    <div className="badge-meta">{b.meta}</div>
+                    <div className={`tier-pill ${TIER_INFO[b.tier].pillClass}`}>{TIER_INFO[b.tier].label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -774,6 +821,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           <button onClick={() => { setActiveTab('favoritos'); setSelectedBook(null); }} style={navItemStyle('favoritos')}><Star size={18}/> Minha Lista</button>
           <button onClick={() => { setActiveTab('lendo'); setSelectedBook(null); }} style={navItemStyle('lendo')}><Bookmark size={18}/> Lendo</button>
           <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
+          <button onClick={() => { setActiveTab('conquistas'); setSelectedBook(null); }} style={navItemStyle('conquistas')}><Award size={18}/> Conquistas</button>
           <button onClick={() => { setActiveTab('dossie'); setSelectedBook(null); }} style={navItemStyle('dossie')}><User size={18}/> Meu Dossiê</button>
         </div>
       )}
@@ -834,6 +882,16 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
           >
             <CheckCircle size={20} />
             <span>Lidos</span>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('conquistas'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'conquistas' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'conquistas' ? '600' : '400'
+            }}
+          >
+            <Award size={20} />
+            <span>Conquistas</span>
           </button>
           <button 
             onClick={() => { setActiveTab('dossie'); setSelectedBook(null); }} 
@@ -1620,6 +1678,13 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         {activeTab === 'dossie' && (
           <div style={{ padding: 0 }}>
             {renderDossier()}
+          </div>
+        )}
+
+        {/* Seção Conquistas */}
+        {activeTab === 'conquistas' && (
+          <div style={{ padding: 0 }}>
+            {renderConquistas()}
           </div>
         )}
 
