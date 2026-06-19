@@ -919,8 +919,8 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         gap: isMobile ? '0' : '2rem'
       }}>
         
-        {/* Top Header para abas que não sejam a Estante e não sejam Dossiê */}
-        {activeTab !== 'vitrine' && activeTab !== 'dossie' && (
+        {/* Top Header para abas que não sejam a Estante, Dossiê ou Conquistas */}
+        {activeTab !== 'vitrine' && activeTab !== 'dossie' && activeTab !== 'conquistas' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, textTransform: 'capitalize', fontSize: isMobile ? '1.5rem' : '2rem' }}>
               {activeTab === 'favoritos' ? 'Minha Lista (Favoritos)' : activeTab === 'lendo' ? 'Livros Sendo Lidos' : 'Livros Concluídos'}
@@ -1173,7 +1173,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
         )}
 
         {/* Grid de Livros */}
-        {activeTab !== 'dossie' && (
+        {activeTab !== 'dossie' && activeTab !== 'conquistas' && (
           filteredBooks.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0' }}>
               <BookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
