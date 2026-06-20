@@ -3605,7 +3605,17 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       border: 'none',
       borderBottom: isActive ? '2px solid var(--accent-gold)' : '2px solid transparent',
       color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-      fon        {/* Sub-abas */}
+      fontWeight: 'bold',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      transition: 'all 0.2s ease'
+    });
+
+    return (
+      <div style={{ padding: '2rem' }}>
+        {/* Sub-abas */}
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', flexWrap: 'wrap' }}>
           <button onClick={() => setGamificacaoSubTab('manual')} style={subTabStyle(gamificacaoSubTab === 'manual')}>
             <BookOpen size={16} /> Manual do Sistema
