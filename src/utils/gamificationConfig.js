@@ -64,6 +64,16 @@ export const TIER_INFO = {
   legend: { label: "Lenda", fill: "#7F77DD", pillClass: "tier-legend", bg: "#CECBF6", color: "#3C3489" }
 };
 
+export const XP_LEVELS = {
+  1: { title: 'Leitor', minXp: 0 },
+  2: { title: 'Leitor assíduo', minXp: 501 },
+  3: { title: 'Devorador de histórias', minXp: 1501 },
+  4: { title: 'Bibliófilo', minXp: 3501 },
+  5: { title: 'Guardião das palavras', minXp: 7001 },
+  6: { title: 'Lenda do BookFlix', minXp: 15001 }
+};
+
+
 export function calculateLevel(xp) {
   if (xp < 501) return { level: 1, title: 'Leitor', min: 0, max: 500 };
   if (xp < 1501) return { level: 2, title: 'Leitor assíduo', min: 501, max: 1500 };
