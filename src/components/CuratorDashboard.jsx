@@ -175,7 +175,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [bannerUploading, setBannerUploading] = useState(false);
 
   // ESTADOS DA GAMIFICAÇÃO
-  const [gamificacaoSubTab, setGamificacaoSubTab] = useState('manual');
+  const [gamificacaoSubTab, setGamificacaoSubTab] = useState('ranking');
+  const [expandedReader, setExpandedReader] = useState(null);
+  const [gamificacaoChatUser, setGamificacaoChatUser] = useState(null);
+  const [gamificacaoChatInput, setGamificacaoChatInput] = useState('');
   const [editingBadge, setEditingBadge] = useState(null);
   const [badgeForm, setBadgeForm] = useState({ id: '', name: '', description: '', icon: '', minPages: 0 });
   const [badgeUploading, setBadgeUploading] = useState(false);
