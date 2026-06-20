@@ -14,6 +14,7 @@ import ReaderDashboard from './ReaderDashboard';
 import HQModal from './HQModal';
 import { supabase, uploadImage } from '../lib/supabaseClient';
 import { sendEmail } from '../lib/emailjs';
+import { BADGES_DB, BADGE_CATEGORIES, XP_LEVELS, TIER_INFO } from '../utils/gamificationConfig';
 
 const ROLE_PRESETS = {
   admin: {
@@ -174,7 +175,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const [bannerUploading, setBannerUploading] = useState(false);
 
   // ESTADOS DA GAMIFICAÇÃO
-  const [gamificacaoSubTab, setGamificacaoSubTab] = useState('badges');
+  const [gamificacaoSubTab, setGamificacaoSubTab] = useState('manual');
   const [editingBadge, setEditingBadge] = useState(null);
   const [badgeForm, setBadgeForm] = useState({ id: '', name: '', description: '', icon: '', minPages: 0 });
   const [badgeUploading, setBadgeUploading] = useState(false);
@@ -3604,25 +3605,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       border: 'none',
       borderBottom: isActive ? '2px solid var(--accent-gold)' : '2px solid transparent',
       color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-      fontWeight: isActive ? 'bold' : 'normal',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      transition: 'all 0.3s ease'
-    });
-
-    return (
-      <div className="curator-gamificacao-section animate-fade-in">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Gamificação e Engajamento</h2>
-        </div>
-
-        {/* Sub-abas */}
+      fon        {/* Sub-abas */}
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', flexWrap: 'wrap' }}>
-          <button onClick={() => setGamificacaoSubTab('badges')} style={subTabStyle(gamificacaoSubTab === 'badges')}>
-            <Award size={16} /> Gestão de Títulos (Badges)
+          <button onClick={() => setGamificacaoSubTab('manual')} style={subTabStyle(gamificacaoSubTab === 'manual')}>
+            <BookOpen size={16} /> Manual do Sistema
           </button>
           <button onClick={() => setGamificacaoSubTab('ranking')} style={subTabStyle(gamificacaoSubTab === 'ranking')}>
             <TrendingUp size={16} /> Top 100 Leitores
@@ -3632,125 +3618,94 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           </button>
         </div>
 
-        {gamificacaoSubTab === 'badges' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie e gerencie os títulos que os leitores podem desbloquear (ex: Inicializador, Leitor Fiel).</p>
-              <button className="btn-primary" onClick={() => {
-                setBadgeForm({ id: '', name: '', description: '', rule: '', icon: 'Ã°Å¸Ââ€ ' });
-                setEditingBadge(true);
-              }}>+ Novo Título</button>
-            </div>
-            
-            {badges.length === 0 ? (
-              <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-                <Star size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>Nenhum título cadastrado</h3>
-                <p style={{ color: 'var(--text-muted)', margin: 0 }}>Crie os 10 títulos principais para incentivar os leitores!</p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                {badges.map((badge, idx) => (
-                  <div key={idx} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', fontSize: '24px' }}>
-                      {badge.icon ? (
-                        badge.icon.startsWith('http') || badge.icon.startsWith('/') || badge.icon.startsWith('data:') 
-                          ? <img src={badge.icon} alt={badge.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
-                          : <span>{badge.icon}</span>
-                      ) : <Award size={24} color="var(--accent-gold)" />}
-                    </div>
-                    <div>
-                      <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--accent-gold)' }}>{badge.name}</h4>
-                      <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{badge.description}</p>
-                      <div style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.6rem', borderRadius: '4px', color: '#aaa' }}>
-                        <strong>Diretriz/Regra:</strong> {badge.rule || 'Atribuição manual'}
-                      </div>
-                      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => {
-                          setBadgeForm({ ...badge });
-                          setEditingBadge(true);
-                        }}>Editar</button>
-                        <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', borderColor: 'var(--accent-red)', color: 'var(--accent-red)' }} onClick={() => {
-                          if (window.confirm(`Tem certeza que deseja excluir o título "${badge.name}"?`)) {
-                             const newBadges = (db.gamificationBadges || []).filter(b => b.id !== badge.id);
-                             onUpdateData({ ...db, gamificationBadges: newBadges });
-                          }
-                        }}>Excluir</button>
-                      </div>
-                    </div>
+        {gamificacaoSubTab === 'manual' && (
+          <div className="gamification-manual">
+            <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
+              <h3 style={{ color: 'var(--accent-gold)', marginTop: 0, marginBottom: '1rem', fontFamily: "'Playfair Display', serif", fontSize: '1.8rem' }}>Como funciona a Gamificação?</h3>
+              <p style={{ color: 'var(--text-main)', lineHeight: '1.6', marginBottom: '1rem' }}>
+                O sistema de gamificação da Sagaflix é totalmente automatizado e projetado para incentivar o engajamento através de recompensas e níveis. As regras listadas abaixo refletem exatamente a configuração atual do motor de gamificação.
+              </p>
+              
+              <h4 style={{ color: 'var(--text-main)', marginTop: '1.5rem', marginBottom: '0.5rem' }}>Pontos de Experiência (XP)</h4>
+              <ul style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.5rem', paddingLeft: '1.5rem' }}>
+                <li><strong>1 Página Lida</strong> = 1 XP</li>
+                <li><strong>Completar 1 Livro</strong> = 10 XP Bônus</li>
+                <li><strong>Desbloquear um Selo</strong> = Recompensa de XP baseada na sua Raridade</li>
+              </ul>
+
+              <h4 style={{ color: 'var(--text-main)', marginTop: '1.5rem', marginBottom: '0.5rem' }}>Níveis de Leitor</h4>
+              <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1rem' }}>Conforme o leitor acumula XP, ele sobe de nível. Cada nível exige mais XP que o anterior.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {Object.entries(XP_LEVELS).map(([level, details]) => (
+                  <div key={level} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)' }}>Nível {level}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', margin: '0.5rem 0' }}>{details.title}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{details.minXp} XP mínimo</div>
                   </div>
                 ))}
               </div>
-            )}
-            {editingBadge && (
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ background: 'var(--bg-color)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px', border: '1px solid var(--border-color)' }}>
-                  <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)' }}>{badgeForm.id ? 'Editar Título' : 'Novo Título'}</h3>
-                  
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nome do Título</label>
-                    <input type="text" className="input-field" value={badgeForm.name || ''} onChange={e => setBadgeForm({...badgeForm, name: e.target.value})} placeholder="Ex: Leitor ÃƒÂvido" />
-                  </div>
-                  
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Descrição</label>
-                    <textarea className="input-field" value={badgeForm.description || ''} onChange={e => setBadgeForm({...badgeForm, description: e.target.value})} placeholder="Parabéns, você leu 10 livros..." style={{ minHeight: '80px' }}></textarea>
-                  </div>
-                  
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Diretriz/Regra (Informativo para o Leitor)</label>
-                    <input type="text" className="input-field" value={badgeForm.rule || ''} onChange={e => setBadgeForm({...badgeForm, rule: e.target.value})} placeholder="Ex: Ler 10 livros" />
-                  </div>
+            </div>
 
-                  <div style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                    <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)' }}>Construtor de Regra (AutomÃ¡tico)</h4>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Alvo da Métrica</label>
-                        <select className="input-field" value={badgeForm.conditionTarget || ''} onChange={e => setBadgeForm({...badgeForm, conditionTarget: e.target.value})}>
-                          <option value="">(Nenhum / Manual)</option>
-                          <option value="pagesRead">PÃ¡ginas Lidas</option>
-                          <option value="booksRead">Livros Lidos (Validados)</option>
-                          <option value="dossiersReadComplex">Dossiês Lidos (Regra Complexa)</option>
-                          <option value="secretNotesApproved">Notas Secretas Aprovadas</option>
-                        </select>
-                      </div>
-                      <div style={{ width: '130px' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Condição</label>
-                        <select className="input-field" value={badgeForm.conditionOperator || '>='} onChange={e => setBadgeForm({...badgeForm, conditionOperator: e.target.value})}>
-                          <option value=">=">Maior/Igual a</option>
-                          <option value="==">Igual a</option>
-                        </select>
-                      </div>
-                      <div style={{ width: '100px' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Valor</label>
-                        <input type="number" className="input-field" value={badgeForm.conditionValue || 0} onChange={e => setBadgeForm({...badgeForm, conditionValue: parseInt(e.target.value) || 0})} />
-                      </div>
-                    </div>
-                  </div>
+            <h3 style={{ color: 'var(--text-main)', marginTop: '2.5rem', marginBottom: '1.5rem', fontFamily: "'Playfair Display', serif", fontSize: '1.8rem' }}>Enciclopédia de Selos (Badges)</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Abaixo estão listados todos os {Object.keys(BADGES_DB).length} selos do sistema, separados por categoria.</p>
+            
+            {Object.entries(BADGE_CATEGORIES).map(([catId, catName]) => {
+              const categoryBadges = Object.values(BADGES_DB).filter(b => b.category === catId);
+              if (categoryBadges.length === 0) return null;
 
-                  <div style={{ marginBottom: '2rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ÃƒÂcone (Emoji ou URL da Imagem)</label>
-                    <input type="text" className="input-field" value={badgeForm.icon || ''} onChange={e => setBadgeForm({...badgeForm, icon: e.target.value})} placeholder="Ex: Ã°Å¸Ââ€  ou https://link.com/img.png" />
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button className="btn-secondary" onClick={() => setEditingBadge(false)}>Cancelar</button>
-                    <button className="btn-primary" onClick={() => {
-                       if (!badgeForm.name) return alert('O nome é obrigatório!');
-                       let newBadges;
-                       if (badgeForm.id) {
-                          newBadges = (db.gamificationBadges || []).map(b => b.id === badgeForm.id ? badgeForm : b);
-                       } else {
-                          newBadges = [...(db.gamificationBadges || []), { ...badgeForm, id: 'bdg_' + Date.now() }];
-                       }
-                       onUpdateData({ ...db, gamificationBadges: newBadges });
-                       setEditingBadge(false);
-                    }}>Salvar Título</button>
+              return (
+                <div key={catId} style={{ marginBottom: '3rem' }}>
+                  <h4 style={{ color: 'var(--text-main)', fontSize: '1.4rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    {catName}
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                    {categoryBadges.map((badge) => {
+                      const tier = TIER_INFO[badge.tier];
+                      return (
+                        <div key={badge.id} style={{ 
+                          background: 'var(--card-bg)', 
+                          border: `1px solid ${tier.color}`, 
+                          borderRadius: '12px', 
+                          padding: '1.5rem', 
+                          display: 'flex', 
+                          gap: '1rem', 
+                          alignItems: 'flex-start',
+                          boxShadow: `0 4px 12px ${tier.color}15`,
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}>
+                          {/* Faixa de raridade lateral */}
+                          <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '4px', background: tier.color }}></div>
+                          
+                          <div style={{ 
+                            width: '56px', height: '56px', borderRadius: '50%', 
+                            background: `linear-gradient(135deg, ${tier.color}22, ${tier.color}44)`, 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            flexShrink: 0, fontSize: '28px', border: `2px solid ${tier.color}88`
+                          }}>
+                            {badge.icon}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                              <h5 style={{ margin: '0 0 0.25rem 0', color: tier.color, fontSize: '1.1rem' }}>{badge.name}</h5>
+                              <span style={{ fontSize: '0.7rem', fontWeight: 'bold', background: `${tier.color}22`, color: tier.color, padding: '0.2rem 0.5rem', borderRadius: '10px', flexShrink: 0 }}>
+                                +{badge.xpReward} XP
+                              </span>
+                            </div>
+                            <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{badge.description}</p>
+                            
+                            <div style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.3)', padding: '0.6rem', borderRadius: '6px', color: 'var(--text-main)' }}>
+                              <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.2rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>O que o leitor deve fazer:</strong> 
+                              {badge.ruleManual || badge.rule}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         )}
 
@@ -3758,11 +3713,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
           <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', maxWidth: '600px' }}>
             <h3 style={{ margin: '0 0 1rem 0', color: 'var(--accent-gold)' }}>Configuração Anti-Fraude (Anti-Cheat)</h3>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: '1.5' }}>
-              Para evitar que leitores simplesmente pulem as pÃ¡ginas rapidamente para ganhar títulos de "X livros lidos", o sistema exige um tempo mínimo de leitura baseado na quantidade de palavras.
+              Para evitar que leitores simplesmente pulem as páginas rapidamente para ganhar títulos de "X livros lidos", o sistema exige um tempo mínimo de leitura baseado na quantidade de palavras.
             </p>
 
             <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontWeight: 'bold' }}>TolerÃ¢ncia de Leitura RÃ¡pida (%)</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontWeight: 'bold' }}>Tolerância de Leitura Rápida (%)</label>
               <input 
                 type="number" 
                 className="input-field" 
@@ -3771,7 +3726,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                 style={{ width: '150px' }}
               />
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                Ex: Se a média de leitura de um livro for de 5 horas, configurar 40% significa que a leitura só serÃ¡ validada para os prêmios se o usuÃ¡rio passar no mínimo 2 horas lendo.
+                Ex: Se a média de leitura de um livro for de 5 horas, configurar 40% significa que a leitura só será validada para os prêmios se o usuário passar no mínimo 2 horas lendo.
               </p>
             </div>
           </div>
@@ -3834,19 +3789,17 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                                updatedLeitor.finishedBooks = (leitor.finishedBooks || []).slice(0, targetBooksLen);
                             }
                             
-                            const autoBadges = [...(updatedLeitor.badges || [])];
+                            const autoBadges = [...(updatedLeitor.unlockedBadges || [])];
                             const checkAndAdd = (badgeId) => {
-                               if (!autoBadges.find(b => b.id === badgeId)) {
-                                  const bdg = (db.gamificationBadges || []).find(b => b.id === badgeId);
-                                  if (bdg) autoBadges.push(bdg);
+                               if (!autoBadges.includes(badgeId)) {
+                                  if (BADGES_DB[badgeId]) autoBadges.push(badgeId);
                                }
                             };
                             
-                            if (updatedLeitor.pagesRead >= 1) checkAndAdd('bdg_1');
-                            if (updatedLeitor.finishedBooks?.length >= 10) checkAndAdd('bdg_2');
-                            if (updatedLeitor.name === 'Leitor Fiel' || updatedLeitor.nickname === 'Leitor Fiel') checkAndAdd('bdg_10');
+                            if (updatedLeitor.pagesRead >= 1) checkAndAdd('primeira_viagem');
+                            if (updatedLeitor.finishedBooks?.length >= 1) checkAndAdd('rato_biblioteca');
                             
-                            updatedLeitor.badges = autoBadges;
+                            updatedLeitor.unlockedBadges = autoBadges;
                             const newUsers = db.users.map(u => u.id === updatedLeitor.id ? updatedLeitor : u);
                             onUpdateData({ ...db, users: newUsers });
                           }}>Editar Métricas</button>
