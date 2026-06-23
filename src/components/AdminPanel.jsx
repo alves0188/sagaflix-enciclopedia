@@ -1121,7 +1121,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <button 
                     onClick={handleTogglePublishStatus} 
-                    style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.6rem 1.2rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     {formData.status === 'draft' ? 'Publicar' : 'Reverter para Rascunho'}
                   </button>
@@ -1184,7 +1184,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     {currentBook?.distributionMode !== 'complete' && (
                       <button 
                         onClick={handleTogglePublishStatus} 
-                        style={{ background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
                       >
                         {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
                       </button>
@@ -1366,7 +1366,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             <div className="mobile-only" style={{ flex: 1, minWidth: '150px' }}>
                               <button 
                                 onClick={() => { handleTogglePublishStatus(); setShowMobileSidebar(false); }} 
-                                style={{ width: '100%', background: formData.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none', padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                style={{ width: '100%', background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                               >
                                 {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
                               </button>

@@ -184,34 +184,40 @@ h1, h2, h3, h4, .serif {
 }
 
 .btn-primary {
-  background-color: var(--accent-gold);
-  color: #1a1a1a;
-  border: none;
+  background-color: rgba(212, 175, 55, 0.15); /* var(--accent-gold) with opacity */
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: opacity 0.3s;
+  transition: all 0.3s;
 }
-.btn-primary:hover { opacity: 0.9; }
+.btn-primary:hover { 
+  background-color: rgba(212, 175, 55, 0.25); 
+}
 
 .btn-secondary {
-  background-color: var(--card-bg);
-  color: var(--text-main);
+  background-color: transparent;
+  color: var(--text-muted);
   border: 1px solid var(--border-color);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background 0.3s;
+  transition: all 0.3s;
 }
-.btn-secondary:hover { background-color: var(--card-hover); }
+.btn-secondary:hover { 
+  background-color: var(--card-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
 
 /* Item Cover & Premium Layout */
 .featured-cover-wrapper {

@@ -137,6 +137,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button 
             onClick={() => setShowLegends(!showLegends)} 
+            className="btn-secondary"
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
           >
             {showLegends ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 

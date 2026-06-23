@@ -2521,7 +2521,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
             </button>
             <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{(selectedBook.status || 'draft').toUpperCase()}</strong></span>
             {permissions.approve_books && selectedBook.status === 'pending' && (
-              <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: '#4CAF50' }}>
+              <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: 'rgba(76, 175, 80, 0.15)', color: '#4CAF50', border: '1px solid #4CAF50' }}>
                 <Check size={16} /> Aprovar Publicação
               </button>
             )}
@@ -2890,8 +2890,8 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
                           }
                         })()}
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                          <button onClick={() => handleAcceptRequest(notif)} style={{ flex: 1, background: '#4CAF50', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><Check size={16}/> Aceitar Pedido (Reverter para Rascunho)</button>
-                          <button onClick={() => handleRejectRequest(notif)} style={{ flex: 1, background: '#f44336', color: '#fff', border: 'none', padding: '0.8rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><X size={16}/> Rejeitar Pedido</button>
+                          <button onClick={() => handleAcceptRequest(notif)} style={{ flex: 1, background: 'rgba(76, 175, 80, 0.15)', color: '#4CAF50', border: '1px solid #4CAF50', padding: '0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><Check size={16}/> Aceitar Pedido (Reverter para Rascunho)</button>
+                          <button onClick={() => handleRejectRequest(notif)} style={{ flex: 1, background: 'rgba(244, 67, 54, 0.15)', color: '#f44336', border: '1px solid #f44336', padding: '0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}><X size={16}/> Rejeitar Pedido</button>
                         </div>
                       </div>
                     ))}
