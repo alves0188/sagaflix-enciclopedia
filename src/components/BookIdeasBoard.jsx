@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Palette, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Palette, Plus, ChevronDown, ChevronUp, Trash2, Maximize2, X } from 'lucide-react';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -39,7 +39,7 @@ function DebouncedInput({ value, onChange, placeholder, style }) {
   return <input type="text" value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} placeholder={placeholder} style={style} />;
 }
 
-function DebouncedTextarea({ value, onChange, placeholder, style }) {
+function DebouncedTextarea({ value, onChange, placeholder, style, onFocus }) {
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef(null);
 
@@ -56,12 +56,13 @@ function DebouncedTextarea({ value, onChange, placeholder, style }) {
     }, 800);
   };
 
-  return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} placeholder={placeholder} style={style} />;
+  return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} onFocus={onFocus} placeholder={placeholder} style={style} />;
 }
 
 export default function BookIdeasBoard({ book, onUpdateBook }) {
   const [showLegends, setShowLegends] = useState(false);
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
+  const [expandedIdeaId, setExpandedIdeaId] = useState(null);
 
   const ideas = book.ideas || [];
   const ideaLegends = { ...DEFAULT_LEGENDS, ...(book.ideaLegends || {}) };
@@ -284,6 +285,17 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                       ))}
                     </div>
 
+                    {/* Botão Expandir */}
+                    <button 
+                      onClick={() => setExpandedIdeaId(idea.id)} 
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', transition: 'all 0.2s', borderRadius: '4px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+                      title="Expandir ideia"
+                    >
+                      <Maximize2 size={16} />
+                    </button>
+
                     {/* Botão Excluir */}
                     <button 
                       onClick={() => handleDeleteIdea(idea.id)} 
@@ -301,6 +313,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                 <DebouncedTextarea 
                   value={idea.text || ''}
                   onChange={(val) => handleUpdateIdeaText(idea.id, val)}
+                  onFocus={() => setExpandedIdeaId(idea.id)}
                   placeholder="Escreva sua ideia aqui..."
                   style={{ 
                     flex: 1, 
@@ -323,6 +336,89 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
           </div>
         )}
       </div>
+
+      {/* Fullscreen Idea Modal */}
+      {expandedIdeaId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          zIndex: 9999,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1rem',
+          backdropFilter: 'blur(4px)'
+        }} onClick={() => setExpandedIdeaId(null)}>
+          <div style={{
+            background: 'var(--card-bg)',
+            width: '100%',
+            maxWidth: '900px',
+            height: '90vh',
+            borderRadius: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '2rem',
+            gap: '1.5rem',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+            border: '1px solid var(--border-color)'
+          }} onClick={e => e.stopPropagation()}>
+            {(() => {
+              const idea = ideas.find(i => i.id === expandedIdeaId);
+              if (!idea) return null;
+              return (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', flex: 1 }}>
+                      <div style={{ 
+                        background: 'var(--bg-secondary)', 
+                        padding: '0.3rem 0.8rem',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        color: 'var(--text-main)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: '1px solid var(--border-color)',
+                        width: 'fit-content'
+                      }}>
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: idea.color }} />
+                        {ideaLegends[idea.color] || 'Outros'}
+                      </div>
+                      <DebouncedInput 
+                        value={idea.title || ''}
+                        onChange={(val) => handleUpdateIdeaTitle(idea.id, val)}
+                        placeholder="Título da Ideia..."
+                        style={{ background: 'transparent', border: 'none', width: '100%', fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-main)', outline: 'none', fontFamily: 'inherit', padding: 0 }}
+                      />
+                    </div>
+                    <button 
+                      onClick={() => setExpandedIdeaId(null)} 
+                      style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', transition: 'all 0.2s', flexShrink: 0 }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.background = 'var(--border-color)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+                      title="Fechar"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  
+                  <DebouncedTextarea 
+                    value={idea.text || ''}
+                    onChange={(val) => handleUpdateIdeaText(idea.id, val)}
+                    placeholder="Escreva sua ideia aqui..."
+                    style={{ flex: 1, background: 'transparent', border: 'none', width: '100%', resize: 'none', fontSize: '1.1rem', color: 'var(--text-main)', outline: 'none', lineHeight: '1.6', fontFamily: 'inherit', padding: '0.5rem 0' }}
+                  />
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
