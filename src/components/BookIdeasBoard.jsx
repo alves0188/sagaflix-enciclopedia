@@ -155,7 +155,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
       {/* Quadro de Legendas (Colapsável) */}
       {showLegends && (
         <div style={{ background: 'var(--card-bg)', padding: '1.8rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--accent-gold)' }}>Defina o significado de cada cor de post-it (Máximo 6 cores):</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--accent-gold)' }}>Defina o significado de cada categoria (Máximo 6 cores):</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
             {COLORS.map(color => (
               <div key={color.hex} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
@@ -174,164 +174,149 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
         </div>
       )}
 
-      {/* Mural de Cortiça Corkboard */}
-      <div className="corkboard" style={{ 
+      {/* Lista de Ideias */}
+      <div style={{ 
         flex: 1,
-        background: 'var(--card-bg)', 
-        padding: '2.5rem 0',
-        borderRadius: '16px',
         marginTop: '1.5rem',
-        border: '1px solid var(--border-color)'
+        paddingBottom: '2rem',
+        overflowY: 'auto'
       }}>
         {ideas.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)', background: 'var(--card-bg)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
             <Palette size={64} style={{ opacity: 0.15, marginBottom: '1.5rem' }} />
-            <p style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>O quadro de ideias deste livro está vazio.</p>
+            <p style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>O painel de ideias deste livro está vazio.</p>
             <button onClick={handleAddIdea} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={16} /> Criar meu primeiro Post-it
+              <Plus size={16} /> Adicionar Ideia
             </button>
           </div>
         ) : (
-          <div className="mobile-grid-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '2.5rem' }}>
-            {ideas.map((idea, idx) => {
-              // Rotação pseudo-aleatória sutil para visual de post-it natural
-              const rotations = [-2, -1, 1, 2, -1.5, 1.5];
-              const rotation = rotations[idx % rotations.length];
-              
-              return (
-                <div 
-                  key={idea.id} 
-                  draggable
-                  onDragStart={() => handleDragStart(idx)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(idx)}
-                  style={{ 
-                    background: idea.color,
-                    color: '#1e1e24',
-                    padding: '1.5rem', 
-                    borderRadius: '2px', 
-                    boxShadow: '4px 6px 15px rgba(0,0,0,0.4), inset -2px -2px 10px rgba(0,0,0,0.1)',
-                    minHeight: '350px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transform: `rotate(${rotation}deg)`,
-                    transition: 'transform 0.2s',
-                    position: 'relative',
-                    cursor: 'grab',
-                    opacity: draggedIdeaIdx === idx ? 0.5 : 1
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = `scale(1.03) rotate(0deg)`;
-                    e.currentTarget.style.boxShadow = '10px 10px 25px rgba(0,0,0,0.5)';
-                    e.currentTarget.style.zIndex = 10;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = `scale(1) rotate(${rotation}deg)`;
-                    e.currentTarget.style.boxShadow = '5px 5px 15px rgba(0,0,0,0.4)';
-                    e.currentTarget.style.zIndex = 1;
-                  }}
-                >
-                  {/* Alfinete / Fita Adesiva visual */}
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '-10px', 
-                    left: '50%', 
-                    transform: 'translateX(-50%)', 
-                    width: '45px', 
-                    height: '14px', 
-                    background: 'rgba(255,255,255,0.45)', 
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-                  }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+            {ideas.map((idea, idx) => (
+              <div 
+                key={idea.id} 
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(idx)}
+                style={{ 
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--border-color)',
+                  padding: '1.5rem 2rem', 
+                  borderRadius: '12px', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  cursor: 'grab',
+                  opacity: draggedIdeaIdx === idx ? 0.5 : 1,
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                {/* Header da Ideia */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '300px' }}>
+                    {/* Badge / Pill */}
+                    <div style={{ 
+                      background: 'var(--bg-secondary)', 
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: 'var(--text-main)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: idea.color }} />
+                      {ideaLegends[idea.color] || 'Outros'}
+                    </div>
 
-                  {/* Post-it Header Buttons */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', opacity: 0.8 }}>
-                    {/* Color select palette trigger */}
-                    <div style={{ display: 'flex', gap: '0.2rem' }}>
+                    {/* Título da Ideia */}
+                    <DebouncedInput 
+                      value={idea.title || ''}
+                      onChange={(val) => handleUpdateIdeaTitle(idea.id, val)}
+                      placeholder="Título da Ideia..."
+                      style={{ 
+                        background: 'transparent',
+                        border: 'none',
+                        width: '100%',
+                        fontSize: '1.3rem',
+                        fontWeight: '700',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                    />
+                  </div>
+
+                  {/* Ações da direita */}
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {/* Seletor de cores em linha */}
+                    <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.4rem 0.6rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
                       {COLORS.map(c => (
                         <div 
                           key={c.hex} 
                           onClick={() => handleUpdateIdeaColor(idea.id, c.hex)}
                           title={ideaLegends[c.hex] || c.name}
                           style={{ 
-                            width: '12px', 
-                            height: '12px', 
+                            width: '14px', 
+                            height: '14px', 
                             borderRadius: '50%', 
                             background: c.hex, 
                             cursor: 'pointer',
-                            border: idea.color === c.hex ? '1.5px solid #1e1e24' : '0.5px solid rgba(0,0,0,0.3)',
-                            boxSizing: 'border-box'
+                            border: idea.color === c.hex ? '2px solid var(--text-main)' : '1px solid rgba(0,0,0,0.1)',
+                            boxSizing: 'border-box',
+                            opacity: idea.color === c.hex ? 1 : 0.6
                           }} 
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = idea.color === c.hex ? 1 : 0.6}
                         />
                       ))}
                     </div>
 
-                    {/* Excluir button */}
+                    {/* Botão Excluir */}
                     <button 
                       onClick={() => handleDeleteIdea(idea.id)} 
-                      style={{ background: 'none', border: 'none', color: '#1e1e24', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', opacity: 0.6 }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = 0.6}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', transition: 'all 0.2s', borderRadius: '8px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+                      title="Excluir ideia"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
-
-                  {/* Título da Ideia */}
-                  <DebouncedInput 
-                    value={idea.title || ''}
-                    onChange={(val) => handleUpdateIdeaTitle(idea.id, val)}
-                    placeholder="Título da Ideia..."
-                    style={{ 
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: '1px solid rgba(0,0,0,0.1)',
-                      width: '100%',
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
-                      color: '#1e1e24',
-                      padding: '0 0 0.5rem 0',
-                      marginBottom: '1rem',
-                      outline: 'none',
-                      fontFamily: "'Playfair Display', serif"
-                    }}
-                  />
-
-                  {/* Post-it Text Content */}
-                  <DebouncedTextarea 
-                    value={idea.text || ''}
-                    onChange={(val) => handleUpdateIdeaText(idea.id, val)}
-                    placeholder="Clique aqui e digite a sua ideia..."
-                    style={{ 
-                      flex: 1, 
-                      background: 'transparent', 
-                      border: 'none', 
-                      width: '100%',
-                      resize: 'none',
-                      fontSize: '0.95rem',
-                      color: '#1e1e24',
-                      outline: 'none',
-                      lineHeight: '1.5'
-                    }}
-                  />
-
-                  {/* Exibe o nome da legenda em baixo do post-it sutilmente */}
-                  <div style={{ 
-                    fontSize: '0.7rem', 
-                    color: 'rgba(0,0,0,0.4)', 
-                    fontWeight: 'bold', 
-                    textAlign: 'right', 
-                    marginTop: '0.5rem',
-                    borderTop: '0.5px solid rgba(0,0,0,0.06)',
-                    paddingTop: '0.3rem',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {ideaLegends[idea.color] || 'Outros'}
-                  </div>
                 </div>
-              );
-            })}
+
+                {/* Conteúdo Textual da Ideia */}
+                <DebouncedTextarea 
+                  value={idea.text || ''}
+                  onChange={(val) => handleUpdateIdeaText(idea.id, val)}
+                  placeholder="Escreva sua ideia aqui..."
+                  style={{ 
+                    flex: 1, 
+                    background: 'transparent', 
+                    border: 'none', 
+                    width: '100%',
+                    minHeight: '120px',
+                    resize: 'vertical',
+                    fontSize: '1.05rem',
+                    color: 'var(--text-secondary)',
+                    outline: 'none',
+                    lineHeight: '1.6',
+                    marginTop: '0.5rem',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
