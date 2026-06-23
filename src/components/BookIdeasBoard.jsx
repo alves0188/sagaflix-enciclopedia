@@ -201,11 +201,11 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                 style={{ 
                   background: 'var(--card-bg)',
                   border: '1px solid var(--border-color)',
-                  padding: '1.5rem 2rem', 
+                  padding: '1rem 1.2rem', 
                   borderRadius: '12px', 
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '1rem',
+                  gap: '0.5rem',
                   cursor: 'grab',
                   opacity: draggedIdeaIdx === idx ? 0.5 : 1,
                   transition: 'box-shadow 0.2s, transform 0.2s',
@@ -220,22 +220,23 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                 }}
               >
                 {/* Header da Ideia */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '300px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: '180px' }}>
                     {/* Badge / Pill */}
                     <div style={{ 
                       background: 'var(--bg-secondary)', 
-                      padding: '0.4rem 0.8rem',
+                      padding: '0.2rem 0.6rem',
                       borderRadius: '20px',
-                      fontSize: '0.85rem',
+                      fontSize: '0.75rem',
                       fontWeight: '600',
                       color: 'var(--text-main)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem',
-                      border: '1px solid var(--border-color)'
+                      gap: '0.4rem',
+                      border: '1px solid var(--border-color)',
+                      whiteSpace: 'nowrap'
                     }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: idea.color }} />
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: idea.color }} />
                       {ideaLegends[idea.color] || 'Outros'}
                     </div>
 
@@ -248,27 +249,28 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                         background: 'transparent',
                         border: 'none',
                         width: '100%',
-                        fontSize: '1.3rem',
+                        fontSize: '1.1rem',
                         fontWeight: '700',
                         color: 'var(--text-main)',
                         outline: 'none',
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
+                        padding: 0
                       }}
                     />
                   </div>
 
                   {/* Ações da direita */}
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {/* Seletor de cores em linha */}
-                    <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.4rem 0.6rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--bg-secondary)', padding: '0.2rem 0.4rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
                       {COLORS.map(c => (
                         <div 
                           key={c.hex} 
                           onClick={() => handleUpdateIdeaColor(idea.id, c.hex)}
                           title={ideaLegends[c.hex] || c.name}
                           style={{ 
-                            width: '14px', 
-                            height: '14px', 
+                            width: '12px', 
+                            height: '12px', 
                             borderRadius: '50%', 
                             background: c.hex, 
                             cursor: 'pointer',
@@ -285,12 +287,12 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     {/* Botão Excluir */}
                     <button 
                       onClick={() => handleDeleteIdea(idea.id)} 
-                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', display: 'flex', alignItems: 'center', transition: 'all 0.2s', borderRadius: '8px' }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', transition: 'all 0.2s', borderRadius: '4px' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
                       title="Excluir ideia"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
@@ -307,12 +309,13 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     width: '100%',
                     minHeight: '120px',
                     resize: 'vertical',
-                    fontSize: '1.05rem',
+                    fontSize: '0.95rem',
                     color: 'var(--text-secondary)',
                     outline: 'none',
-                    lineHeight: '1.6',
-                    marginTop: '0.5rem',
-                    fontFamily: 'inherit'
+                    lineHeight: '1.5',
+                    marginTop: '0.2rem',
+                    fontFamily: 'inherit',
+                    padding: 0
                   }}
                 />
               </div>
