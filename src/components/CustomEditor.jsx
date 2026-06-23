@@ -54,16 +54,20 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
         }
       }
       
-      const visibleBottom = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       const editorRect = editorRef.current.getBoundingClientRect();
-      const effectiveBottom = Math.min(editorRect.bottom, visibleBottom);
+      const isMobile = window.innerWidth <= 768;
+      
+      // No celular, assumimos que o teclado pode cobrir até 50% da tela/editor.
+      // Então a zona segura é apenas a metade superior do editor.
+      const safeHeight = isMobile ? editorRect.height * 0.45 : editorRect.height;
+      const effectiveBottom = editorRect.top + safeHeight;
 
-      const padding = 40; 
+      const padding = isMobile ? 0 : 40; 
 
       if (rect.bottom > effectiveBottom - padding) {
         editorRef.current.scrollTop += (rect.bottom - effectiveBottom) + padding + 20;
-      } else if (rect.top < editorRect.top + padding) {
-        editorRef.current.scrollTop -= (editorRect.top - rect.top) + padding;
+      } else if (rect.top < editorRect.top + 20) {
+        editorRef.current.scrollTop -= (editorRect.top - rect.top) + 20;
       }
     }, 10);
   };
@@ -159,7 +163,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
         onKeyUp={ensureCursorVisible}
         style={{
           flex: 1,
-          padding: '1rem',
+          padding: '1rem 1rem 50vh 1rem',
           outline: 'none',
           color: tc.text,
           background: tc.bg,
