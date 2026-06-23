@@ -31,6 +31,43 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
     }
   }, [value]);
 
+  const ensureCursorVisible = () => {
+    setTimeout(() => {
+      if (!editorRef.current) return;
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      const range = selection.getRangeAt(0);
+      if (!editorRef.current.contains(range.commonAncestorContainer)) return;
+
+      let rect = range.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        const rects = range.getClientRects();
+        if (rects.length > 0) {
+          rect = rects[0];
+        } else {
+          const element = range.commonAncestorContainer.nodeType === 1 
+            ? range.commonAncestorContainer 
+            : range.commonAncestorContainer.parentElement;
+          if (element) rect = element.getBoundingClientRect();
+          else return;
+        }
+      }
+      
+      const visibleBottom = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const editorRect = editorRef.current.getBoundingClientRect();
+      const effectiveBottom = Math.min(editorRect.bottom, visibleBottom);
+
+      const padding = 40; 
+
+      if (rect.bottom > effectiveBottom - padding) {
+        editorRef.current.scrollTop += (rect.bottom - effectiveBottom) + padding + 20;
+      } else if (rect.top < editorRect.top + padding) {
+        editorRef.current.scrollTop -= (editorRect.top - rect.top) + padding;
+      }
+    }, 10);
+  };
+
   const handleInput = () => {
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
@@ -38,6 +75,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
         lastHtml.current = html;
         onChange(html);
       }
+      ensureCursorVisible();
     }
   };
 
@@ -116,7 +154,9 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
           if (!disabled && editorRef.current) {
             editorRef.current.focus();
           }
+          ensureCursorVisible();
         }}
+        onKeyUp={ensureCursorVisible}
         style={{
           flex: 1,
           padding: '1rem',
