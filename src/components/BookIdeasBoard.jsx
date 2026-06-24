@@ -201,24 +201,16 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(idx)}
                 style={{ 
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--border-color)',
-                  padding: '1rem 1.2rem', 
-                  borderRadius: '12px', 
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '1px solid var(--border-color)',
+                  padding: '1.5rem 0', 
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.5rem',
+                  gap: '0.8rem',
                   cursor: 'grab',
                   opacity: draggedIdeaIdx === idx ? 0.5 : 1,
-                  transition: 'box-shadow 0.2s, transform 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.transform = 'none';
+                  borderRadius: 0
                 }}
               >
                 {/* Header da Ideia */}
@@ -226,19 +218,18 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: '180px' }}>
                     {/* Badge / Pill */}
                     <div style={{ 
-                      background: 'var(--bg-secondary)', 
-                      padding: '0.2rem 0.6rem',
-                      borderRadius: '20px',
+                      background: 'transparent', 
+                      padding: 0,
                       fontSize: '0.75rem',
                       fontWeight: '600',
-                      color: 'var(--text-main)',
+                      color: 'var(--text-muted)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.4rem',
-                      border: '1px solid var(--border-color)',
+                      border: 'none',
                       whiteSpace: 'nowrap'
                     }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: idea.color }} />
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: idea.color }} />
                       {ideaLegends[idea.color] || 'Outros'}
                     </div>
 
@@ -375,16 +366,15 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', flex: 1 }}>
                       <div style={{ 
-                        background: 'var(--bg-secondary)', 
-                        padding: '0.3rem 0.8rem',
-                        borderRadius: '20px',
+                        background: 'transparent', 
+                        padding: 0,
                         fontSize: '0.85rem',
                         fontWeight: '600',
-                        color: 'var(--text-main)',
+                        color: 'var(--text-muted)',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.5rem',
-                        border: '1px solid var(--border-color)',
+                        border: 'none',
                         width: 'fit-content'
                       }}>
                         <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: idea.color }} />

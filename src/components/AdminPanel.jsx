@@ -1258,11 +1258,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         key={idx}
                         onClick={() => { setActiveSubthemeStr(subName); setActivePageIdxWithinSubtheme(0); }}
                         style={{
-                          background: isActive ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                          color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)',
-                          border: isActive ? '1px solid var(--accent-gold)' : '1px solid var(--border-color)',
-                          padding: '0.8rem 1rem', textAlign: 'left', borderRadius: '8px', cursor: 'pointer',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'all 0.2s'
+                          background: 'transparent',
+                          color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                          border: 'none',
+                          borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent',
+                          padding: '0.6rem 1rem', textAlign: 'left', cursor: 'pointer',
+                          fontWeight: isActive ? 'bold' : 'normal',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'all 0.2s',
+                          borderRadius: '0 8px 8px 0'
                         }}
                       >
                         {subName || 'Sem Título'}
@@ -1286,30 +1289,29 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                 return (
                   <>
-                    <div className="editor-title-container" style={{ flexShrink: 0 }}>
+                    <div className="editor-title-container" style={{ flexShrink: 0, padding: '2rem 3rem 0 3rem' }}>
                       <input 
                         type="text" 
                         value={activePage.subtheme || ''} 
                         onChange={(e) => handleSubthemeNameChange(e.target.value)} 
                         disabled={effectiveReadOnly}
-                        className="form-input" 
                         placeholder="Nome do Subtema..." 
-                        style={{ fontSize: '1.2rem', padding: '0.5rem 1rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--accent-gold)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', borderBottom: 'none' }} 
+                        style={{ fontSize: '2.5rem', padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
                       />
 
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                         {activeSubthemePages.map((p, idx) => (
                           <button 
                             key={idx}
                             onClick={() => setActivePageIdxWithinSubtheme(idx)}
                             style={{
-                              background: idx === activePageIdxWithinSubtheme ? 'var(--card-bg)' : 'transparent',
-                              color: idx === activePageIdxWithinSubtheme ? 'var(--text-main)' : 'var(--text-muted)',
-                              border: '1px solid var(--border-color)',
-                              borderBottom: idx === activePageIdxWithinSubtheme ? '1px solid var(--card-bg)' : '1px solid var(--border-color)',
-                              padding: '0.6rem 1.5rem', borderRadius: '8px 8px 0 0', cursor: 'pointer',
+                              background: 'transparent',
+                              color: idx === activePageIdxWithinSubtheme ? 'var(--accent-gold)' : 'var(--text-muted)',
+                              border: 'none',
+                              borderBottom: idx === activePageIdxWithinSubtheme ? '2px solid var(--accent-gold)' : '2px solid transparent',
+                              padding: '0.4rem 0', cursor: 'pointer',
                               fontWeight: idx === activePageIdxWithinSubtheme ? 'bold' : 'normal',
-                              marginBottom: '-1px', zIndex: idx === activePageIdxWithinSubtheme ? 2 : 1
+                              transition: 'all 0.2s'
                             }}
                           >
                             Sessão {idx + 1}
@@ -1318,7 +1320,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         {!effectiveReadOnly && (
                           <button 
                             onClick={handleAddPageToSubtheme} 
-                            style={{ background: 'transparent', color: 'var(--accent-gold)', border: '1px dashed var(--accent-gold)', padding: '0.6rem 1.2rem', borderRadius: '8px 8px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}
+                            style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '0.4rem 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.2s' }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-gold)'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
                           >
                             <Plus size={14} /> Nova Sessão
                           </button>
@@ -1326,7 +1330,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                     </div>
 
-                    <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                    <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '0 3rem' }}>
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
@@ -1339,9 +1343,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       />
                     </div>
 
-                    <div className="editor-footer-container" style={{ marginTop: '1rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
-                      <div style={{ flex: 1, minWidth: '300px', backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
+                    <div className="editor-footer-container" style={{ marginTop: '2rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0, padding: '0 3rem 3rem 3rem' }}>
+                      <div style={{ flex: 1, minWidth: '300px' }}>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontWeight: 'normal' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
                         {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
                         

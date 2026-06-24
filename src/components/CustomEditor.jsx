@@ -103,9 +103,9 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
   const toolbarStyle = {
     display: 'flex',
     gap: '0.5rem',
-    padding: '0.5rem',
-    background: tc.toolbarBg || tc.panelBg,
-    borderBottom: `1px solid ${tc.border}`,
+    padding: '0.5rem 0',
+    background: 'transparent',
+    borderBottom: '1px solid rgba(0,0,0,0.05)',
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
@@ -125,11 +125,12 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'color 0.3s ease'
+    transition: 'color 0.3s ease',
+    opacity: 0.6
   };
 
   return (
-    <div style={{ border: `1px solid ${tc.border}`, borderRadius: '8px', overflow: 'hidden', background: tc.bg, display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px', transition: 'background 0.3s ease, border-color 0.3s ease' }}>
+    <div style={{ border: 'none', borderRadius: 0, overflow: 'hidden', background: 'transparent', display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px', transition: 'background 0.3s ease' }}>
       <div style={toolbarStyle}>
         <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
         <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
@@ -163,10 +164,10 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
         onKeyUp={ensureCursorVisible}
         style={{
           flex: 1,
-          padding: '1rem 1rem 50vh 1rem',
+          padding: '1rem 0 50vh 0',
           outline: 'none',
           color: tc.text,
-          background: tc.bg,
+          background: 'transparent',
           opacity: disabled ? 0.7 : 1,
           fontFamily: 'inherit',
           lineHeight: '1.6',
