@@ -1656,6 +1656,30 @@ select option, select optgroup {
   }
 }
 
+/* ================= EDITOR RESPONSIVE PADDING ================= */
+.editor-title-container {
+  padding: 2rem 3rem 0 3rem;
+}
+.editor-text-container {
+  padding: 0 3rem;
+}
+.editor-footer-container {
+  padding: 0 3rem 3rem 3rem;
+}
+
+@media (max-width: 768px) {
+  .editor-title-container {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+  }
+  .editor-text-container {
+    padding: 0 1.5rem;
+    overflow-x: hidden;
+  }
+  .editor-footer-container {
+    padding: 0 1.5rem 2rem 1.5rem;
+  }
+}
+
 /* =========================================================
    SISTEMA DE GAMIFICA��O - CONQUISTAS
 ========================================================= */

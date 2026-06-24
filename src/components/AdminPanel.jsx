@@ -1289,7 +1289,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                 return (
                   <>
-                    <div className="editor-title-container" style={{ flexShrink: 0, padding: '2rem 3rem 0 3rem' }}>
+                    <div className="editor-title-container" style={{ flexShrink: 0 }}>
                       <input 
                         type="text" 
                         value={activePage.subtheme || ''} 
@@ -1330,7 +1330,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                     </div>
 
-                    <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '0 3rem' }}>
+                    <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
@@ -1343,7 +1343,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       />
                     </div>
 
-                    <div className="editor-footer-container" style={{ marginTop: '2rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0, padding: '0 3rem 3rem 3rem' }}>
+                    <div className="editor-footer-container" style={{ marginTop: '2rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
                       <div style={{ flex: 1, minWidth: '300px' }}>
                         <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontWeight: 'normal' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
