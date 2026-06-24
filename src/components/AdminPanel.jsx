@@ -1149,14 +1149,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <div className="admin-edit-panel" style={{ width: '800px', maxWidth: '100vw', backgroundColor: '#e8e6df', borderLeft: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', height: '100%', zIndex: 10, flexShrink: 0, position: 'relative' }}>
             <DossierEditor 
               formData={formData} 
-            setFormData={setFormData} 
-            onSave={handleSave} 
-            onCancel={() => setEditingItem(null)} 
-            uploading={uploading} 
-            handleFileUpload={handleFileUpload} 
-            isReadOnly={isReadOnly}
-            bookTitle={currentBook?.title}
-          />
+              setFormData={setFormData} 
+              onSave={handleSave} 
+              onCancel={() => setEditingItem(null)} 
+              uploading={uploading} 
+              handleFileUpload={handleFileUpload} 
+              isReadOnly={isReadOnly}
+              bookTitle={currentBook?.title}
+              events={currentBook?.events || []}
+            />
           </div>
         )
       )}

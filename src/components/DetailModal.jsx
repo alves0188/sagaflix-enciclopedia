@@ -43,9 +43,9 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
 
   const matchingEvents = (events || []).filter(ev => {
     if (!ev.tags) return false;
-    const nameStr = (item.name || item.title || '').toLowerCase();
+    const nameStr = (item.name || item.title || '').trim().toLowerCase();
     const tagArray = ev.tags.split(',').map(t => t.trim().toLowerCase());
-    return tagArray.includes(nameStr);
+    return tagArray.some(tag => tag === nameStr || nameStr.includes(tag) || tag.includes(nameStr));
   });
 
   return (
