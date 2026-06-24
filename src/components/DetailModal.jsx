@@ -158,7 +158,13 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
       {/* Coluna Direita: O Papel Dossiê */}
       <div className="dossier-wrapper" onClick={onClose}>
         <div className="dossier-paper" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
-          
+          {/* DEBUG INICIO */}
+          <div style={{ background: 'red', color: 'white', padding: '10px', fontSize: '12px', zIndex: 1000 }}>
+            Total events received: {(events || []).length} <br/>
+            My nameStr: {(item.name || item.title || '').trim().toLowerCase()} <br/>
+            Events: {(events || []).map(e => e.name + ' (' + e.tags + ')').join(' | ')}
+          </div>
+          {/* DEBUG FIM */}
           {/* Botão Fechar no Topo Direito */}
           <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#333', color: '#fff', border: 'none', padding: '0.5rem 1rem', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', zIndex: 10 }}>
             FECHAR ARQUIVOS
