@@ -1003,6 +1003,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Book size={18} /> Livro / Capítulos
           </button>
         )}
+
+        {(isTabVisible('ideias') || isTabVisible('escaletas')) && (
+          <button style={navItemStyle(['ideias', 'escaletas'].includes(activeList))} onClick={() => {
+            setActiveList(['ideias', 'escaletas'].includes(activeList) ? activeList : 'ideias'); 
+            setEditingItem(null);
+          }}>
+            <Layout size={18} /> Planejamento
+          </button>
+        )}
         {(isTabVisible('pages') || isTabVisible('characters') || isTabVisible('locations') || isTabVisible('organizations') || isTabVisible('clues') || isTabVisible('events')) && (
           <button style={navItemStyle(['pages', 'characters', 'locations', 'organizations', 'clues', 'events'].includes(activeList))} onClick={() => {
             setActiveList(['pages', 'characters', 'locations', 'organizations', 'clues', 'events'].includes(activeList) ? activeList : 'pages'); 
