@@ -261,8 +261,6 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
           </>
         )}
 
-        )}
-
         <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
           <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR</label>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.2 }}>Essas notas aparecerão em uma aba especial no dossiê. Notas secretas exigirão pedido de acesso.</p>
