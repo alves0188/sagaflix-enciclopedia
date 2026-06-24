@@ -108,12 +108,37 @@ export default function BookEscaletaBoard({ book, onUpdateBook }) {
   // ---------------------------
 
   const handleDeleteScene = (groupIdx, sceneId) => {
-    if (window.confirm("Tem certeza que deseja excluir esta cena?")) {
+    if (window.confirm("Tem certeza que deseja excluir esta cena? Ela será movida para a Lixeira.")) {
       const newGroups = [...groups];
+      const sceneToDelete = newGroups[groupIdx].scenes.find(s => s.id === sceneId);
       newGroups[groupIdx].scenes = newGroups[groupIdx].scenes.filter(s => s.id !== sceneId);
-      onUpdateBook({ ...book, escaletaGroups: newGroups });
+      
+      const trashItem = { ...sceneToDelete, deletedAt: new Date().toISOString(), itemType: 'escaleta', itemData: sceneToDelete };
+      const updatedTrash = [...(book.trash || []), trashItem];
+      
+      onUpdateBook({ ...book, escaletaGroups: newGroups, trash: updatedTrash });
       if (editingSceneId === sceneId) setEditingSceneId(null);
     }
+  };
+
+  const handleToggleCompleted = (groupIdx, sceneId) => {
+    const newGroups = [...groups];
+    const group = newGroups[groupIdx];
+    const sceneIdx = group.scenes.findIndex(s => s.id === sceneId);
+    if (sceneIdx === -1) return;
+    
+    const scene = group.scenes[sceneIdx];
+    scene.completed = !scene.completed;
+    
+    // Move to end if completed, or to top if uncompleted (optional, but end is requested)
+    group.scenes.splice(sceneIdx, 1);
+    if (scene.completed) {
+      group.scenes.push(scene);
+    } else {
+      group.scenes.unshift(scene); // Move to top when uncompleted
+    }
+    
+    onUpdateBook({ ...book, escaletaGroups: newGroups });
   };
 
   const handleDeleteGroup = (groupIdx) => {
@@ -351,7 +376,7 @@ export default function BookEscaletaBoard({ book, onUpdateBook }) {
                           </div>
                         ) : (
                           // Modo Visualização Cena
-                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', opacity: scene.completed ? 0.4 : 1 }}>
                             <div 
                               draggable
                               onDragStart={(e) => handleDragStart(e, groupIdx, sceneIdx)}
@@ -363,13 +388,20 @@ export default function BookEscaletaBoard({ book, onUpdateBook }) {
                             </div>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={!!scene.completed}
+                                  onChange={() => handleToggleCompleted(groupIdx, scene.id)}
+                                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent-gold)' }}
+                                  title="Marcar como Concluído"
+                                />
                                 <span style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                                   #{sceneIdx + 1}
                                 </span>
-                                <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>{scene.title || 'Sem título'}</h4>
+                                <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', textDecoration: scene.completed ? 'line-through' : 'none' }}>{scene.title || 'Sem título'}</h4>
                               </div>
                               {scene.description ? (
-                                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.95rem', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.95rem', whiteSpace: 'pre-wrap', lineHeight: '1.5', textDecoration: scene.completed ? 'line-through' : 'none' }}>
                                   {scene.description}
                                 </p>
                               ) : (

@@ -126,8 +126,15 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   };
 
   const handleDeleteIdea = (id) => {
-    const updatedIdeas = ideas.filter(idea => idea.id !== id);
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    if (window.confirm("Tem certeza que deseja excluir esta anotação? Ela será movida para a Lixeira.")) {
+      const updatedIdeas = ideas.filter(i => i.id !== id);
+      const ideaToDelete = ideas.find(i => i.id === id);
+      const trashItem = { ...ideaToDelete, deletedAt: new Date().toISOString(), itemType: 'ideia', itemData: ideaToDelete };
+      const updatedTrash = [...(book.trash || []), trashItem];
+      
+      onUpdateBook({ ...book, ideas: updatedIdeas, trash: updatedTrash });
+      if (expandedIdeaId === id) setExpandedIdeaId(null);
+    }
   };
 
   const handleUpdateLegend = (colorHex, text) => {
