@@ -1284,7 +1284,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               handleFileUpload={handleFileUpload} 
               isReadOnly={isReadOnly}
               bookTitle={currentBook?.title}
-              events={currentBook?.events || []}
+              events={data.events || []}
             />
           </div>
         )
