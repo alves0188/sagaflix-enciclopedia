@@ -151,12 +151,11 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
         <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Painel de Ideias: {book.title}
         </h2>
-        
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setShowLegends(!showLegends)} 
             className="btn-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
           >
             {showLegends ? <ChevronUp size={16} /> : <ChevronDown size={16} />} 
             Legendas das Cores
@@ -165,7 +164,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
           <button 
             onClick={handleAddIdea} 
             className="btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center', padding: '0.6rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
           >
             <Plus size={16} /> Nova Ideia
           </button>
