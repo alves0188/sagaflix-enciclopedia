@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Upload, Trash2, X, Plus } from 'lucide-react';
 
 const getStatusOptions = (type) => {
@@ -69,6 +69,18 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
   const currentTerritoryLabel = formData.territoryLabel || defaults.territory;
   const [hasChanges, setHasChanges] = useState(false);
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedEventDetail) {
+          setSelectedEventDetail(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEventDetail]);
 
   const matchingEvents = (events || []).filter(ev => {
     if (!ev.tags) return false;
@@ -725,9 +737,10 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Informativo</label>
-                <div style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  {selectedEventDetail.content}
-                </div>
+                <div 
+                  style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}
+                  dangerouslySetInnerHTML={{ __html: selectedEventDetail.content }}
+                />
               </div>
               
               <div>

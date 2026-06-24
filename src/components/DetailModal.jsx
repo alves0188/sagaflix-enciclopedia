@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Lock, X, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 
@@ -7,6 +7,22 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
   const [lightboxImage, setLightboxImage] = useState(null);
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
   const isClue = item.type === 'pista';
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedEventDetail) {
+          setSelectedEventDetail(null);
+        } else if (lightboxImage) {
+          setLightboxImage(null);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, selectedEventDetail, lightboxImage]);
 
   const handleFeedback = (noteId, type) => {
     if (!currentUser || !onUpdateData) return;
