@@ -128,7 +128,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
 
   return (
     <div style={{ border: 'none', borderRadius: 0, background: 'transparent', display: 'flex', flexDirection: 'column', minHeight: '80vh', transition: 'background 0.3s ease' }}>
-      <div className="sticky-editor-header" style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: tc.bg, transition: 'background-color 0.3s ease', margin: '0 -3rem', padding: '0 3rem' }}>
+      <div className="sticky-editor-header" style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: tc.bg, transition: 'background-color 0.3s ease' }}>
         {headerContent}
         <div style={toolbarStyle}>
           <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>

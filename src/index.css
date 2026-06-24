@@ -1676,13 +1676,17 @@ select option, select optgroup {
   font-size: 1.4rem !important;
 }
 
+.sticky-editor-header {
+  margin: 0 -3rem;
+  padding: 0 3rem;
+}
+
 @media (max-width: 768px) {
   .editor-title-container {
     padding: 1.5rem 1.5rem 0 1.5rem;
   }
   .editor-text-container {
     padding: 0 1rem;
-    overflow-x: hidden;
   }
   .editor-footer-container {
     padding: 0 1.5rem 2rem 1.5rem;
@@ -1692,6 +1696,10 @@ select option, select optgroup {
   }
   .editor-subtheme-title.scrolled {
     font-size: 1.1rem !important;
+  }
+  .sticky-editor-header {
+    margin: 0 -1rem !important;
+    padding: 0 1rem !important;
   }
 }
 
