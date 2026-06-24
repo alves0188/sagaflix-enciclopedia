@@ -5,6 +5,7 @@ import ImageLightbox from './ImageLightbox';
 export default function DetailModal({ item, events, onClose, bookTitle, onRequestAccess, db, currentUser, onUpdateData }) {
   const [isNoteLifted, setIsNoteLifted] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [selectedEventDetail, setSelectedEventDetail] = useState(null);
   const isClue = item.type === 'pista';
 
   const handleFeedback = (noteId, type) => {
@@ -332,6 +333,33 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                 </div>
               </div>
 
+              </div>
+
+              {matchingEvents.length > 0 && (
+                <>
+                  <div className="dossier-section-title" style={{ marginTop: '2rem' }}>MARCAÇÕES (EVENTOS)</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {matchingEvents.map((ev, idx) => (
+                      <button 
+                        key={idx} 
+                        onClick={() => setSelectedEventDetail(ev)}
+                        style={{ 
+                          textAlign: 'left', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', 
+                          padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', fontFamily: "'Courier New', Courier, monospace",
+                          fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+                      >
+                        <span style={{ fontSize: '0.95rem' }}>{ev.name}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(255,255,255,0.5)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Ver Detalhes »</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
             </div>
           </div>
 
@@ -351,29 +379,42 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
               </div>
             )}
 
-          {matchingEvents.map((ev, idx) => (
-            <div key={idx} className="sticky-wrapper" style={{ zIndex: 35 + idx }}>
-              <div className="tape-dossier"></div>
-              <div className="sticky-dossier" style={{ backgroundColor: '#a8d8ea', transform: `rotate(${Math.random() * 6 - 3}deg)` }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#444', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase' }}>OCORRÊNCIA: {ev.name}</div>
-                {ev.content}
-                <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.8rem', fontStyle: 'italic', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '0.3rem' }}>
-                  Envolvidos: {ev.tags}
-                </div>
-              </div>
-            </div>
-          ))}
-
         </div>
 
       </div>
       
-      {/* Lightbox para ampliação */}
-      <ImageLightbox 
-        imageUrl={lightboxImage} 
-        onClose={() => setLightboxImage(null)} 
-      />
+      {lightboxImage && <ImageLightbox imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />}
+
+      {/* Event Details Modal */}
+      {selectedEventDetail && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setSelectedEventDetail(null)}>
+          <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '600px', borderRadius: '12px', padding: '2rem', position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelectedEventDetail(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '1.2rem' }}>&times;</span>
+            </button>
+            
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif", fontSize: '1.5rem', paddingRight: '2rem' }}>{selectedEventDetail.name}</h3>
+            
+            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Informativo</label>
+                <div style={{ fontSize: '1rem', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  {selectedEventDetail.content}
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
+                    <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
   );
 }
