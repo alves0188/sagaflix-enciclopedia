@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -1156,44 +1156,39 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           color: ec.text, transition: 'background-color 0.3s ease, color 0.3s ease'
         }}>
           {/* Header */}
-          <div className="editor-header-container" style={{ borderBottom: `1px solid ${ec.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: ec.panelBg, transition: 'background-color 0.3s ease' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+          <div className="editor-header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: ec.panelBg, padding: '0.5rem 1.5rem', transition: 'background-color 0.3s ease' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Menu size={24} />
               </button>
-              <h2 style={{ fontSize: '1.1rem', margin: 0, fontFamily: "'Playfair Display', serif", color: ec.gold, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {formData.title || (isReadOnly ? 'Visualizar Capítulo' : (editingItem === 'new' ? 'Escrever Novo' : 'Editar Capítulo'))}
-              </h2>
             </div>
-            <div className="editor-header-buttons" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <ArrowLeft size={16} /> <span>Voltar</span>
+            
+            <div className="editor-header-buttons" style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+              <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.8rem', borderRadius: '6px' }} title="Voltar">
+                <ArrowLeft size={16} /> <span className="desktop-only">Voltar</span>
               </button>
+              
               <button
                 onClick={() => setEditorTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                 title={editorTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-                style={{ background: 'none', border: `1px solid ${ec.border}`, color: ec.text, padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+                style={{ background: 'none', border: `1px solid ${ec.border}`, color: ec.text, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 {editorTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                <span className="desktop-only">{editorTheme === 'dark' ? 'Claro' : 'Escuro'}</span>
               </button>
+
               {!effectiveReadOnly && (
                 <>
-                  {/* Botões grandes apenas no desktop */}
-                  <div className="desktop-only" style={{ display: 'flex', gap: '1rem' }}>
-                    {currentBook?.distributionMode !== 'complete' && (
-                      <button 
-                        onClick={handleTogglePublishStatus} 
-                        style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                      >
-                        {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
-                      </button>
-                    )}
-                    <button className="btn-primary" onClick={handleSave} style={{ padding: '0.8rem 1.5rem', fontSize: '1rem' }}><Save size={16} /> Salvar</button>
-                  </div>
-                  {/* Botão de salvar icone apenas no mobile */}
-                  <button className="mobile-only" onClick={handleSave} style={{ background: 'transparent', color: 'var(--text-main)', border: 'none', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title="Salvar">
-                    <Save size={20} />
+                  {currentBook?.distributionMode !== 'complete' && (
+                    <button 
+                      onClick={handleTogglePublishStatus} 
+                      title={formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                      style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {formData.status === 'draft' ? <Upload size={16} /> : <RotateCcw size={16} />}
+                    </button>
+                  )}
+                  <button className="btn-primary" onClick={handleSave} style={{ padding: '0.5rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Salvar">
+                    <Save size={16} />
                   </button>
                 </>
               )}
@@ -1217,12 +1212,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ ...formFieldStyle }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Título</label>
-                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '1rem', padding: '0.8rem', opacity: effectiveReadOnly ? 0.7 : 1 }} />
+                  <label style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Título</label>
+                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem', opacity: effectiveReadOnly ? 0.7 : 1 }} />
                 </div>
                 <div style={{ ...formFieldStyle }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Tipo</label>
-                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" style={{ fontSize: '0.95rem', padding: '0.8rem', opacity: effectiveReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Tipo</label>
+                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem', opacity: effectiveReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
                     <option value="chapter">Capítulo</option>
                     <option value="prologue">Prólogo</option>
                     <option value="preface">Prefácio</option>
@@ -1296,7 +1291,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         onChange={(e) => handleSubthemeNameChange(e.target.value)} 
                         disabled={effectiveReadOnly}
                         placeholder="Nome do Subtema..." 
-                        style={{ fontSize: '2.5rem', padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
+                        style={{ fontSize: '1.8rem', padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
                       />
 
                       <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
