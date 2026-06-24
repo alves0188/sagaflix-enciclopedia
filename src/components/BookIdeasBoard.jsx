@@ -64,6 +64,16 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setExpandedIdeaId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const ideas = book.ideas || [];
   const ideaLegends = { ...DEFAULT_LEGENDS, ...(book.ideaLegends || {}) };
 
