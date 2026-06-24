@@ -211,6 +211,16 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           </div>
 
           <div style={formFieldStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+              <label style={{ color: 'var(--text-muted)', margin: 0 }}>Premissa / Argumento (Logline)</label>
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontStyle: 'italic' }}>
+                * Sua bússola - Apenas para você
+              </span>
+            </div>
+            <textarea name="premise" value={formData.premise || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" rows="3" style={{ lineHeight: '1.6', fontSize: '1.05rem', opacity: isReadOnly ? 0.7 : 1, border: '1px solid rgba(212, 175, 55, 0.5)' }} placeholder="Ex: Um detetive insone precisa resolver o assassinato de sua ex-esposa antes que ele próprio seja incriminado."></textarea>
+          </div>
+
+          <div style={formFieldStyle}>
             <label style={{ color: 'var(--text-muted)' }}>Sinopse Oficial (Aparece na Home e Vitrine)</label>
             <textarea name="synopsis" value={formData.synopsis} onChange={handleChange} disabled={isReadOnly} className="form-input" rows="12" style={{ lineHeight: '1.6', fontSize: '1.05rem', opacity: isReadOnly ? 0.7 : 1 }} placeholder="Escreva a sinopse que vai atrair seus leitores..."></textarea>
           </div>

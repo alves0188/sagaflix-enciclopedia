@@ -6,6 +6,7 @@ import DossierEditor from './DossierEditor';
 import PagesConfig from './PagesConfig';
 import SynopsisConfig from './SynopsisConfig';
 import BookIdeasBoard from './BookIdeasBoard';
+import BookEscaletaBoard from './BookEscaletaBoard';
 import { uploadImage } from '../lib/supabaseClient';
 import { useHashHistory } from '../hooks/useHashHistory';
 
@@ -1006,9 +1007,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Star size={18} /> Avaliações
           </button>
         )}
-        {isTabVisible('ideias') && (
-          <button style={navItemStyle(activeList === 'ideias')} onClick={() => {setActiveList('ideias'); setEditingItem(null);}}>
-            <Lightbulb size={18} /> Painel de Ideias
+        {(isTabVisible('ideias') || isTabVisible('escaletas')) && (
+          <button style={navItemStyle(['ideias', 'escaletas'].includes(activeList))} onClick={() => {
+            setActiveList(['ideias', 'escaletas'].includes(activeList) ? activeList : 'escaletas'); 
+            setEditingItem(null);
+          }}>
+            <Layout size={18} /> Planejamento
           </button>
         )}
         <button style={navItemStyle(activeList === 'notes')} onClick={() => {setActiveList('notes'); setEditingItem(null);}}>
@@ -1036,6 +1040,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </div>
         )}
 
+        {['ideias', 'escaletas'].includes(activeList) && !editingItem && (
+          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', scrollbarWidth: 'none' }} className="hide-scrollbar">
+             {isTabVisible('escaletas') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'escaletas' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'escaletas' ? '#000' : 'var(--text-main)', border: activeList === 'escaletas' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'escaletas' ? 'bold' : 'normal' }} onClick={() => setActiveList('escaletas')}>Escaletas</button>}
+             {isTabVisible('ideias') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'ideias' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'ideias' ? '#000' : 'var(--text-main)', border: activeList === 'ideias' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'ideias' ? 'bold' : 'normal' }} onClick={() => setActiveList('ideias')}>Painel de Ideias</button>}
+          </div>
+        )}
+
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (
@@ -1046,6 +1057,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           renderNotesTab()
         ) : activeList === 'trash' ? (
           renderTrashTab()
+        ) : activeList === 'escaletas' ? (
+          <BookEscaletaBoard 
+            book={currentBook} 
+            onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
+          />
         ) : activeList === 'ideias' ? (
           <BookIdeasBoard 
             book={currentBook} 
