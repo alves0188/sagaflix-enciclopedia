@@ -264,20 +264,18 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
         )}
 
         {/* DEBUG TEMPORARIO PARA VIZUALIZAR PORQUE AS TAGS NÃO APARECEM */}
-        {events && events.length > 0 && (
-          <div style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid red', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
-            <h4 style={{ color: 'red', margin: '0 0 0.5rem 0' }}>DEBUG TÉCNICO (Ocultaremos isso depois):</h4>
-            <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Total de Eventos no Livro: {events.length}</p>
-            <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Nome deste dossiê: {(formData.name || formData.title || '').trim().toLowerCase()}</p>
-            <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {events.map((e, i) => (
-                <li key={i}>
-                  {e.name || e.title || 'Sem Nome'} | Tags salvas: {e.tags || 'NENHUMA TAG'}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid red', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
+          <h4 style={{ color: 'red', margin: '0 0 0.5rem 0' }}>DEBUG TÉCNICO (Ocultaremos isso depois):</h4>
+          <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Total de Eventos recebidos no Dossiê: {(events || []).length}</p>
+          <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Nome deste dossiê (como o sistema lê): {(formData.name || formData.title || '').trim().toLowerCase()}</p>
+          <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            {(events || []).map((e, i) => (
+              <li key={i}>
+                Nome do evento: {e.name || e.title || 'Sem Nome'} | Tags salvas: {e.tags || 'NENHUMA TAG'} | Status: {e.status}
+              </li>
+            ))}
+          </ul>
+        </div>
         {/* --- EVENTOS COMBINADOS --- */}
         {matchingEvents.length > 0 && (
           <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
