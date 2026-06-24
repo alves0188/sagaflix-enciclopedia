@@ -39,6 +39,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMobileIdeas, setShowMobileIdeas] = useState(false);
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [tagModalCategory, setTagModalCategory] = useState(null);
   const [editorTheme, setEditorTheme] = useState('dark');
   const [editorScrolled, setEditorScrolled] = useState(false);
   const editorColors = {
@@ -841,6 +843,105 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
   const formFieldStyle = { display: 'flex', flexDirection: 'column', gap: '0.5rem' };
 
+  const renderTagSelectionModal = () => {
+    if (!showTagModal) return null;
+
+    if (!tagModalCategory) {
+      // Step 1: Select Category
+      return (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setShowTagModal(false)}>
+          <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '400px', borderRadius: '12px', padding: '1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowTagModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={24} /></button>
+            <h3 style={{ marginTop: 0, color: 'var(--accent-gold)', textAlign: 'center', marginBottom: '1.5rem', fontFamily: "'Playfair Display', serif" }}>Adicionar Tags</h3>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>De qual setor você deseja adicionar tags a este evento?</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <button className="btn-secondary" onClick={() => setTagModalCategory('characters')} style={{ padding: '1rem', justifyContent: 'center', fontWeight: 'bold' }}>👤 Personagens</button>
+              <button className="btn-secondary" onClick={() => setTagModalCategory('locations')} style={{ padding: '1rem', justifyContent: 'center', fontWeight: 'bold' }}>🗺️ Locais</button>
+              <button className="btn-secondary" onClick={() => setTagModalCategory('organizations')} style={{ padding: '1rem', justifyContent: 'center', fontWeight: 'bold' }}>🏛️ Organizações</button>
+              <button className="btn-secondary" onClick={() => setTagModalCategory('extras')} style={{ padding: '1rem', justifyContent: 'center', fontWeight: 'bold' }}>📦 Complementos</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Step 2: Select Items in Category
+    const categoryTitleMap = {
+      characters: 'Personagens',
+      locations: 'Locais',
+      organizations: 'Organizações',
+      extras: 'Complementos'
+    };
+    
+    const items = currentBook ? (currentBook[tagModalCategory] || []) : [];
+    const currentTags = (formData.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+
+    const toggleTag = (itemName) => {
+      let newTags;
+      if (currentTags.includes(itemName)) {
+        newTags = currentTags.filter(t => t !== itemName);
+      } else {
+        newTags = [...currentTags, itemName];
+      }
+      setFormData({ ...formData, tags: newTags.join(', ') });
+    };
+
+    return (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => { setTagModalCategory(null); setShowTagModal(false); }}>
+        <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '500px', borderRadius: '12px', padding: '1.5rem', position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <button onClick={() => setTagModalCategory(null)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: 0 }}><ArrowLeft size={18} /> Voltar</button>
+            <h3 style={{ margin: 0, color: 'var(--accent-gold)', fontFamily: "'Playfair Display', serif" }}>{categoryTitleMap[tagModalCategory]}</h3>
+            <button onClick={() => { setTagModalCategory(null); setShowTagModal(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><X size={24} /></button>
+          </div>
+          
+          <div style={{ overflowY: 'auto', flex: 1, padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {items.length === 0 && (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0' }}>Nenhum item criado neste setor.</p>
+            )}
+            {items.map((item, idx) => {
+              const name = (item.name || item.title || '').trim();
+              if (!name) return null;
+              const isSelected = currentTags.includes(name);
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => toggleTag(name)}
+                  style={{ 
+                    padding: '0.8rem 1rem', 
+                    borderRadius: '6px', 
+                    background: isSelected ? 'var(--accent-gold)' : 'var(--card-bg)', 
+                    color: isSelected ? '#000' : 'var(--text-main)', 
+                    cursor: 'pointer', 
+                    border: `1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--border-color)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontWeight: isSelected ? 'bold' : 'normal',
+                    transition: 'all 0.2s',
+                    userSelect: 'none'
+                  }}
+                >
+                  {name}
+                  {isSelected && <Tag size={16} />}
+                </div>
+              );
+            })}
+          </div>
+
+          <button 
+            className="btn-primary" 
+            onClick={() => { setTagModalCategory(null); setShowTagModal(false); }} 
+            style={{ width: '100%', marginTop: '1.5rem', padding: '1rem', justifyContent: 'center' }}
+          >
+            Confirmar Seleção (OK)
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-container" style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)', position: 'relative' }}>
       
@@ -1120,9 +1221,37 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     />
                   </div>
                   <div style={formFieldStyle}>
-                    <label>Tags (Nomes separados por vírgula)</label>
-                    <input type="text" name="tags" value={formData.tags || ''} onChange={handleChange} disabled={isReadOnly} className="form-input" placeholder="Ex: Luan, Camila, Bar da Esquina" style={{ opacity: isReadOnly ? 0.7 : 1 }} />
-                    <small style={{ color: 'var(--text-muted)' }}>Ao colocar o nome idêntico de um personagem ou local aqui, este evento aparecerá no Dossiê dele(a).</small>
+                    <label>Participantes / Tags Relacionadas</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
+                      {(formData.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, idx) => (
+                        <div key={idx} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                          {tag}
+                          {!isReadOnly && (
+                            <button 
+                              type="button" 
+                              onClick={() => {
+                                const newTags = (formData.tags || '').split(',').map(t => t.trim()).filter(Boolean).filter(t => t !== tag).join(', ');
+                                setFormData({ ...formData, tags: newTags });
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {!isReadOnly && (
+                        <button 
+                          type="button" 
+                          onClick={() => setShowTagModal(true)}
+                          className="btn-secondary" 
+                          style={{ padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          <Plus size={14} /> Adicionar Tag
+                        </button>
+                      )}
+                    </div>
+                    <small style={{ color: 'var(--text-muted)' }}>Adicione tags de personagens, locais ou organizações. Este evento aparecerá no Dossiê deles.</small>
                   </div>
                 </>
               )}
@@ -1499,6 +1628,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </div>
         </div>
       )}
+
+      {/* Tag Selection Modal */}
+      {renderTagSelectionModal()}
     </div>
   );
 }
