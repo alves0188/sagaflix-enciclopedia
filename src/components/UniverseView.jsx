@@ -513,7 +513,7 @@ export default function UniverseView({ db, bookId, currentUser, onUpdateData, in
         <DetailModal 
           item={selectedItem} 
           bookTitle={currentBook?.title} 
-          events={universe.posts || []} 
+          events={universe.events || []} 
           onClose={handleCloseDetail} 
           onRequestAccess={handleRequestNoteAccess}
           db={db}
