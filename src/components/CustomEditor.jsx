@@ -130,7 +130,7 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
   };
 
   return (
-    <div style={{ border: 'none', borderRadius: 0, overflow: 'hidden', background: 'transparent', display: 'flex', flexDirection: 'column', height: '60vh', minHeight: '400px', transition: 'background 0.3s ease' }}>
+    <div style={{ border: 'none', borderRadius: 0, overflow: 'hidden', background: 'transparent', display: 'flex', flexDirection: 'column', minHeight: '80vh', transition: 'background 0.3s ease' }}>
       <div style={toolbarStyle}>
         <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
         <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
