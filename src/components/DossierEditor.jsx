@@ -263,6 +263,40 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
 
         )}
 
+        {/* DEBUG TEMPORARIO PARA VIZUALIZAR PORQUE AS TAGS NÃO APARECEM */}
+        {events && events.length > 0 && (
+          <div style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid red', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
+            <h4 style={{ color: 'red', margin: '0 0 0.5rem 0' }}>DEBUG TÉCNICO (Ocultaremos isso depois):</h4>
+            <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Total de Eventos no Livro: {events.length}</p>
+            <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-main)' }}>Nome deste dossiê: {(formData.name || formData.title || '').trim().toLowerCase()}</p>
+            <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {events.map((e, i) => (
+                <li key={i}>
+                  {e.name || e.title || 'Sem Nome'} | Tags salvas: {e.tags || 'NENHUMA TAG'}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* --- EVENTOS COMBINADOS --- */}
+        {matchingEvents.length > 0 && (
+          <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
+            <label style={{ fontSize: '0.8rem', color: '#a8d8ea', fontWeight: 'bold', textTransform: 'uppercase' }}>EVENTOS E OCORRÊNCIAS ({matchingEvents.length})</label>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.2rem 0 1rem 0', lineHeight: 1.2 }}>Esses eventos aparecem aqui porque você marcou o nome deste(a) {formData.type || 'item'} nas Tags deles.</p>
+            
+            {matchingEvents.map((ev, idx) => (
+              <div key={idx} style={{ background: 'rgba(168, 216, 234, 0.05)', border: '1px solid rgba(168, 216, 234, 0.3)', padding: '0.8rem', borderRadius: '4px', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#a8d8ea', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase' }}>
+                  {ev.name || ev.title}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                  <div dangerouslySetInnerHTML={{ __html: ev.content }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div style={{ marginBottom: '2rem', flexShrink: 0 }}>
           <label style={{ fontSize: '0.8rem', color: '#ff7777', fontWeight: 'bold' }}>NOTAS DO AUTOR</label>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.2 }}>Essas notas aparecerão em uma aba especial no dossiê. Notas secretas exigirão pedido de acesso.</p>
