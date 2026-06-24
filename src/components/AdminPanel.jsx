@@ -83,6 +83,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Handle ESC key to close modals and popups
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowMobileIdeas(false);
+        setShowMobileSidebar(false);
+        setShowTutorialModal(false);
+        setShowRequestModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const localEditorConfig = {
     ...editorConfig,
     readonly: isReadOnly
