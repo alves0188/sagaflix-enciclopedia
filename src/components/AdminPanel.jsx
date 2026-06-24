@@ -40,6 +40,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showMobileIdeas, setShowMobileIdeas] = useState(false);
   const [editorTheme, setEditorTheme] = useState('dark');
+  const [editorScrolled, setEditorScrolled] = useState(false);
   const editorColors = {
     dark: { bg: '#121212', text: '#e0e0e0', panelBg: '#1e1e1e', border: '#333', gold: '#d4af37', toolbarBg: 'var(--card-bg)' },
     light: { bg: '#fdfcf0', text: '#2d2d2d', panelBg: '#f4f2e6', border: '#e0ddd0', gold: '#b8942b', toolbarBg: '#f4f2e6' }
@@ -1272,7 +1273,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 2: Center (Editor de Texto) */}
-            <div style={{ flex: 1, backgroundColor: ec.bg, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', transition: 'background-color 0.3s ease, color 0.3s ease', color: ec.text }}>
+            <div 
+              id="center-editor-scroll-area" 
+              style={{ flex: 1, backgroundColor: ec.bg, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', transition: 'background-color 0.3s ease, color 0.3s ease', color: ec.text }}
+              onScroll={(e) => setEditorScrolled(e.target.scrollTop > 30)}
+            >
               
               {uniqueSubthemes.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhum subtema configurado.</div>
@@ -1284,48 +1289,6 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                 return (
                   <>
-                    <div className="editor-title-container" style={{ flexShrink: 0 }}>
-                      <input 
-                        type="text" 
-                        className="editor-subtheme-title"
-                        value={activePage.subtheme || ''} 
-                        onChange={(e) => handleSubthemeNameChange(e.target.value)} 
-                        disabled={effectiveReadOnly}
-                        placeholder="Nome do Subtema..." 
-                        style={{ padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
-                      />
-
-                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                        {activeSubthemePages.map((p, idx) => (
-                          <button 
-                            key={idx}
-                            onClick={() => setActivePageIdxWithinSubtheme(idx)}
-                            style={{
-                              background: 'transparent',
-                              color: idx === activePageIdxWithinSubtheme ? 'var(--accent-gold)' : 'var(--text-muted)',
-                              border: 'none',
-                              borderBottom: idx === activePageIdxWithinSubtheme ? '2px solid var(--accent-gold)' : '2px solid transparent',
-                              padding: '0.4rem 0', cursor: 'pointer',
-                              fontWeight: idx === activePageIdxWithinSubtheme ? 'bold' : 'normal',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            Sessão {idx + 1}
-                          </button>
-                        ))}
-                        {!effectiveReadOnly && (
-                          <button 
-                            onClick={handleAddPageToSubtheme} 
-                            style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '0.4rem 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.2s' }}
-                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-gold)'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-                          >
-                            <Plus size={14} /> Nova Sessão
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
                     <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                       <CustomEditor
                         value={activePage.text || ''}
@@ -1336,6 +1299,50 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                         placeholder="Escreva a sessão do capítulo aqui..."
                         themeColors={ec}
                         editorTheme={editorTheme}
+                        headerContent={
+                          <div className="editor-title-container" style={{ flexShrink: 0, paddingBottom: editorScrolled ? '0.5rem' : '1.5rem', transition: 'padding 0.3s ease' }}>
+                            <input 
+                              type="text" 
+                              className={`editor-subtheme-title ${editorScrolled ? 'scrolled' : ''}`}
+                              value={activePage.subtheme || ''} 
+                              onChange={(e) => handleSubthemeNameChange(e.target.value)} 
+                              disabled={effectiveReadOnly}
+                              placeholder="Nome do Subtema..." 
+                              style={{ padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
+                            />
+
+                            <div className="sessions-tabs-container" style={{ display: 'flex', gap: '1.5rem', marginTop: editorScrolled ? '0.5rem' : '2rem', overflowX: 'auto', paddingBottom: '0.5rem', transition: 'margin 0.3s ease' }}>
+                              {activeSubthemePages.map((p, idx) => (
+                                <button 
+                                  key={idx}
+                                  onClick={() => setActivePageIdxWithinSubtheme(idx)}
+                                  style={{
+                                    background: 'transparent',
+                                    color: idx === activePageIdxWithinSubtheme ? 'var(--accent-gold)' : 'var(--text-muted)',
+                                    border: 'none',
+                                    borderBottom: idx === activePageIdxWithinSubtheme ? '2px solid var(--accent-gold)' : '2px solid transparent',
+                                    padding: '0.4rem 0', cursor: 'pointer',
+                                    fontWeight: idx === activePageIdxWithinSubtheme ? 'bold' : 'normal',
+                                    transition: 'all 0.2s',
+                                    fontSize: editorScrolled ? '0.85rem' : '1rem'
+                                  }}
+                                >
+                                  Sessão {idx + 1}
+                                </button>
+                              ))}
+                              {!effectiveReadOnly && (
+                                <button 
+                                  onClick={handleAddPageToSubtheme} 
+                                  style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '0.4rem 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.2s', fontSize: editorScrolled ? '0.85rem' : '1rem' }}
+                                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-gold)'}
+                                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
+                                  <Plus size={14} /> Nova Sessão
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        }
                       />
                     </div>
 

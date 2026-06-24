@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, Image as ImageIcon } from 'lucide-react';
 
-export default function CustomEditor({ value, onChange, disabled, placeholder, themeColors, editorTheme }) {
+export default function CustomEditor({ value, onChange, disabled, placeholder, themeColors, editorTheme, headerContent }) {
   const editorRef = useRef(null);
   
   // Guardamos o HTML atual para não acionar o onChange à toa e para saber se o value mudou de fora
@@ -109,9 +109,6 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
     transition: 'background 0.3s ease'
   };
 
@@ -130,37 +127,42 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
   };
 
   return (
-    <div style={{ border: 'none', borderRadius: 0, overflow: 'hidden', background: 'transparent', display: 'flex', flexDirection: 'column', minHeight: '80vh', transition: 'background 0.3s ease' }}>
-      <div style={toolbarStyle}>
-        <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
-        <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
-        <button type="button" onClick={() => execCommand('underline')} style={btnStyle} title="Sublinhado"><Underline size={16} /></button>
-        
-        <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
-        
-        <button type="button" onClick={() => execCommand('justifyLeft')} style={btnStyle} title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
-        <button type="button" onClick={() => execCommand('justifyCenter')} style={btnStyle} title="Centralizar"><AlignCenter size={16} /></button>
-        <button type="button" onClick={() => execCommand('justifyRight')} style={btnStyle} title="Alinhar à Direita"><AlignRight size={16} /></button>
+    <div style={{ border: 'none', borderRadius: 0, background: 'transparent', display: 'flex', flexDirection: 'column', minHeight: '80vh', transition: 'background 0.3s ease' }}>
+      <div className="sticky-editor-header" style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: tc.bg, transition: 'background-color 0.3s ease', margin: '0 -3rem', padding: '0 3rem' }}>
+        {headerContent}
+        <div style={toolbarStyle}>
+          <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
+          <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
+          <button type="button" onClick={() => execCommand('underline')} style={btnStyle} title="Sublinhado"><Underline size={16} /></button>
+          
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+          
+          <button type="button" onClick={() => execCommand('justifyLeft')} style={btnStyle} title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
+          <button type="button" onClick={() => execCommand('justifyCenter')} style={btnStyle} title="Centralizar"><AlignCenter size={16} /></button>
+          <button type="button" onClick={() => execCommand('justifyRight')} style={btnStyle} title="Alinhar à Direita"><AlignRight size={16} /></button>
 
-        <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
 
-        <button type="button" onClick={() => execCommand('insertUnorderedList')} style={btnStyle} title="Lista"><List size={16} /></button>
-        <button type="button" onClick={handleImageInsert} style={btnStyle} title="Inserir Imagem"><ImageIcon size={16} /></button>
+          <button type="button" onClick={() => execCommand('insertUnorderedList')} style={btnStyle} title="Lista"><List size={16} /></button>
+          <button type="button" onClick={handleImageInsert} style={btnStyle} title="Inserir Imagem"><ImageIcon size={16} /></button>
+        </div>
       </div>
       
       <div 
         ref={editorRef}
         contentEditable={!disabled}
-        tabIndex={0}
-        onInput={handleInput}
-        onBlur={handleInput}
-        spellCheck="true"
-        onClick={() => {
-          if (!disabled && editorRef.current) {
-            editorRef.current.focus();
-          }
+        className="custom-editor-content"
+        onInput={(e) => {
+          lastHtml.current = e.currentTarget.innerHTML;
+          onChange(e.currentTarget.innerHTML);
           ensureCursorVisible();
         }}
+        onPaste={(e) => {
+          e.preventDefault();
+          const text = e.clipboardData.getData('text/plain');
+          document.execCommand('insertText', false, text);
+        }}
+        onMouseUp={ensureCursorVisible}
         onKeyUp={ensureCursorVisible}
         style={{
           flex: 1,
@@ -171,7 +173,6 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
           opacity: disabled ? 0.7 : 1,
           fontFamily: 'inherit',
           lineHeight: '1.6',
-          overflowY: 'auto',
           wordBreak: 'break-word',
           whiteSpace: 'pre-wrap',
           WebkitUserSelect: 'text',
@@ -181,8 +182,6 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
           transition: 'background 0.3s ease, color 0.3s ease'
         }}
         data-placeholder={placeholder}
-        // Sem dangerouslySetInnerHTML aqui para evitar conflitos pesados do React 
-        // O useEffect inicializa e gerencia as atualizações de HTML
       />
       
       {/* Basic placeholder styling using css */}

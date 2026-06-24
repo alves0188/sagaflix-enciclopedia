@@ -1669,6 +1669,11 @@ select option, select optgroup {
 
 .editor-subtheme-title {
   font-size: 2.2rem !important;
+  transition: font-size 0.3s ease !important;
+}
+
+.editor-subtheme-title.scrolled {
+  font-size: 1.4rem !important;
 }
 
 @media (max-width: 768px) {
@@ -1684,6 +1689,9 @@ select option, select optgroup {
   }
   .editor-subtheme-title {
     font-size: 1.5rem !important;
+  }
+  .editor-subtheme-title.scrolled {
+    font-size: 1.1rem !important;
   }
 }
 
