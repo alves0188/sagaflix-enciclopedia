@@ -240,8 +240,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                       border: 'none',
                       whiteSpace: 'nowrap'
                     }}>
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: idea.color }} />
-                      {ideaLegends[idea.color] || 'Outros'}
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: idea.color }} title={ideaLegends[idea.color] || 'Outros'} />
                     </div>
 
                     {/* Título da Ideia */}
@@ -389,21 +388,6 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', flex: 1 }}>
-                      <div style={{ 
-                        background: 'transparent', 
-                        padding: 0,
-                        fontSize: '0.85rem',
-                        fontWeight: '600',
-                        color: 'var(--text-muted)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        border: 'none',
-                        width: 'fit-content'
-                      }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: idea.color }} />
-                        {ideaLegends[idea.color] || 'Outros'}
-                      </div>
                       <DebouncedInput 
                         value={idea.title || ''}
                         onChange={(val) => handleUpdateIdeaTitle(idea.id, val)}
@@ -428,6 +412,20 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     placeholder="Escreva sua ideia aqui..."
                     style={{ flex: 1, background: 'transparent', border: 'none', width: '100%', resize: 'none', fontSize: '1.1rem', color: 'var(--text-main)', outline: 'none', lineHeight: '1.6', fontFamily: 'inherit', padding: '0.5rem 0' }}
                   />
+                  
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
+                    <div style={{ 
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem'
+                    }}>
+                      <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: idea.color }} />
+                      CATEGORIA: {ideaLegends[idea.color] || 'Outros'}
+                    </div>
+                  </div>
                 </>
               );
             })()}
