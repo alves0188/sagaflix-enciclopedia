@@ -7,6 +7,7 @@ import PagesConfig from './PagesConfig';
 import SynopsisConfig from './SynopsisConfig';
 import BookIdeasBoard from './BookIdeasBoard';
 import BookEscaletaBoard from './BookEscaletaBoard';
+import BookPremissaBoard from './BookPremissaBoard';
 import { uploadImage } from '../lib/supabaseClient';
 import { useHashHistory } from '../hooks/useHashHistory';
 
@@ -992,21 +993,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
         <div style={{ borderBottom: '1px solid var(--border-color)', margin: '0 1.5rem 2rem 1.5rem' }}></div>
 
-        {!isReadOnly && isTabVisible('synopsis') && (
-          <button id="tour-tab-synopsis" style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
-            <Settings size={18} /> Configurações da Obra
-          </button>
-        )}
-
         {isTabVisible('chapters') && (
           <button id="tour-tab-chapters" style={navItemStyle(activeList === 'chapters')} onClick={() => {setActiveList('chapters'); setEditingItem(null);}}>
             <Book size={18} /> Livro / Capítulos
           </button>
         )}
 
-        {(isTabVisible('ideias') || isTabVisible('escaletas')) && (
-          <button style={navItemStyle(['ideias', 'escaletas'].includes(activeList))} onClick={() => {
-            setActiveList(['ideias', 'escaletas'].includes(activeList) ? activeList : 'ideias'); 
+        {(isTabVisible('ideias') || isTabVisible('escaletas') || isTabVisible('premissa')) && (
+          <button style={navItemStyle(['ideias', 'escaletas', 'premissa'].includes(activeList))} onClick={() => {
+            setActiveList(['ideias', 'escaletas', 'premissa'].includes(activeList) ? activeList : 'premissa'); 
             setEditingItem(null);
           }}>
             <Layout size={18} /> Planejamento
@@ -1037,6 +1032,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         <button style={navItemStyle(activeList === 'trash')} onClick={() => {setActiveList('trash'); setEditingItem(null);}}>
             <Trash2 size={18} /> Lixeira
         </button>
+
+        {!isReadOnly && isTabVisible('synopsis') && (
+          <button id="tour-tab-synopsis" style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
+            <Settings size={18} /> Configurações da Obra
+          </button>
+        )}
         
         <div style={{ flex: 1 }}></div>
       </div>
@@ -1055,10 +1056,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </div>
         )}
 
-        {['ideias', 'escaletas'].includes(activeList) && !editingItem && (
+        {['ideias', 'escaletas', 'premissa'].includes(activeList) && !editingItem && (
           <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', scrollbarWidth: 'none' }} className="hide-scrollbar">
-             {isTabVisible('ideias') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'ideias' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'ideias' ? '#000' : 'var(--text-main)', border: activeList === 'ideias' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'ideias' ? 'bold' : 'normal' }} onClick={() => setActiveList('ideias')}>Painel de Ideias</button>}
+             {isTabVisible('ideias') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'premissa' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'premissa' ? '#000' : 'var(--text-main)', border: activeList === 'premissa' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'premissa' ? 'bold' : 'normal' }} onClick={() => setActiveList('premissa')}>Resumo / Premissa</button>}
              {isTabVisible('escaletas') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'escaletas' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'escaletas' ? '#000' : 'var(--text-main)', border: activeList === 'escaletas' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'escaletas' ? 'bold' : 'normal' }} onClick={() => setActiveList('escaletas')}>Escaletas</button>}
+             {isTabVisible('ideias') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'ideias' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'ideias' ? '#000' : 'var(--text-main)', border: activeList === 'ideias' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'ideias' ? 'bold' : 'normal' }} onClick={() => setActiveList('ideias')}>Painel de Ideias</button>}
           </div>
         )}
 
@@ -1079,6 +1081,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           />
         ) : activeList === 'ideias' ? (
           <BookIdeasBoard 
+            book={currentBook} 
+            onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
+          />
+        ) : activeList === 'premissa' ? (
+          <BookPremissaBoard 
             book={currentBook} 
             onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
           />
@@ -1573,12 +1580,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             {/* COLUMN 3: Right (Planejamento) */}
             <div className="desktop-only" style={{ width: '420px', borderLeft: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden', transition: 'background-color 0.3s ease' }}>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', background: 'rgba(0,0,0,0.1)', padding: '0.3rem', borderRadius: '8px' }}>
+                <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'premissa' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal' }}>Resumo</button>
                 <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'escaletas' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal' }}>Escaletas</button>
                 <button onClick={() => setActiveSideTab('ideias')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'ideias' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'ideias' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'ideias' ? 'bold' : 'normal' }}>Ideias</button>
               </div>
               {currentBook && (
                 <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
-                  {activeSideTab === 'escaletas' ? (
+                  {activeSideTab === 'premissa' ? (
+                    <BookPremissaBoard book={currentBook} onUpdateBook={onUpdateBook} />
+                  ) : activeSideTab === 'escaletas' ? (
                     <BookEscaletaBoard book={currentBook} onUpdateBook={onUpdateBook} />
                   ) : (
                     <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
@@ -1665,12 +1675,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </button>
           </div>
           <div style={{ padding: '1rem', display: 'flex', gap: '0.5rem', background: 'var(--card-bg)' }}>
+            <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.8rem', border: 'none', background: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeSideTab === 'premissa' ? '#000' : 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal' }}>Resumo</button>
             <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.8rem', border: 'none', background: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeSideTab === 'escaletas' ? '#000' : 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal' }}>Escaletas</button>
             <button onClick={() => setActiveSideTab('ideias')} style={{ flex: 1, padding: '0.8rem', border: 'none', background: activeSideTab === 'ideias' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeSideTab === 'ideias' ? '#000' : 'var(--text-main)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'ideias' ? 'bold' : 'normal' }}>Ideias</button>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: '#1a1c20' }}>
             {currentBook && (
-              activeSideTab === 'escaletas' ? (
+              activeSideTab === 'premissa' ? (
+                <BookPremissaBoard book={currentBook} onUpdateBook={onUpdateBook} />
+              ) : activeSideTab === 'escaletas' ? (
                 <BookEscaletaBoard book={currentBook} onUpdateBook={onUpdateBook} />
               ) : (
                 <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />

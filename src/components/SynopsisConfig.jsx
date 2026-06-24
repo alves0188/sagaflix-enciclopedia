@@ -7,6 +7,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   const [formData, setFormData] = useState({
     title: book.title || '',
     synopsis: book.synopsis || '',
+    premise: book.premise || '',
     cover: book.cover || '',
     releaseMode: book.releaseMode || 'all',
     releaseIntervalDays: book.releaseIntervalDays || 2,
