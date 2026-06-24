@@ -1029,14 +1029,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Star size={18} /> Avaliações
           </button>
         )}
-        {(isTabVisible('ideias') || isTabVisible('escaletas')) && (
-          <button style={navItemStyle(['ideias', 'escaletas'].includes(activeList))} onClick={() => {
-            setActiveList(['ideias', 'escaletas'].includes(activeList) ? activeList : 'ideias'); 
-            setEditingItem(null);
-          }}>
-            <Layout size={18} /> Planejamento
-          </button>
-        )}
+
         <button style={navItemStyle(activeList === 'notes')} onClick={() => {setActiveList('notes'); setEditingItem(null);}}>
             <MessageSquare size={18} /> Solicitações e Notas
         </button>
