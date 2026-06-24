@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe } from 'lucide-react';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -989,26 +989,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Book size={18} /> Livro / Capítulos
           </button>
         )}
-        {isTabVisible('pages') && (
-          <button style={navItemStyle(activeList === 'pages')} onClick={() => {setActiveList('pages'); setEditingItem(null);}}>Bio e Apresentações</button>
+        {(isTabVisible('pages') || isTabVisible('characters') || isTabVisible('locations') || isTabVisible('organizations') || isTabVisible('clues') || isTabVisible('events')) && (
+          <button style={navItemStyle(['pages', 'characters', 'locations', 'organizations', 'clues', 'events'].includes(activeList))} onClick={() => {
+            setActiveList(['pages', 'characters', 'locations', 'organizations', 'clues', 'events'].includes(activeList) ? activeList : 'pages'); 
+            setEditingItem(null);
+          }}>
+            <Globe size={18} /> Universo
+          </button>
         )}
-        {isTabVisible('characters') && (
-          <button id="tour-tab-universe" style={navItemStyle(activeList === 'characters')} onClick={() => {setActiveList('characters'); setEditingItem(null);}}>Personagens</button>
-        )}
-        {isTabVisible('locations') && (
-          <button style={navItemStyle(activeList === 'locations')} onClick={() => {setActiveList('locations'); setEditingItem(null);}}>Locais</button>
-        )}
-        {isTabVisible('organizations') && (
-          <button style={navItemStyle(activeList === 'organizations')} onClick={() => {setActiveList('organizations'); setEditingItem(null);}}>Organizações</button>
-        )}
-        {isTabVisible('clues') && (
-          <button style={navItemStyle(activeList === 'clues')} onClick={() => {setActiveList('clues'); setEditingItem(null);}}>Complementos</button>
-        )}
+
         {isTabVisible('posts') && (
           <button style={navItemStyle(activeList === 'posts')} onClick={() => {setActiveList('posts'); setEditingItem(null);}}>Blog / Notícias</button>
-        )}
-        {isTabVisible('events') && (
-          <button style={navItemStyle(activeList === 'events')} onClick={() => {setActiveList('events'); setEditingItem(null);}}>Eventos / Tags</button>
         )}
         {isTabVisible('reviews') && (
           <button style={navItemStyle(activeList === 'reviews')} onClick={() => {setActiveList('reviews'); setEditingItem(null);}}>
@@ -1033,6 +1024,18 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
       {/* Center Area: List */}
       <div className={`admin-content-wrapper ${editingItem ? 'hide-on-mobile-edit' : ''}`} style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', backgroundColor: 'var(--bg-color)' }}>
+        
+        {['pages', 'characters', 'locations', 'organizations', 'clues', 'events'].includes(activeList) && !editingItem && (
+          <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', scrollbarWidth: 'none' }} className="hide-scrollbar">
+             {isTabVisible('pages') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'pages' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'pages' ? '#000' : 'var(--text-main)', border: activeList === 'pages' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'pages' ? 'bold' : 'normal' }} onClick={() => setActiveList('pages')}>Bio e Apresentações</button>}
+             {isTabVisible('characters') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'characters' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'characters' ? '#000' : 'var(--text-main)', border: activeList === 'characters' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'characters' ? 'bold' : 'normal' }} onClick={() => setActiveList('characters')}>Personagens</button>}
+             {isTabVisible('locations') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'locations' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'locations' ? '#000' : 'var(--text-main)', border: activeList === 'locations' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'locations' ? 'bold' : 'normal' }} onClick={() => setActiveList('locations')}>Locais</button>}
+             {isTabVisible('organizations') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'organizations' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'organizations' ? '#000' : 'var(--text-main)', border: activeList === 'organizations' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'organizations' ? 'bold' : 'normal' }} onClick={() => setActiveList('organizations')}>Organizações</button>}
+             {isTabVisible('clues') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'clues' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'clues' ? '#000' : 'var(--text-main)', border: activeList === 'clues' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'clues' ? 'bold' : 'normal' }} onClick={() => setActiveList('clues')}>Complementos</button>}
+             {isTabVisible('events') && <button className="btn-secondary" style={{ padding: '0.5rem 1rem', background: activeList === 'events' ? 'var(--accent-gold)' : 'var(--bg-secondary)', color: activeList === 'events' ? '#000' : 'var(--text-main)', border: activeList === 'events' ? 'none' : '1px solid var(--border-color)', whiteSpace: 'nowrap', fontWeight: activeList === 'events' ? 'bold' : 'normal' }} onClick={() => setActiveList('events')}>Eventos / Tags</button>}
+          </div>
+        )}
+
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
         ) : activeList === 'synopsis' && currentBook ? (
