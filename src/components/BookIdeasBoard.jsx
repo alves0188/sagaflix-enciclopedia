@@ -63,6 +63,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   const [showLegends, setShowLegends] = useState(false);
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState(null);
+  const [activeColorPaletteId, setActiveColorPaletteId] = useState(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -264,28 +265,41 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
 
                   {/* Ações da direita */}
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {/* Seletor de cores em linha */}
-                    <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--bg-secondary)', padding: '0.2rem 0.4rem', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-                      {COLORS.map(c => (
-                        <div 
-                          key={c.hex} 
-                          onClick={() => handleUpdateIdeaColor(idea.id, c.hex)}
-                          title={ideaLegends[c.hex] || c.name}
-                          style={{ 
-                            width: '12px', 
-                            height: '12px', 
-                            borderRadius: '50%', 
-                            background: c.hex, 
-                            cursor: 'pointer',
-                            border: idea.color === c.hex ? '2px solid var(--text-main)' : '1px solid rgba(0,0,0,0.1)',
-                            boxSizing: 'border-box',
-                            opacity: idea.color === c.hex ? 1 : 0.6
-                          }} 
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = idea.color === c.hex ? 1 : 0.6}
-                        />
-                      ))}
-                    </div>
+                    {/* Botão de Paleta de Cores */}
+                    <button 
+                      onClick={() => setActiveColorPaletteId(activeColorPaletteId === idea.id ? null : idea.id)}
+                      style={{ background: 'transparent', border: 'none', color: activeColorPaletteId === idea.id ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', transition: 'all 0.2s', borderRadius: '4px' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-gold)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = activeColorPaletteId === idea.id ? 'var(--accent-gold)' : 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+                      title="Mudar cor"
+                    >
+                      <Palette size={16} />
+                    </button>
+
+                    {/* Seletor de cores em linha (escondido por padrão) */}
+                    {activeColorPaletteId === idea.id && (
+                      <div style={{ display: 'flex', gap: '0.3rem', background: 'var(--bg-secondary)', padding: '0.2rem 0.4rem', borderRadius: '20px', border: '1px solid var(--border-color)', position: 'absolute', right: '4rem', zIndex: 10 }}>
+                        {COLORS.map(c => (
+                          <div 
+                            key={c.hex} 
+                            onClick={() => { handleUpdateIdeaColor(idea.id, c.hex); setActiveColorPaletteId(null); }}
+                            title={ideaLegends[c.hex] || c.name}
+                            style={{ 
+                              width: '12px', 
+                              height: '12px', 
+                              borderRadius: '50%', 
+                              background: c.hex, 
+                              cursor: 'pointer',
+                              border: idea.color === c.hex ? '2px solid var(--text-main)' : '1px solid rgba(0,0,0,0.1)',
+                              boxSizing: 'border-box',
+                              opacity: idea.color === c.hex ? 1 : 0.6
+                            }} 
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = idea.color === c.hex ? 1 : 0.6}
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     {/* Botão Expandir */}
                     <button 
@@ -322,7 +336,7 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
                     background: 'transparent', 
                     border: 'none', 
                     width: '100%',
-                    minHeight: '120px',
+                    minHeight: '60px',
                     resize: 'vertical',
                     fontSize: '0.95rem',
                     color: 'var(--text-secondary)',
