@@ -1610,8 +1610,7 @@ select option, select optgroup {
 }
 
 .editor-light-theme .form-input,
-.editor-light-theme select,
-.editor-light-theme input[type="text"] {
+.editor-light-theme select {
   background-color: #ffffff !important;
   color: #2d2d2d !important;
   border-color: #e0ddd0 !important;
