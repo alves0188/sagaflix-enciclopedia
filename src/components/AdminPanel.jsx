@@ -873,8 +873,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       organizations: 'Organizações',
       extras: 'Complementos'
     };
-    
-    const items = currentBook ? (currentBook[tagModalCategory] || []) : [];
+    const items = data ? (data[tagModalCategory] || []) : [];
     const currentTags = (formData.tags || '').split(',').map(t => t.trim()).filter(Boolean);
 
     const toggleTag = (itemName) => {
