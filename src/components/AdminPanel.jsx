@@ -1287,11 +1287,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     <div className="editor-title-container" style={{ flexShrink: 0 }}>
                       <input 
                         type="text" 
+                        className="editor-subtheme-title"
                         value={activePage.subtheme || ''} 
                         onChange={(e) => handleSubthemeNameChange(e.target.value)} 
                         disabled={effectiveReadOnly}
                         placeholder="Nome do Subtema..." 
-                        style={{ fontSize: '1.8rem', padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
+                        style={{ padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
                       />
 
                       <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>

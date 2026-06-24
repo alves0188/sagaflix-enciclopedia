@@ -1667,16 +1667,23 @@ select option, select optgroup {
   padding: 0 3rem 3rem 3rem;
 }
 
+.editor-subtheme-title {
+  font-size: 2.2rem !important;
+}
+
 @media (max-width: 768px) {
   .editor-title-container {
     padding: 1.5rem 1.5rem 0 1.5rem;
   }
   .editor-text-container {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     overflow-x: hidden;
   }
   .editor-footer-container {
     padding: 0 1.5rem 2rem 1.5rem;
+  }
+  .editor-subtheme-title {
+    font-size: 1.5rem !important;
   }
 }
 

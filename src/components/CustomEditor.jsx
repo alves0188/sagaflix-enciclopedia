@@ -172,6 +172,8 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
           fontFamily: 'inherit',
           lineHeight: '1.6',
           overflowY: 'auto',
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap',
           WebkitUserSelect: 'text',
           userSelect: 'text',
           cursor: 'text',
