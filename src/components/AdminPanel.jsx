@@ -1148,11 +1148,27 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             )}
 
             {/* Unified Cards Grid for both Mobile and Desktop */}
-            <div className="admin-cards-grid">
+            <div className="admin-cards-grid" style={activeList === 'chapters' ? { gridTemplateColumns: 'repeat(auto-fill, minmax(calc(33.333% - 1.5rem), 1fr))' } : {}}>
               {(data[activeList] || []).length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
               ) : (
-                (data[activeList] || []).map((item, idx) => (
+                (data[activeList] || []).map((item, idx) => {
+                  let chapterLabel = '';
+                  if (activeList === 'chapters') {
+                    const typeStr = item.type || 'chapter';
+                    const typeLabels = {
+                      chapter: 'Capítulo', prologue: 'Prólogo', preface: 'Prefácio', index: 'Índice',
+                      epilogue: 'Epílogo', acknowledgments: 'Agradecimentos', glossary: 'Glossário', extra: 'Conteúdo Extra'
+                    };
+                    if (typeStr === 'chapter') {
+                      const chapNum = (data[activeList] || []).slice(0, idx).filter(c => (!c.type || c.type === 'chapter')).length + 1;
+                      chapterLabel = `Capítulo ${chapNum}`;
+                    } else {
+                      chapterLabel = typeLabels[typeStr] || 'Capítulo';
+                    }
+                  }
+
+                  return (
                   <div 
                     key={item.id} 
                     className="admin-list-card" 
@@ -1177,11 +1193,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                     <div className="admin-list-card-content">
                       <div className="admin-list-card-title">
                         {item.status === 'draft' && <span style={{ color: '#f44336', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '0.5rem', background: 'rgba(244,67,54,0.1)', padding: '2px 6px', borderRadius: '4px' }}>[RASCUNHO]</span>}
+                        {activeList === 'chapters' && <span style={{ color: 'var(--accent-gold)', marginRight: '0.5rem' }}>{chapterLabel} -</span>}
                         {item.title || item.name}
                       </div>
                       <div className="admin-list-card-desc">
                         {item.type === 'post' ? item.date : 
-                         item.type === 'chapter' ? `${item.pages?.length || 0} sessões` :
+                         activeList === 'chapters' ? `${item.pages?.length || 0} sessões` :
                          item.type === 'pista' ? 'Complemento' : item.territory}
                       </div>
                     </div>
@@ -1205,7 +1222,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                     )}
                   </div>
-                ))
+                )})
               )}
             </div>
           </div>
