@@ -1,8 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 export default function TagBadge({ tag, universe }) {
-  const [showPopup, setShowPopup] = useState(false);
-
   // Busca a imagem do dossiê correspondente à tag
   const imageUrl = useMemo(() => {
     if (!universe || !tag) return null;
@@ -26,17 +24,7 @@ export default function TagBadge({ tag, universe }) {
   }, [tag, universe]);
 
   return (
-    <div 
-      style={{ position: 'relative', display: 'inline-block' }}
-      onMouseEnter={() => imageUrl && setShowPopup(true)}
-      onMouseLeave={() => setShowPopup(false)}
-      onClick={(e) => {
-        if (imageUrl) {
-          e.stopPropagation();
-          setShowPopup(!showPopup);
-        }
-      }}
-    >
+    <div className="tag-badge-container">
       <span style={{ 
         background: 'var(--accent-gold)', 
         color: '#000', 
@@ -50,25 +38,8 @@ export default function TagBadge({ tag, universe }) {
         {tag}
       </span>
       
-      {showPopup && imageUrl && (
-        <div style={{
-          position: 'absolute',
-          bottom: '100%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          marginBottom: '10px',
-          background: 'var(--card-bg)',
-          border: '1px solid var(--accent-gold)',
-          borderRadius: '8px',
-          padding: '4px',
-          zIndex: 10000,
-          width: '100px',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          pointerEvents: 'none'
-        }}>
+      {imageUrl && (
+        <div className="tag-badge-popup">
           <img src={imageUrl} alt={tag} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
           <div style={{ color: 'var(--text-main)', fontSize: '0.7rem', marginTop: '4px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', fontWeight: 'bold' }}>
             {tag}
