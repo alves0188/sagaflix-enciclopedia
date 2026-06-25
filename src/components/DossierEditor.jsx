@@ -739,8 +739,8 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
 
       {/* Event Details Modal */}
       {selectedEventDetail && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setSelectedEventDetail(null)}>
-          <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '600px', borderRadius: '12px', padding: '2rem', position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '4rem 1rem', overflowY: 'auto' }} onClick={() => setSelectedEventDetail(null)}>
+          <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '600px', borderRadius: '12px', padding: '2rem', position: 'relative', display: 'flex', flexDirection: 'column', margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSelectedEventDetail(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={20} />
             </button>

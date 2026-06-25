@@ -40,8 +40,10 @@ export default function TagBadge({ tag, universe }) {
       
       {imageUrl && (
         <div className="tag-badge-popup">
-          <img src={imageUrl} alt={tag} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
-          <div style={{ color: 'var(--text-main)', fontSize: '0.7rem', marginTop: '4px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', fontWeight: 'bold' }}>
+          <div style={{ background: '#000', width: '100%', borderRadius: '4px 4px 0 0', display: 'flex', justifyContent: 'center' }}>
+            <img src={imageUrl} alt={tag} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '4px 4px 0 0' }} />
+          </div>
+          <div style={{ color: 'var(--text-main)', fontSize: '0.9rem', marginTop: '8px', padding: '0 8px 8px 8px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', fontWeight: 'bold' }}>
             {tag}
           </div>
           {/* Seta do tooltip */}
