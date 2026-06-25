@@ -431,18 +431,14 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                 />
               </div>
               
-              {selectedEventDetail.participants && selectedEventDetail.participants.length > 0 && (
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {selectedEventDetail.participants.map((p, i) => (
-                      <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                        {p}
-                      </span>
-                    ))}
-                  </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
+                    <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>{tag}</span>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>,
