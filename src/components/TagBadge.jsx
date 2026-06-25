@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 export default function TagBadge({ tag, universe }) {
   // Busca a imagem do dossiê correspondente à tag

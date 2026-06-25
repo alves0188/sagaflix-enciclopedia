@@ -435,7 +435,7 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                 />
               </div>
               
-              <div>
+              <div style={{ position: 'relative', zIndex: 10 }}>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
