@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Save, Menu } from 'lucide-react';
 
-export default function BookPremissaBoard({ book, onUpdateBook }) {
+export default function BookPremissaBoard({ book, onUpdateBook, onOpenMenu }) {
   const [formData, setFormData] = useState({
     premise: book.premise || '',
     synopsis: book.synopsis || ''
@@ -14,9 +15,20 @@ export default function BookPremissaBoard({ book, onUpdateBook }) {
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt' }}>
-        Resumo da Obra
-      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt' }}>
+          Resumo da Obra
+        </h2>
+        {onOpenMenu && (
+          <button 
+            className="mobile-only admin-mobile-menu-btn"
+            onClick={onOpenMenu}
+            style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+          >
+            <Menu size={20} />
+          </button>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

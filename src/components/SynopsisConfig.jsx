@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info } from 'lucide-react';
+import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info, Menu } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
-export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange, currentUser, db, onUpdateData, onLeave }) {
+export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange, currentUser, db, onUpdateData, onLeave, onOpenMenu }) {
   const [formData, setFormData] = useState({
     title: book.title || '',
     synopsis: book.synopsis || '',
@@ -161,6 +161,15 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           <button onClick={() => setShowInfo(!showInfo)} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', padding: '0.2rem' }}>
             <Info size={20} />
           </button>
+          {onOpenMenu && (
+            <button 
+              className="mobile-only admin-mobile-menu-btn"
+              onClick={onOpenMenu}
+              style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
         </h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {book.status !== 'draft' && (

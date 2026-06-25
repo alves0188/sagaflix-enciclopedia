@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Upload, Info, X } from 'lucide-react';
+import { Save, Upload, Info, X, Menu } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 
 const defaultPages = {
@@ -9,7 +9,7 @@ const defaultPages = {
   clues: { title: "Complementos", author: "Dossiês Complementares", category: "Complementos e Extras", description: "Explore informações, materiais e arquivos complementares que enriquecem o universo da obra.", image: "/clues_cover.png" }
 };
 
-export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
+export default function PagesConfig({ universe, onUpdate, isReadOnly, currentBook, onLogChange, onOpenMenu }) {
   const [pages, setPages] = useState(universe.pages || defaultPages);
   const [activeTab, setActiveTab] = useState('characters');
   const [uploading, setUploading] = useState(false);
@@ -116,6 +116,15 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly }) {
             >
               <Info size={20} />
             </button>
+            {onOpenMenu && (
+              <button 
+                className="mobile-only admin-mobile-menu-btn"
+                onClick={onOpenMenu}
+                style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Menu size={20} />
+              </button>
+            )}
           </div>
           {!isReadOnly && (
             <button className="btn-primary" onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

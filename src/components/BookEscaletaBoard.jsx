@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, GripVertical, Trash2, Edit2, Save, X, AlignLeft, Layers, Settings, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Edit2, Save, X, AlignLeft, Layers, Settings, ChevronDown, ChevronRight, BookOpen, Menu } from 'lucide-react';
 
-export default function BookEscaletaBoard({ book, onUpdateBook }) {
+export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu }) {
   const mode = book.escaletaMode || null;
   const groups = book.escaletaGroups || [];
 
@@ -175,7 +175,18 @@ export default function BookEscaletaBoard({ book, onUpdateBook }) {
   if (!mode) {
     return (
       <div style={{ padding: '2rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '2rem' }}>Assistente de Escaleta</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', width: '100%' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '2rem' }}>Assistente de Escaleta</h2>
+          {onOpenMenu && (
+            <button 
+              className="mobile-only admin-mobile-menu-btn"
+              onClick={onOpenMenu}
+              style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
+        </div>
         <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', textAlign: 'center', maxWidth: '600px' }}>
           Escolha como você deseja planejar as cenas da sua história. Você poderá alterar essa estrutura no futuro sem perder seus dados.
         </p>
@@ -231,12 +242,23 @@ export default function BookEscaletaBoard({ book, onUpdateBook }) {
     <div style={{ padding: '1.5rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', minHeight: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ margin: '0 0 0.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            Escaleta 
-            <span style={{ fontSize: '0.9rem', background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'sans-serif' }}>
-              {mode === 'free' ? 'Livre' : mode === 'acts' ? 'Atos' : 'Capítulos'}
-            </span>
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h2 style={{ margin: '0 0 0.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Escaleta 
+              <span style={{ fontSize: '0.9rem', background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'sans-serif' }}>
+                {mode === 'free' ? 'Livre' : mode === 'acts' ? 'Atos' : 'Capítulos'}
+              </span>
+            </h2>
+            {onOpenMenu && (
+              <button 
+                className="mobile-only admin-mobile-menu-btn"
+                onClick={onOpenMenu}
+                style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              >
+                <Menu size={20} />
+              </button>
+            )}
+          </div>
           <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Planeje o esqueleto da sua história. Adicione cartões para cada cena e arraste para reordenar.
           </p>

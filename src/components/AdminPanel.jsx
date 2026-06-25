@@ -585,10 +585,19 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     const acceptedNotes = notes.filter(n => n.status === 'accepted');
 
     return (
-      <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Comentários do Manuscrito</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Gerencie comentários e notas enviados por leitores beta.</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+            <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Anotações da Curadoria</h1>
+            <button 
+              className="mobile-only admin-mobile-menu-btn"
+              onClick={() => setIsSidebarOpen(true)}
+              style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Mensagens e orientações da curadoria sobre <strong>{currentBook?.title}</strong>.</p>
         </div>
 
         {pendingNotes.length === 0 ? (
@@ -656,7 +665,16 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     return (
       <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Avaliações & Recomendações</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+            <h1 style={{ fontSize: '1.8rem', fontFamily: "'Playfair Display', serif", margin: '0 0 0.5rem 0' }}>Avaliações & Recomendações</h1>
+            <button 
+              className="mobile-only admin-mobile-menu-btn"
+              onClick={() => setIsSidebarOpen(true)}
+              style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <Menu size={20} />
+            </button>
+          </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Opiniões e avaliações do público sobre a obra <strong>{currentBook?.title}</strong>.</p>
         </div>
 
@@ -958,17 +976,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
   return (
     <div className="dashboard-container" style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)', position: 'relative' }}>
-      
-      {/* Botão Mobile para abrir menu nas outras abas */}
-      {!['characters', 'locations', 'organizations', 'posts', 'events', 'chapters', 'clues'].includes(activeList) && (
-        <button 
-          className="mobile-only admin-mobile-menu-btn"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 1000, background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.5rem', borderRadius: '4px' }}
-        >
-          <Menu size={24} />
-        </button>
-      )}
+
 
       {/* Overlay escuro quando o menu tá aberto no mobile */}
       {isSidebarOpen && (
@@ -1065,9 +1073,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         )}
 
         {activeList === 'pages' ? (
-          <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} />
+          <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} onOpenMenu={() => setIsSidebarOpen(true)} />
         ) : activeList === 'synopsis' && currentBook ? (
-          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} />
+          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} onOpenMenu={() => setIsSidebarOpen(true)} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
         ) : activeList === 'notes' ? (
@@ -1078,16 +1086,19 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <BookEscaletaBoard 
             book={currentBook} 
             onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
+            onOpenMenu={() => setIsSidebarOpen(true)}
           />
         ) : activeList === 'ideias' ? (
           <BookIdeasBoard 
             book={currentBook} 
             onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
+            onOpenMenu={() => setIsSidebarOpen(true)}
           />
         ) : activeList === 'premissa' ? (
           <BookPremissaBoard 
             book={currentBook} 
             onUpdateBook={(updatedBook) => onUpdateBook(updatedBook)}
+            onOpenMenu={() => setIsSidebarOpen(true)}
           />
         ) : (
           <div className="admin-content-card" style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>

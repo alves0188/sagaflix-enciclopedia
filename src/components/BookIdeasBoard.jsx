@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Palette, Plus, ChevronDown, ChevronUp, Trash2, Maximize2, X } from 'lucide-react';
+import { Palette, Plus, ChevronDown, ChevronUp, Trash2, Maximize2, X, Menu } from 'lucide-react';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -59,7 +59,7 @@ function DebouncedTextarea({ value, onChange, placeholder, style, onFocus }) {
   return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} onFocus={onFocus} placeholder={placeholder} style={style} />;
 }
 
-export default function BookIdeasBoard({ book, onUpdateBook }) {
+export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu }) {
   const [showLegends, setShowLegends] = useState(false);
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState(null);
@@ -148,9 +148,20 @@ export default function BookIdeasBoard({ book, onUpdateBook }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem 1.5rem 0 1.5rem' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          Painel de Ideias: {book.title}
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Painel de Ideias: {book.title}
+          </h2>
+          {onOpenMenu && (
+            <button 
+              className="mobile-only admin-mobile-menu-btn"
+              onClick={onOpenMenu}
+              style={{ background: 'var(--accent-gold)', color: '#000', border: 'none', padding: '0.4rem 0.6rem', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button 
             onClick={() => setShowLegends(!showLegends)} 
