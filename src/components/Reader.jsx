@@ -827,11 +827,12 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                   <div>
                     {subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
                       <h2 style={{ 
+                         textAlign: 'left', 
                          fontFamily: "'Playfair Display', serif", 
                          color: themeColors.gold, 
-                         marginBottom: '2rem', 
+                         marginBottom: '1.5rem', 
                          marginTop: activeSubthemeIdx === 0 ? '0' : '2rem',
-                         fontSize: activeSubthemeIdx === 0 ? '1.8rem' : '2.2rem',
+                         fontSize: activeSubthemeIdx === 0 ? '1.8rem' : '1.4rem',
                          textTransform: activeSubthemeIdx === 0 ? 'uppercase' : 'none'
                       }}>
                         {subthemeObj.subtheme}
@@ -902,11 +903,12 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
 
                     {sub.subtheme && !chapterObj?.isVirtual && (isFirstSub || chapters[sub.chIdx]?.pages?.[sub.subIdx - 1]?.subtheme !== sub.subtheme) && (
                       <h2 style={{ 
+                        textAlign: 'left',
                         fontFamily: "'Playfair Display', serif", 
                         color: themeColors.gold, 
-                        marginBottom: '2rem', 
+                        marginBottom: '1.5rem', 
                         marginTop: isFirstSub ? '0' : '2rem',
-                        fontSize: isFirstSub ? '1.8rem' : '2.2rem',
+                        fontSize: isFirstSub ? '1.8rem' : '1.4rem',
                         textTransform: isFirstSub ? 'uppercase' : 'none'
                       }}>
                         {sub.subtheme}
