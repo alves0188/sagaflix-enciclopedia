@@ -823,7 +823,7 @@ label {
   right: 0;
   width: 250px;
   cursor: pointer;
-  z-index: 30;
+  z-index: 999;
   perspective: 1000px;
 }
 .sticky-wrapper:hover .sticky-dossier {
