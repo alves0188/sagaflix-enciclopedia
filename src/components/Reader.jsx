@@ -427,11 +427,13 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     for (let i = 0; i < allSubthemes.length; i++) {
       const sub = allSubthemes[i];
       if (sub.chIdx === activeChapterIdx && sub.subIdx === activeSubthemeIdx) {
-        break;
+        const cols = globalPageCounts[i] || 1;
+        const colIdx = activeColumnIdx === 9999 ? cols - 1 : activeColumnIdx;
+        return pagesBefore + colIdx + 1;
       }
       pagesBefore += (globalPageCounts[i] || 1);
     }
-    return pagesBefore + activeColumnIdx + 1;
+    return pagesBefore + (activeColumnIdx === 9999 ? 0 : activeColumnIdx) + 1;
   };
 
   useEffect(() => {
