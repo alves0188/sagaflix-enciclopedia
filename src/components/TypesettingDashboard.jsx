@@ -12,6 +12,15 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   const [showMargins, setShowMargins] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
 
+  // Estados do Motor Vellum (Salvos no Universe)
+  const bgImage = universe?.typesettingBackgroundImage || '';
+  const useDropCaps = universe?.typesettingUseDropCaps || false;
+  const chapterOrnament = universe?.typesettingChapterOrnament || '';
+  const chapterMarginTop = universe?.typesettingChapterMarginTop || 0;
+  const illustrations = universe?.typesettingIllustrations || {};
+
+  const updateSetting = (key, val) => onUpdateData && onUpdateData({ ...universe, [key]: val });
+
   // Estados do Motor de Paginação
   const contentRef = useRef(null);
   const [dynamicPagesCount, setDynamicPagesCount] = useState(1);
@@ -89,6 +98,33 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
     if (onUpdateData) onUpdateData({ ...universe, typesettingDedication: e.currentTarget.innerHTML });
   };
 
+  const handleUploadBackground = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => updateSetting('typesettingBackgroundImage', reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadOrnament = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => updateSetting('typesettingChapterOrnament', reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadIllustration = (e, chapterIdx) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => updateSetting('typesettingIllustrations', { ...illustrations, [chapterIdx]: reader.result });
+      reader.readAsDataURL(file);
+    }
+  };
+
   // ---- EXPORTAÇÃO ----
   const handlePrintPDF = () => {
     setIsPrinting(true);
@@ -136,12 +172,20 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
     const dedicationHtml = `<div class="dedication-page">${universe?.typesettingDedication || 'A todos que tornaram esta obra possível...'}</div>`;
     const indexHtml = `<div class="index-page"><h2>Índice</h2>${(universe?.chapters || []).map((c, i) => `<p>${c.title} ...... Cap. ${i + 1}</p>`).join('')}</div>`;
 
-    const chaptersHtml = (universe?.chapters || []).map((chapter) => {
-      let html = `${pageBreak}<div><h2>${chapter.title}</h2>`;
+    const chaptersHtml = (universe?.chapters || []).map((chapter, idx) => {
+      let html = '';
+      if (illustrations[idx]) {
+        html += `${pageBreak}<div><img src="${illustrations[idx]}" style="width: 100%; height: auto;" /></div>`;
+      }
+      html += `${pageBreak}<div>`;
+      if (chapterOrnament) {
+        html += `<p style="text-align: center;"><img src="${chapterOrnament}" style="max-height: 50px;" /></p>`;
+      }
+      html += `<h2 style="margin-top: ${chapterMarginTop}px;">${chapter.title}</h2>`;
       (chapter.pages || []).forEach(session => {
         if (session.image) html += `<p style="text-align: center;"><img src="${session.image}" /></p>`;
-        // MS Word as vezes confunde <div> abertas, vamos envelopar em tags seguras
-        html += `<div style="margin-bottom: 15pt;">${session.text}</div>`;
+        // Envelopar em div para MS Word mas com classe para Drop Caps
+        html += `<div class="chapter-content-block" style="margin-bottom: 15pt;">${session.text}</div>`;
       });
       html += `</div>`;
       return html;
@@ -176,7 +220,8 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   };
 
   const pageStyle = {
-    width: `${PW}px`, height: `${PH}px`, backgroundColor: '#fff',
+    width: `${PW}px`, height: `${PH}px`, backgroundColor: bgImage ? 'transparent' : '#fff',
+    backgroundImage: bgImage ? `url(${bgImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center',
     boxShadow: '0 5px 20px rgba(0,0,0,0.15)', position: 'absolute', top: 0,
     overflow: 'hidden', display: 'flex', flexDirection: 'column'
   };
@@ -257,6 +302,32 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               <option value="'Open Sans', sans-serif">Open Sans (Moderna)</option>
             </select>
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+            <label style={{ fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#b5952f' }}>
+              Tipografia Avançada (Vellum)
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input type="checkbox" id="dropcaps" checked={useDropCaps} onChange={e => updateSetting('typesettingUseDropCaps', e.target.checked)} />
+              <label htmlFor="dropcaps" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>Usar Letras Capitulares (Drop Caps)</label>
+            </div>
+            
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Plano de Fundo das Páginas (Textura)
+              <input type="file" accept="image/*" onChange={handleUploadBackground} style={{ fontSize: '0.7rem' }} />
+              {bgImage && <button onClick={() => updateSetting('typesettingBackgroundImage', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover Fundo</button>}
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Ornamento do Capítulo (Floral)
+              <input type="file" accept="image/*" onChange={handleUploadOrnament} style={{ fontSize: '0.7rem' }} />
+              {chapterOrnament && <button onClick={() => updateSetting('typesettingChapterOrnament', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover Ornamento</button>}
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              Distância do Título do Capítulo (px)
+              <input type="number" value={chapterMarginTop} onChange={e => updateSetting('typesettingChapterMarginTop', Number(e.target.value))} style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+            </label>
+          </div>
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
@@ -266,6 +337,24 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
               <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Espaço</label>
               <input type="number" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))} min={1} max={3} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fafafa' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+            <label style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#b5952f' }}>
+              Ilustrações de Página Inteira
+            </label>
+            <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>Escolha um capítulo para inserir uma arte na página à esquerda (Ex: O Dragão).</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+              {(universe?.chapters || []).map((c, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', background: '#fafafa', padding: '0.5rem', borderRadius: '4px', border: '1px solid #eee' }}>
+                  <span style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</span>
+                  <label style={{ cursor: 'pointer', color: illustrations[idx] ? 'green' : '#2b579a', fontWeight: 'bold' }}>
+                    {illustrations[idx] ? 'Alterar Arte' : 'Upload'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleUploadIllustration(e, idx)} />
+                  </label>
+                  {illustrations[idx] && <button onClick={() => updateSetting('typesettingIllustrations', { ...illustrations, [idx]: null })} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>X</button>}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -357,24 +446,47 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
                 zIndex: 2, outline: 'none',
               }}
             >
+              <style>{`
+                .chapter-content p:first-of-type::first-letter,
+                .chapter-content div:first-of-type::first-letter {
+                  ${useDropCaps ? `
+                    font-size: 3.5em;
+                    float: left;
+                    margin-right: 8px;
+                    margin-top: -5px;
+                    line-height: 0.9;
+                    font-family: 'Playfair Display', serif;
+                  ` : ''}
+                }
+              `}</style>
               {(universe?.chapters || []).map((chapter, idx) => {
                 const sessions = chapter.pages || [];
                 return (
-                  <div key={chapter.id || idx} style={{ marginBottom: '3rem', breakInside: 'avoid' }}>
-                    <h2 style={{ fontSize: '1.5em', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', serif", breakBefore: 'column' }}>
-                      {chapter.title}
-                    </h2>
-                    {sessions.map((session, sIdx) => (
-                      <div key={sIdx} style={{ marginBottom: '1.5rem' }}>
-                        {session.image && (
-                          <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
-                            <img src={session.image} alt="Ilustração" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
-                          </div>
-                        )}
-                        <div dangerouslySetInnerHTML={{ __html: session.text }} style={{ all: 'unset', display: 'block' }} />
+                  <React.Fragment key={chapter.id || idx}>
+                    {illustrations[idx] && (
+                      <div style={{ breakBefore: 'column', breakAfter: 'column', height: '100%', position: 'relative' }}>
+                        <img src={illustrations[idx]} style={{ position: 'absolute', top: -P, left: -P, width: PW, height: PH, objectFit: 'cover' }} />
                       </div>
-                    ))}
-                  </div>
+                    )}
+                    <div style={{ marginBottom: '3rem', breakInside: 'avoid' }}>
+                      <h2 style={{ fontSize: '1.5em', marginBottom: '1.5rem', marginTop: `${chapterMarginTop}px`, textAlign: 'center', fontFamily: "'Playfair Display', serif", breakBefore: 'column' }}>
+                        {chapterOrnament && <img src={chapterOrnament} style={{ display: 'block', margin: '0 auto 1.5rem', maxHeight: '50px' }} />}
+                        {chapter.title}
+                      </h2>
+                      <div className="chapter-content">
+                        {sessions.map((session, sIdx) => (
+                          <div key={sIdx} style={{ marginBottom: '1.5rem' }}>
+                            {session.image && (
+                              <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+                                <img src={session.image} alt="Ilustração" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                              </div>
+                            )}
+                            <div dangerouslySetInnerHTML={{ __html: session.text }} style={{ all: 'unset', display: 'block' }} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </React.Fragment>
                 );
               })}
             </div>
