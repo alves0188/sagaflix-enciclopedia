@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, Lock, X, ThumbsUp, ThumbsDown } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 
@@ -412,8 +413,8 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
       {lightboxImage && <ImageLightbox imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />}
 
       {/* Event Details Modal */}
-      {selectedEventDetail && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1200, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setSelectedEventDetail(null)}>
+      {selectedEventDetail && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem' }} onClick={() => setSelectedEventDetail(null)}>
           <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '600px', borderRadius: '12px', padding: '2rem', position: 'relative', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSelectedEventDetail(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontSize: '1.2rem' }}>&times;</span>
@@ -430,17 +431,22 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                 />
               </div>
               
-              <div>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
-                    <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>{tag}</span>
-                  ))}
+              {selectedEventDetail.participants && selectedEventDetail.participants.length > 0 && (
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {selectedEventDetail.participants.map((p, i) => (
+                      <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                        {p}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
