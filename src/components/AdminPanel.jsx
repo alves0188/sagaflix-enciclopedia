@@ -1086,7 +1086,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         ) : activeList === 'synopsis' && currentBook ? (
           <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={originalIsReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} onOpenMenu={() => setIsSidebarOpen(true)} />
         ) : activeList === 'diagramacao' && currentBook ? (
-          <TypesettingDashboard book={currentBook} />
+          <TypesettingDashboard book={currentBook} universe={data} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
         ) : activeList === 'notes' ? (

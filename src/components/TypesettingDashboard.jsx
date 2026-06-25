@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Settings, Printer, Download, BookOpen, ChevronLeft, Type, AlignLeft, Maximize } from 'lucide-react';
 
-export default function TypesettingDashboard({ book }) {
+export default function TypesettingDashboard({ book, universe }) {
   // Configurações de Formato Físico
   const [format, setFormat] = useState('14x21'); // '14x21', 'a5', 'pocket'
   const [fontFamily, setFontFamily] = useState('Merriweather, serif');
@@ -205,29 +205,41 @@ export default function TypesettingDashboard({ book }) {
           <div style={{ borderBottom: '1px solid #ccc', margin: '4rem 0' }}></div>
 
           {/* Capítulos Renderizados */}
-          {(book?.universe?.chapters || []).map((chapter, idx) => (
-            <div key={chapter.id || idx} style={{ marginBottom: '3rem' }}>
-              <h2 style={{ 
-                fontSize: '1.5em', 
-                marginBottom: '1.5rem', 
-                textAlign: 'center',
-                fontFamily: "'Playfair Display', serif",
-                pageBreakBefore: 'always' // Ajuda na exportação
-              }}>
-                {chapter.title}
-              </h2>
-              
-              <div 
-                className="typesetting-content"
-                dangerouslySetInnerHTML={{ __html: chapter.content }} 
-                style={{
-                  // Remove estilos injetados pelo editor web que quebram a impressão
-                  all: 'unset', 
-                  display: 'block'
-                }}
-              />
-            </div>
-          ))}
+          {(universe?.chapters || []).map((chapter, idx) => {
+            const sessions = chapter.pages || [];
+            return (
+              <div key={chapter.id || idx} style={{ marginBottom: '3rem' }}>
+                <h2 style={{ 
+                  fontSize: '1.5em', 
+                  marginBottom: '1.5rem', 
+                  textAlign: 'center',
+                  fontFamily: "'Playfair Display', serif",
+                  pageBreakBefore: 'always' // Ajuda na exportação
+                }}>
+                  {chapter.title}
+                </h2>
+                
+                {sessions.map((session, sIdx) => (
+                  <div key={sIdx} style={{ marginBottom: '1.5rem' }}>
+                    {session.image && (
+                      <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+                        <img src={session.image} alt="Ilustração" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                      </div>
+                    )}
+                    <div 
+                      className="typesetting-content"
+                      dangerouslySetInnerHTML={{ __html: session.text }} 
+                      style={{
+                        // Remove estilos injetados pelo editor web que quebram a impressão
+                        all: 'unset', 
+                        display: 'block'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          })}
 
         </div>
       </div>
