@@ -1049,13 +1049,23 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Settings size={18} /> Configurações da Obra
           </button>
         )}
-        
-        {(currentBook?.status === 'finished' || currentBook?.status === 'published') && (
-          <button style={{...navItemStyle(activeList === 'diagramacao'), background: activeList === 'diagramacao' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'diagramacao' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('diagramacao'); setEditingItem(null);}}>
-            <Book size={18} /> Diagramação Visual
-          </button>
-        )}
-        
+        <button 
+          style={{
+            ...navItemStyle(activeList === 'diagramacao'), 
+            background: activeList === 'diagramacao' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', 
+            color: activeList === 'diagramacao' ? '#000' : 'var(--accent-gold)'
+          }} 
+          onClick={() => {
+            if (currentBook?.status !== 'finished' && currentBook?.status !== 'published') {
+              alert('Finalize a obra primeiro! Você só pode acessar a diagramação visual após finalizar a escrita do livro.');
+              return;
+            }
+            setActiveList('diagramacao'); 
+            setEditingItem(null);
+          }}
+        >
+          <Book size={18} /> Diagramação Visual
+        </button>
         <div style={{ flex: 1 }}></div>
       </div>
 
