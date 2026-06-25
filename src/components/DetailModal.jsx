@@ -67,6 +67,9 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
     return tagArray.some(tag => tag === nameStr || nameStr.includes(tag) || tag.includes(nameStr));
   });
 
+  // Extract universe
+  const universe = db?.books?.find(b => b.title === bookTitle)?.universe || {};
+
   return (
     <div className="dossier-modal-container">
       
@@ -436,7 +439,7 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
-                    <TagBadge key={i} tag={tag} db={db} />
+                    <TagBadge key={i} tag={tag} universe={universe} />
                   ))}
                 </div>
               </div>

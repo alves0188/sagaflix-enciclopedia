@@ -64,7 +64,7 @@ const getDefaultLabels = (type) => {
   return { role: 'CATEGORIA', territory: 'PORTADOR/ORIGEM' };
 };
 
-export default function DossierEditor({ formData, setFormData, onSave, onCancel, uploading, handleFileUpload, isReadOnly = false, bookTitle, events = [] }) {
+export default function DossierEditor({ formData, setFormData, onSave, onCancel, uploading, handleFileUpload, isReadOnly = false, bookTitle, universe, events = [] }) {
   const isClue = formData.type === 'pista';
   const defaults = getDefaultLabels(formData.type);
   const currentRoleLabel = formData.roleLabel || defaults.role;
@@ -759,7 +759,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
-                    <TagBadge key={i} tag={tag} db={db} />
+                    <TagBadge key={i} tag={tag} universe={universe} />
                   ))}
                 </div>
               </div>
