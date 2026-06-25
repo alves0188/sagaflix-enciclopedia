@@ -54,6 +54,21 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   const goPrev = () => setCurrentView(v => Math.max(0, v - 1));
   const goNext = () => setCurrentView(v => Math.min(maxViews, v + 1));
 
+  // Controle de Roda do Mouse para simular scroll
+  const isScrolling = useRef(false);
+  const handleWheel = (e) => {
+    if (isScrolling.current) return;
+    if (e.deltaY > 30) {
+      goNext();
+      isScrolling.current = true;
+      setTimeout(() => isScrolling.current = false, 400);
+    } else if (e.deltaY < -30) {
+      goPrev();
+      isScrolling.current = true;
+      setTimeout(() => isScrolling.current = false, 400);
+    }
+  };
+
   // Upload de Capa
   const handleCoverUpload = (e) => {
     const file = e.target.files[0];
@@ -207,14 +222,17 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
       </div>
 
       {/* VIEWPORT PRINCIPAL: Mostra apenas 2 páginas por vez! */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden', // Esconde o resto do trilho
-        position: 'relative'
-      }}>
+      <div 
+        onWheel={handleWheel}
+        style={{ 
+          flex: 1, 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden', // Esconde o resto do trilho
+          position: 'relative'
+        }}
+      >
         
         {/* VIEWPORT DA CAMERA: Tamanho exato de 2 páginas + gap */}
         <div style={{
