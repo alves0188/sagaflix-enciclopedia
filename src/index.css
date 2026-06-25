@@ -1533,6 +1533,14 @@ select option, select optgroup {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 }
+.admin-cards-grid.chapters-grid {
+  grid-template-columns: repeat(auto-fill, minmax(calc(33.333% - 1.5rem), 1fr));
+}
+@media (max-width: 768px) {
+  .admin-cards-grid.chapters-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .admin-list-card {
   display: flex;
   gap: 1.2rem;

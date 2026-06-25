@@ -1148,7 +1148,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             )}
 
             {/* Unified Cards Grid for both Mobile and Desktop */}
-            <div className="admin-cards-grid" style={activeList === 'chapters' ? { gridTemplateColumns: 'repeat(auto-fill, minmax(calc(33.333% - 1.5rem), 1fr))' } : {}}>
+            <div className={`admin-cards-grid ${activeList === 'chapters' ? 'chapters-grid' : ''}`}>
               {(data[activeList] || []).length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
               ) : (
