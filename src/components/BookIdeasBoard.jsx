@@ -149,8 +149,8 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem 1.5rem 0 1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Painel de Ideias: {book.title}
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', lineHeight: '1.4' }}>
+            Painel de Ideias:<br/>{book.title}
           </h2>
           {onOpenMenu && (
             <button 
@@ -208,7 +208,7 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu }) {
       <div style={{ 
         flex: 1,
         marginTop: '1.5rem',
-        paddingBottom: '2rem',
+        padding: '0 1.5rem 2rem 1.5rem',
         overflowY: 'auto'
       }}>
         {ideas.length === 0 ? (
