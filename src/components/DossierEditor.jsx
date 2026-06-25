@@ -671,11 +671,16 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
               {matchingEvents.length > 0 && (
                 <>
                   <div className="dossier-section-title" style={{ marginTop: '2rem' }}>MARCAÇÕES (EVENTOS)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
                     {matchingEvents.map((ev, idx) => (
-                      <button 
+                      <div 
                         key={idx} 
-                        onClick={() => setSelectedEventDetail(ev)}
+                        role="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedEventDetail(ev);
+                        }}
                         style={{ 
                           textAlign: 'left', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.1)', 
                           padding: '0.6rem 1rem', borderRadius: '4px', cursor: 'pointer', fontFamily: "'Courier New', Courier, monospace",
@@ -687,7 +692,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                       >
                         <span style={{ fontSize: '0.95rem' }}>{ev.name}</span>
                         <span style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(255,255,255,0.5)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Ver Detalhes »</span>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </>
