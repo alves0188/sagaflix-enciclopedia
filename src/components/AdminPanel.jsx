@@ -26,7 +26,8 @@ const editorConfig = {
   buttons: ['bold', 'italic', 'underline', 'strikethrough', '|', 'ul', 'ol', '|', 'paragraph', 'align', '|', 'quote', '|', 'undo', 'redo']
 };
 
-export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
+export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly: originalIsReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
+  const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished' || currentBook?.status === 'published';
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
   const [notesFilter, setNotesFilter] = useState('notes'); // 'notes' or 'requests'
   const [editingItem, setEditingItem] = useState(null);
@@ -1047,6 +1048,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </button>
         )}
         
+        {(currentBook?.status === 'finished' || currentBook?.status === 'published') && (
+          <button style={{...navItemStyle(activeList === 'diagramacao'), background: activeList === 'diagramacao' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'diagramacao' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('diagramacao'); setEditingItem(null);}}>
+            <Book size={18} /> Diagramação Visual
+          </button>
+        )}
+        
         <div style={{ flex: 1 }}></div>
       </div>
 
@@ -1075,7 +1082,12 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         {activeList === 'pages' ? (
           <PagesConfig universe={data} onUpdate={onUpdate} isReadOnly={isReadOnly} currentBook={currentBook} onLogChange={onLogChange} onOpenMenu={() => setIsSidebarOpen(true)} />
         ) : activeList === 'synopsis' && currentBook ? (
-          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={isReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} onOpenMenu={() => setIsSidebarOpen(true)} />
+          <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={originalIsReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} onOpenMenu={() => setIsSidebarOpen(true)} />
+        ) : activeList === 'diagramacao' && currentBook ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', color: '#333', borderRadius: '8px' }}>
+            <h2>Em Breve: InDesign na Web</h2>
+            <p>O módulo de Diagramação Visual está sendo construído!</p>
+          </div>
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
         ) : activeList === 'notes' ? (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info, Menu } from 'lucide-react';
+import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info, Menu, CheckCircle } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
@@ -140,12 +140,24 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   };
 
   const handleTogglePublish = () => {
-    if (book.status === 'draft') {
-      if (window.confirm("Deseja publicar este livro para os leitores?")) {
+    if (book.status !== 'published') {
+      if (window.confirm("Deseja publicar este livro para os leitores? Ele ficará visível publicamente.")) {
         onUpdateBook({ ...formData, status: 'published' });
       }
     } else {
       if (window.confirm("Deseja voltar este livro para Rascunho? Ninguém mais poderá ler até você publicar novamente.")) {
+        onUpdateBook({ ...formData, status: 'draft' });
+      }
+    }
+  };
+
+  const handleToggleFinish = () => {
+    if (book.status === 'draft') {
+      if (window.confirm("Deseja finalizar esta obra? Ela será trancada para edição e liberada para Diagramação.")) {
+        onUpdateBook({ ...formData, status: 'finished' });
+      }
+    } else if (book.status === 'finished') {
+      if (window.confirm("Deseja desfinalizar esta obra? Ela voltará a ser Rascunho, liberando a edição, mas bloqueando a Diagramação.")) {
         onUpdateBook({ ...formData, status: 'draft' });
       }
     }
@@ -172,14 +184,19 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           )}
         </h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {book.status !== 'draft' && (
+          {book.status && book.status !== 'draft' && (
             <span style={{ color: '#ff9800', fontWeight: 'bold' }}>
-              Status: {(book.status || 'draft').toUpperCase()}
+              Status: {book.status === 'published' ? 'PUBLICADO' : book.status === 'finished' ? 'FINALIZADO' : book.status.toUpperCase()}
             </span>
           )}
+          {!isReadOnly && book.status !== 'published' && (
+            <button className="btn-primary" onClick={handleToggleFinish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status === 'finished' ? '#f44336' : '#2196F3', color: '#fff', border: 'none' }}>
+              <CheckCircle size={18} /> {book.status === 'finished' ? 'Desfinalizar' : 'Finalizar Obra'}
+            </button>
+          )}
           {!isReadOnly && (
-            <button id="tour-btn-publish" className="btn-primary" onClick={handleTogglePublish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status === 'draft' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
-              {book.status === 'draft' ? 'Publicar Obra' : 'Despublicar'}
+            <button id="tour-btn-publish" className="btn-primary" onClick={handleTogglePublish} style={{ flex: 1, minWidth: 'fit-content', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: book.status !== 'published' ? '#4CAF50' : '#f44336', color: '#fff', border: 'none' }}>
+              <Upload size={18} /> {book.status !== 'published' ? 'Publicar Obra' : 'Despublicar'}
             </button>
           )}
           {!isReadOnly && (
