@@ -358,10 +358,15 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
               <div className="dossier-section-title">MARCAÇÕES (EVENTOS)</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
                 {matchingEvents.map((ev, idx) => (
-                  <div 
+                  <button 
                     key={idx} 
-                    role="button"
+                    type="button"
                     onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedEventDetail(ev);
+                    }}
+                    onTouchEnd={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setSelectedEventDetail(ev);
@@ -377,7 +382,7 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
                   >
                     <span style={{ fontSize: '0.95rem' }}>{ev.name}</span>
                     <span style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(255,255,255,0.5)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Ver Detalhes »</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>

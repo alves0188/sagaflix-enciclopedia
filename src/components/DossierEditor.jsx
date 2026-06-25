@@ -671,12 +671,17 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
               {matchingEvents.length > 0 && (
                 <>
                   <div className="dossier-section-title" style={{ marginTop: '2rem' }}>MARCAÇÕES (EVENTOS)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
+                  <div className="marcacoes-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
                     {matchingEvents.map((ev, idx) => (
-                      <div 
+                      <button 
                         key={idx} 
-                        role="button"
+                        type="button"
                         onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedEventDetail(ev);
+                        }}
+                        onTouchEnd={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setSelectedEventDetail(ev);
@@ -692,7 +697,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                       >
                         <span style={{ fontSize: '0.95rem' }}>{ev.name}</span>
                         <span style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(255,255,255,0.5)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Ver Detalhes »</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </>
