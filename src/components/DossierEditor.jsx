@@ -71,6 +71,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
   const currentTerritoryLabel = formData.territoryLabel || defaults.territory;
   const [hasChanges, setHasChanges] = useState(false);
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
+  const [isNoteLifted, setIsNoteLifted] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -671,9 +672,9 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
               </div>
 
               {matchingEvents.length > 0 && (
-                <>
-                  <div className="dossier-section-title" style={{ marginTop: '2rem' }}>MARCAÇÕES (EVENTOS)</div>
-                  <div className="marcacoes-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
+                <div className="marcacoes-container" style={{ marginTop: '4rem', paddingBottom: '2rem', width: '100%', clear: 'both' }}>
+                  <div className="dossier-section-title">MARCAÇÕES (EVENTOS)</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
                     {matchingEvents.map((ev, idx) => (
                       <button 
                         key={idx} 
@@ -702,7 +703,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                       </button>
                     ))}
                   </div>
-                </>
+                </div>
               )}
 
             </div>
@@ -712,9 +713,9 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
           <div className="dossier-sticky-area">
             
             {/* Sticky Note - Curiosities */}
-            <div className="sticky-wrapper" style={{ zIndex: 40, cursor: 'default' }}>
-              <div className="tape-dossier"></div>
-              <div className="sticky-dossier">
+            <div className="sticky-wrapper" style={{ pointerEvents: 'none' }}>
+              <div className="tape-dossier" style={{ pointerEvents: 'auto', cursor: 'pointer' }} onClick={() => setIsNoteLifted(!isNoteLifted)}></div>
+              <div className={`sticky-dossier ${isNoteLifted ? 'lifted' : ''}`} style={{ pointerEvents: isNoteLifted ? 'none' : 'auto', cursor: 'pointer' }} onClick={() => setIsNoteLifted(true)}>
                 <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#666', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif' }}>
                   {formData.type === 'personagem' ? 'CURIOSIDADE:' : 
                    formData.type === 'local' ? 'CURIOSIDADE DO LOCAL:' : 'CURIOSIDADE:'}
