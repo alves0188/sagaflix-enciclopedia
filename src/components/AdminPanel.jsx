@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe } from 'lucide-react';
+import CuratorDashboard from './CuratorDashboard';
+import TypesettingDashboard from './TypesettingDashboard';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
 import DossierEditor from './DossierEditor';
@@ -1084,10 +1086,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         ) : activeList === 'synopsis' && currentBook ? (
           <SynopsisConfig book={currentBook} onUpdateBook={onUpdateBook} isReadOnly={originalIsReadOnly} onLogChange={onLogChange} currentUser={currentUser} db={db} onUpdateData={onUpdateData} onLeave={onLeave} onOpenMenu={() => setIsSidebarOpen(true)} />
         ) : activeList === 'diagramacao' && currentBook ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', color: '#333', borderRadius: '8px' }}>
-            <h2>Em Breve: InDesign na Web</h2>
-            <p>O módulo de Diagramação Visual está sendo construído!</p>
-          </div>
+          <TypesettingDashboard book={currentBook} />
         ) : activeList === 'reviews' ? (
           renderReviewsTab()
         ) : activeList === 'notes' ? (
