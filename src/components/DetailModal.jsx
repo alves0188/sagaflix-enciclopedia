@@ -353,26 +353,8 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
 
             </div>
 
-          {/* Sticky Notes Area */}
-          <div className="dossier-sticky-area">
-            
-            {((!isClue && item.curiosities) || (isClue && item.curiosities)) && (
-              <div className="sticky-wrapper" onClick={() => setIsNoteLifted(!isNoteLifted)}>
-                <div className="tape-dossier"></div>
-                <div className={`sticky-dossier ${isNoteLifted ? 'lifted' : ''}`}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif' }}>
-                    {item.type === 'personagem' ? 'CURIOSIDADE:' : 
-                     item.type === 'local' ? 'CURIOSIDADE DO LOCAL:' : 'CURIOSIDADE:'}
-                  </div>
-                  {item.curiosities}
-                </div>
-              </div>
-            )}
-
-          </div>
-
           {matchingEvents.length > 0 && (
-            <div style={{ marginTop: '4rem', paddingBottom: '2rem', paddingRight: '220px', width: '100%', clear: 'both' }}>
+            <div className="marcacoes-container" style={{ marginTop: '4rem', paddingBottom: '2rem', width: '100%', clear: 'both' }}>
               <div className="dossier-section-title">MARCAÇÕES (EVENTOS)</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative', zIndex: 50 }}>
                 {matchingEvents.map((ev, idx) => (
@@ -400,6 +382,24 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
               </div>
             </div>
           )}
+
+          {/* Sticky Notes Area */}
+          <div className="dossier-sticky-area">
+            
+            {((!isClue && item.curiosities) || (isClue && item.curiosities)) && (
+              <div className="sticky-wrapper" onClick={() => setIsNoteLifted(!isNoteLifted)}>
+                <div className="tape-dossier"></div>
+                <div className={`sticky-dossier ${isNoteLifted ? 'lifted' : ''}`}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#666', marginBottom: '0.5rem', fontFamily: 'Inter, sans-serif' }}>
+                    {item.type === 'personagem' ? 'CURIOSIDADE:' : 
+                     item.type === 'local' ? 'CURIOSIDADE DO LOCAL:' : 'CURIOSIDADE:'}
+                  </div>
+                  {item.curiosities}
+                </div>
+              </div>
+            )}
+
+          </div>
           </div>
 
       </div>
