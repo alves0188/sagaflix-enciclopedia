@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, Save, Upload, Trash2, X, Plus } from 'lucide-react';
+import TagBadge from './TagBadge';
 
 const getStatusOptions = (type) => {
   if (type === 'personagem') {
@@ -758,7 +759,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.5rem', display: 'block', fontWeight: 'bold' }}>Participantes / Tags</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {(selectedEventDetail.tags || '').split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
-                    <span key={i} style={{ background: 'var(--accent-gold)', color: '#000', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>{tag}</span>
+                    <TagBadge key={i} tag={tag} db={db} />
                   ))}
                 </div>
               </div>
