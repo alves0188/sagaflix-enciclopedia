@@ -280,6 +280,7 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
                 position: 'absolute',
                 left: `${textFlowX + P}px`, // Offset inicial do padding da primeira folha
                 top: `${P}px`, 
+                width: `${colWidth}px`, // Força a primeira coluna a ter exatamente esta largura
                 height: `${PH - 2*P}px`, 
                 columnWidth: `${colWidth}px`,
                 columnGap: `${colGap}px`,
