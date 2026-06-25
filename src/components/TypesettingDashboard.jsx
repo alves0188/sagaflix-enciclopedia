@@ -107,18 +107,25 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
     const css = `
       @page Section1 {
         size: ${ptWidth}pt ${ptHeight}pt;
-        margin: ${ptPadding}pt;
+        margin-top: ${ptPadding}pt;
+        margin-bottom: ${ptPadding}pt;
+        margin-left: ${ptPadding}pt;
+        margin-right: ${ptPadding}pt;
+        mso-header-margin: 0pt;
+        mso-footer-margin: 0pt;
+        mso-paper-source: 0;
       }
       div.Section1 { page: Section1; }
-      p, div { font-family: '${fontFamily.replace(/'/g, "")}', serif; font-size: ${fontSize}pt; line-height: ${lineHeight}; text-align: ${textAlign}; }
+      .Section1 p, .Section1 span, .Section1 div { font-family: '${fontFamily.replace(/'/g, "")}', serif; font-size: ${fontSize}pt; line-height: ${lineHeight}; text-align: ${textAlign}; }
       h1, h2, h3 { font-family: 'Playfair Display', serif; text-align: center; }
-      .page-break { page-break-before: always; }
-      .cover-page { text-align: center; page-break-after: always; }
-      .title-page { text-align: center; page-break-after: always; }
-      .dedication-page { text-align: right; font-style: italic; page-break-after: always; }
-      .index-page { page-break-after: always; }
+      .cover-page { text-align: center; }
+      .title-page { text-align: center; }
+      .dedication-page { text-align: right; font-style: italic; }
+      .index-page { }
       img { max-width: 100%; height: auto; }
     `;
+
+    const pageBreak = `<br clear="all" style="page-break-before:always; mso-break-type:page-break" />`;
 
     let coverHtml = `<div class="cover-page"><h1>${book?.title || 'Título'}</h1></div>`;
     if (book?.coverUrl) {
@@ -130,10 +137,11 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
     const indexHtml = `<div class="index-page"><h2>Índice</h2>${(universe?.chapters || []).map((c, i) => `<p>${c.title} ...... Cap. ${i + 1}</p>`).join('')}</div>`;
 
     const chaptersHtml = (universe?.chapters || []).map((chapter) => {
-      let html = `<div class="page-break"><h2>${chapter.title}</h2>`;
+      let html = `${pageBreak}<div><h2>${chapter.title}</h2>`;
       (chapter.pages || []).forEach(session => {
         if (session.image) html += `<p style="text-align: center;"><img src="${session.image}" /></p>`;
-        html += session.text;
+        // MS Word as vezes confunde <div> abertas, vamos envelopar em tags seguras
+        html += `<div style="margin-bottom: 15pt;">${session.text}</div>`;
       });
       html += `</div>`;
       return html;
@@ -145,8 +153,11 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
       <body>
         <div class="Section1">
            ${coverHtml}
+           ${pageBreak}
            ${titlePageHtml}
+           ${pageBreak}
            ${dedicationHtml}
+           ${pageBreak}
            ${indexHtml}
            ${chaptersHtml}
         </div>
