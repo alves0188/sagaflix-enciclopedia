@@ -674,7 +674,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
               {matchingEvents.length > 0 && (
                 <div className="marcacoes-container" style={{ marginTop: '4rem', paddingBottom: '2rem', width: '100%', clear: 'both' }}>
                   <div className="dossier-section-title">MARCAÇÕES (EVENTOS)</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {matchingEvents.map((ev, idx) => (
                       <button 
                         key={idx} 
