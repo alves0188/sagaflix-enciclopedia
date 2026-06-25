@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, ChevronLeft, Type, AlignLeft, Maximize, ChevronRight, Upload, Layout, ArrowDown, ArrowUp } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { BookOpen, Type, Maximize, Upload, Layout, ArrowDown, ArrowUp, Download, FileText } from 'lucide-react';
 
 export default function TypesettingDashboard({ book, universe, onUpdateBook, onUpdateData }) {
   // Configurações de Formato Físico
@@ -9,17 +10,18 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   const [lineHeight, setLineHeight] = useState(1.5);
   const [textAlign, setTextAlign] = useState('justify');
   const [showMargins, setShowMargins] = useState(true);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Estados do Motor de Paginação
   const contentRef = useRef(null);
   const [dynamicPagesCount, setDynamicPagesCount] = useState(1);
   const [currentView, setCurrentView] = useState(0);
 
-  // Formatos físicos (px proporcionais para tela)
+  // Formatos físicos
   const formats = {
-    '14x21': { name: 'Literatura (14x21cm)', width: 530, height: 794, padding: 60 },
-    'a5': { name: 'A5 (14.8x21cm)', width: 560, height: 794, padding: 60 },
-    'pocket': { name: 'Pocket (11x18cm)', width: 416, height: 680, padding: 40 }
+    '14x21': { name: 'Literatura (14x21cm)', width: 530, height: 794, padding: 60, printSize: '140mm 210mm' },
+    'a5': { name: 'A5 (14.8x21cm)', width: 560, height: 794, padding: 60, printSize: '148mm 210mm' },
+    'pocket': { name: 'Pocket (11x18cm)', width: 416, height: 680, padding: 40, printSize: '110mm 180mm' }
   };
 
   const currentFormat = formats[format];
@@ -51,7 +53,7 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   const fixedPagesCount = 4; // Capa, Rosto, Agradecimentos, Índice
   const maxViews = Math.ceil((fixedPagesCount + dynamicPagesCount + 1) / 2); // +1 contracapa
 
-  // Funções de Navegação (Mouse Wheel ou Botões)
+  // Funções de Navegação
   const goPrev = () => setCurrentView(v => Math.max(0, v - 1));
   const goNext = () => setCurrentView(v => Math.min(maxViews, v + 1));
 
@@ -69,61 +71,122 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
     }
   };
 
-  // Upload de Capa
+  // Handlers de Edição
   const handleCoverUpload = (e) => {
     const file = e.target.files[0];
     if (file && onUpdateBook) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpdateBook({ ...book, coverUrl: reader.result });
-      };
+      reader.onloadend = () => onUpdateBook({ ...book, coverUrl: reader.result });
       reader.readAsDataURL(file);
     }
   };
 
   const handleTitlePageChange = (e) => {
-    if (onUpdateData) {
-      onUpdateData({ ...universe, typesettingTitlePage: e.currentTarget.innerHTML });
+    if (onUpdateData) onUpdateData({ ...universe, typesettingTitlePage: e.currentTarget.innerHTML });
+  };
+
+  const handleDedicationChange = (e) => {
+    if (onUpdateData) onUpdateData({ ...universe, typesettingDedication: e.currentTarget.innerHTML });
+  };
+
+  // ---- EXPORTAÇÃO ----
+  const handlePrintPDF = () => {
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+    }, 500); // Aguarda renderizar o portal no DOM
+  };
+
+  const handleExportWord = () => {
+    // Transforma medidas em pt ou in para o Word
+    const ptWidth = Math.round(PW * 0.75); // Aproximação de px para pt
+    const ptHeight = Math.round(PH * 0.75);
+    const ptPadding = Math.round(P * 0.75);
+
+    const css = `
+      @page Section1 {
+        size: ${ptWidth}pt ${ptHeight}pt;
+        margin: ${ptPadding}pt;
+      }
+      div.Section1 { page: Section1; }
+      p, div { font-family: '${fontFamily.replace(/'/g, "")}', serif; font-size: ${fontSize}pt; line-height: ${lineHeight}; text-align: ${textAlign}; }
+      h1, h2, h3 { font-family: 'Playfair Display', serif; text-align: center; }
+      .page-break { page-break-before: always; }
+      .cover-page { text-align: center; page-break-after: always; }
+      .title-page { text-align: center; page-break-after: always; }
+      .dedication-page { text-align: right; font-style: italic; page-break-after: always; }
+      .index-page { page-break-after: always; }
+      img { max-width: 100%; height: auto; }
+    `;
+
+    let coverHtml = `<div class="cover-page"><h1>${book?.title || 'Título'}</h1></div>`;
+    if (book?.coverUrl) {
+      coverHtml = `<div class="cover-page"><img src="${book.coverUrl}" /></div>`;
     }
+
+    const titlePageHtml = `<div class="title-page">${universe?.typesettingTitlePage || `<h1>${book?.title || 'Título da Obra'}</h1><p>${book?.authorName || 'Autor'}</p>`}</div>`;
+    const dedicationHtml = `<div class="dedication-page">${universe?.typesettingDedication || 'A todos que tornaram esta obra possível...'}</div>`;
+    const indexHtml = `<div class="index-page"><h2>Índice</h2>${(universe?.chapters || []).map((c, i) => `<p>${c.title} ...... Cap. ${i + 1}</p>`).join('')}</div>`;
+
+    const chaptersHtml = (universe?.chapters || []).map((chapter) => {
+      let html = `<div class="page-break"><h2>${chapter.title}</h2>`;
+      (chapter.pages || []).forEach(session => {
+        if (session.image) html += `<p style="text-align: center;"><img src="${session.image}" /></p>`;
+        html += session.text;
+      });
+      html += `</div>`;
+      return html;
+    }).join('');
+
+    const htmlContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><style>${css}</style></head>
+      <body>
+        <div class="Section1">
+           ${coverHtml}
+           ${titlePageHtml}
+           ${dedicationHtml}
+           ${indexHtml}
+           ${chaptersHtml}
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${book?.title || 'Livro'}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const pageStyle = {
-    width: `${PW}px`,
-    height: `${PH}px`,
-    backgroundColor: '#fff',
-    boxShadow: '0 5px 20px rgba(0,0,0,0.15)',
-    position: 'absolute',
-    top: 0,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column'
+    width: `${PW}px`, height: `${PH}px`, backgroundColor: '#fff',
+    boxShadow: '0 5px 20px rgba(0,0,0,0.15)', position: 'absolute', top: 0,
+    overflow: 'hidden', display: 'flex', flexDirection: 'column'
   };
 
   const contentStyle = {
-    fontFamily: fontFamily,
-    fontSize: `${fontSize}pt`,
-    lineHeight: lineHeight,
-    textAlign: textAlign,
-    color: '#111',
-    hyphens: textAlign === 'justify' ? 'auto' : 'none',
-    wordWrap: 'break-word',
+    fontFamily: fontFamily, fontSize: `${fontSize}pt`, lineHeight: lineHeight,
+    textAlign: textAlign, color: '#111', hyphens: textAlign === 'justify' ? 'auto' : 'none', wordWrap: 'break-word',
   };
 
   const SafetyMargin = () => showMargins ? (
-    <div style={{
-      position: 'absolute', top: '15px', bottom: '15px', left: '15px', right: '15px',
-      border: '1px dashed rgba(255, 0, 0, 0.4)', pointerEvents: 'none', zIndex: 50
-    }}>
+    <div style={{ position: 'absolute', top: '15px', bottom: '15px', left: '15px', right: '15px', border: '1px dashed rgba(255, 0, 0, 0.4)', pointerEvents: 'none', zIndex: 50 }}>
       <span style={{ position: 'absolute', top: -1, left: 2, fontSize: '9px', color: 'rgba(255,0,0,0.4)' }}>ZONA SEGURA DE CORTE</span>
     </div>
   ) : null;
 
-  // Calculando as posições X absolutas de cada página no Trilho
-  const coverX = (PW + PG) / 2; // Centralizado no Spread 0
-  const titleX = STEP; // Esquerda do Spread 1
-  const dedicationX = STEP + PW + PG; // Direita do Spread 1
-  const indexX = 2 * STEP; // Esquerda do Spread 2
-  const textFlowX = 2 * STEP + PW + PG; // Direita do Spread 2 (aqui começa a fluir)
+  // Posições X
+  const coverX = (PW + PG) / 2; 
+  const titleX = STEP; 
+  const dedicationX = STEP + PW + PG; 
+  const indexX = 2 * STEP; 
+  const textFlowX = 2 * STEP + PW + PG; 
   const backCoverX = textFlowX + dynamicPagesCount * (PW + PG);
 
   return (
@@ -137,14 +200,25 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
         </div>
 
         <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Botões de Exportação */}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={handlePrintPDF} style={{ flex: 1, padding: '0.8rem', background: '#d4af37', color: '#000', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+              <Download size={18} /> PDF
+            </button>
+            <button onClick={handleExportWord} style={{ flex: 1, padding: '0.8rem', background: '#2b579a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+              <FileText size={18} /> Word
+            </button>
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#666', textAlign: 'center' }}>Folhear Páginas</label>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={goPrev} disabled={currentView === 0} style={{ flex: 1, padding: '0.8rem', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '6px', cursor: currentView === 0 ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', opacity: currentView === 0 ? 0.5 : 1 }}>
-                <ArrowUp size={20} /> Anterior
+                <ArrowUp size={20} />
               </button>
               <button onClick={goNext} disabled={currentView >= maxViews} style={{ flex: 1, padding: '0.8rem', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '6px', cursor: currentView >= maxViews ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', opacity: currentView >= maxViews ? 0.5 : 1 }}>
-                Próxima <ArrowDown size={20} />
+                <ArrowDown size={20} />
               </button>
             </div>
             <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#888' }}>
@@ -153,7 +227,7 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
           </div>
 
           <button onClick={() => setShowMargins(!showMargins)} style={{ width: '100%', padding: '0.8rem', background: showMargins ? 'rgba(212, 175, 55, 0.1)' : '#f0f0f0', border: `1px solid ${showMargins ? '#d4af37' : '#ccc'}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: showMargins ? '#b5952f' : '#666', fontWeight: 'bold' }}>
-            <Layout size={18} /> {showMargins ? 'Ocultar Área de Corte' : 'Mostrar Área de Corte'}
+            <Layout size={18} /> {showMargins ? 'Ocultar Corte' : 'Mostrar Corte'}
           </button>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -175,35 +249,31 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-              <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Tamanho Fonte</label>
+              <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Fonte</label>
               <input type="number" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} min={8} max={24} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fafafa' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-              <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Espaçamento</label>
+              <label style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Espaço</label>
               <input type="number" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))} min={1} max={3} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fafafa' }} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* VIEWPORT DA CAMERA: Mostra exatamente 1 Spread (2 Páginas + Gap) */}
+      {/* VIEWPORT DA CAMERA */}
       <div onWheel={handleWheel} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-        
         <div style={{ width: `${(PW * 2) + PG}px`, height: `${PH}px`, position: 'relative' }}>
           
-          {/* TRILHO DE CONTEÚDO ABSOLUTO */}
           <div style={{ 
             position: 'absolute', top: 0, left: 0, bottom: 0, right: 0,
             transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
             transform: `translateX(-${currentView * STEP}px)`,
           }}>
             
-            {/* LOMBADAS VIRTUAIS (Sombras no centro de cada spread visível) */}
             {Array.from({ length: maxViews + 1 }).map((_, i) => i > 0 ? (
               <div key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: `${i * STEP + PW}px`, width: `${PG}px`, background: 'linear-gradient(to right, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.02) 100%)', zIndex: 5, pointerEvents: 'none' }}></div>
             ) : null)}
 
-            {/* Capa */}
             <div style={{ ...pageStyle, left: `${coverX}px`, justifyContent: 'center', alignItems: 'center', background: '#222' }}>
               <SafetyMargin />
               {book?.coverUrl ? (
@@ -211,7 +281,6 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               ) : (
                 <div style={{ color: '#fff', textAlign: 'center', padding: '2rem', zIndex: 10 }}>
                   <h1 style={{ fontSize: '2rem', fontFamily: "'Playfair Display', serif" }}>{book?.title || 'Título'}</h1>
-                  <p>[Sua capa aparecerá aqui]</p>
                 </div>
               )}
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(0,0,0,0.4)', opacity: 0, transition: 'opacity 0.2s', zIndex: 20 }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0}>
@@ -222,7 +291,6 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               </div>
             </div>
 
-            {/* Folha de Rosto */}
             <div style={{ ...pageStyle, left: `${titleX}px`, justifyContent: 'center', alignItems: 'center', padding: `${P}px` }}>
               <SafetyMargin />
               <div 
@@ -237,16 +305,14 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               />
             </div>
 
-            {/* Agradecimentos */}
             <div style={{ ...pageStyle, left: `${dedicationX}px`, padding: `${P}px` }}>
               <SafetyMargin />
               <h2 style={{ fontSize: '1.2rem', fontFamily: "'Playfair Display', serif", marginBottom: '2rem', textAlign: 'right' }}>Agradecimentos</h2>
-              <div contentEditable suppressContentEditableWarning style={{ ...contentStyle, fontStyle: 'italic', outline: 'none', textAlign: 'right', flex: 1, position: 'relative', zIndex: 10 }}>
-                A todos que tornaram esta obra possível... (Clique para editar)
+              <div contentEditable suppressContentEditableWarning onBlur={handleDedicationChange} style={{ ...contentStyle, fontStyle: 'italic', outline: 'none', textAlign: 'right', flex: 1, position: 'relative', zIndex: 10 }}>
+                {universe?.typesettingDedication || 'A todos que tornaram esta obra possível... (Clique para editar)'}
               </div>
             </div>
 
-            {/* Índice */}
             <div style={{ ...pageStyle, left: `${indexX}px`, padding: `${P}px` }}>
               <SafetyMargin />
               <h2 style={{ fontSize: '1.5em', fontFamily: "'Playfair Display', serif", marginBottom: '2rem', textAlign: 'center' }}>Índice</h2>
@@ -261,7 +327,6 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               </div>
             </div>
 
-            {/* BACKGROUNDS DAS PÁGINAS DO TEXTO */}
             {Array.from({ length: dynamicPagesCount }).map((_, i) => (
               <div key={i} style={{ ...pageStyle, left: `${textFlowX + i * (PW + PG)}px` }}>
                 <SafetyMargin />
@@ -271,22 +336,14 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               </div>
             ))}
 
-            {/* MOTOR DE TEXTO CONTÍNUO (CSS COLUMNS) */}
             <div 
               ref={contentRef}
               contentEditable suppressContentEditableWarning
               style={{ 
-                ...contentStyle,
-                position: 'absolute',
-                left: `${textFlowX + P}px`, // Offset inicial do padding da primeira folha
-                top: `${P}px`, 
-                width: `${colWidth}px`, // Força a primeira coluna a ter exatamente esta largura
-                height: `${PH - 2*P}px`, 
-                columnWidth: `${colWidth}px`,
-                columnGap: `${colGap}px`,
-                columnFill: 'auto',
-                zIndex: 2, 
-                outline: 'none',
+                ...contentStyle, position: 'absolute', left: `${textFlowX + P}px`, top: `${P}px`, 
+                width: `${colWidth}px`, height: `${PH - 2*P}px`, 
+                columnWidth: `${colWidth}px`, columnGap: `${colGap}px`, columnFill: 'auto',
+                zIndex: 2, outline: 'none',
               }}
             >
               {(universe?.chapters || []).map((chapter, idx) => {
@@ -311,15 +368,90 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
               })}
             </div>
 
-            {/* Contracapa */}
             <div style={{ ...pageStyle, left: `${backCoverX}px`, justifyContent: 'center', alignItems: 'center', background: '#222' }}>
                <h2 style={{ color: '#fff', fontFamily: "'Playfair Display', serif" }}>FIM</h2>
-               <div style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px' }}>CONTRACAPA</div>
             </div>
-
           </div>
         </div>
       </div>
+
+      {/* PORTAL DE IMPRESSÃO PDF: Totalmente isolado do React Root */}
+      {isPrinting && createPortal(
+        <div style={{ ...contentStyle, color: '#000', background: '#fff', textAlign: textAlign }}>
+          <style>{`
+            @media print {
+              @page { size: ${currentFormat.printSize}; margin: ${P}px; }
+              @page :first { margin: 0; }
+              body { margin: 0; background: #fff; }
+              #root { display: none !important; }
+              .print-book-wrapper { display: block !important; }
+            }
+          `}</style>
+          
+          <div className="print-book-wrapper">
+            
+            {/* Capa */}
+            <div style={{ pageBreakAfter: 'always', breakAfter: 'page', width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#222', color: '#fff' }}>
+              {book?.coverUrl ? <img src={book.coverUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <h1>{book?.title}</h1>}
+            </div>
+
+            {/* Folha de Rosto */}
+            <div style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
+              <div dangerouslySetInnerHTML={{ __html: universe?.typesettingTitlePage || `
+                <h1 style="font-size: 2.5em; margin-bottom: 1rem; font-family: 'Playfair Display', serif; text-align: center;">${book?.title || 'Título da Obra'}</h1>
+                <p style="font-size: 1.2em; color: #555; text-align: center;">${book?.authorName || 'Autor'}</p>
+                <div style="margin: 4rem auto; width: 50px; border-bottom: 1px solid #ccc;"></div>
+                <p style="font-size: 0.9em; color: #999; text-align: center;">Sagaflix Publicações</p>
+              ` }} />
+            </div>
+
+            {/* Agradecimentos */}
+            <div style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
+              <div style={{ textAlign: 'right', fontStyle: 'italic' }}>
+                {universe?.typesettingDedication || 'A todos que tornaram esta obra possível...'}
+              </div>
+            </div>
+
+            {/* Índice */}
+            <div style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
+              <h2 style={{ textAlign: 'center', fontFamily: "'Playfair Display', serif", marginBottom: '2rem' }}>Índice</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {(universe?.chapters || []).map((c, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{c.title}</span>
+                    <span style={{ borderBottom: '1px dotted #ccc', flex: 1, margin: '0 10px', position: 'relative', top: '-5px' }}></span>
+                    <span>Cap. {i + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Capítulos fluindo verticalmente com paginação nativa */}
+            <div>
+              {(universe?.chapters || []).map((chapter, idx) => (
+                <div key={idx} style={{ breakBefore: 'page', pageBreakBefore: 'always', marginBottom: '3rem' }}>
+                  <h2 style={{ fontSize: '1.5em', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', serif" }}>
+                    {chapter.title}
+                  </h2>
+                  {(chapter.pages || []).map((session, sIdx) => (
+                    <div key={sIdx} style={{ marginBottom: '1.5rem' }}>
+                      {session.image && (
+                        <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+                          <img src={session.image} style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                        </div>
+                      )}
+                      <div dangerouslySetInnerHTML={{ __html: session.text }} />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }
