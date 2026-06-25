@@ -1044,7 +1044,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <Trash2 size={18} /> Lixeira
         </button>
 
-        {!isReadOnly && isTabVisible('synopsis') && (
+        {isTabVisible('synopsis') && (
           <button id="tour-tab-synopsis" style={{...navItemStyle(activeList === 'synopsis'), background: activeList === 'synopsis' ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.1)', color: activeList === 'synopsis' ? '#000' : 'var(--accent-gold)'}} onClick={() => {setActiveList('synopsis'); setEditingItem(null);}}>
             <Settings size={18} /> Configurações da Obra
           </button>
