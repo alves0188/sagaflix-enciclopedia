@@ -175,6 +175,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   const [zoom, setZoom] = useState(100);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [pageInput, setPageInput] = useState('1');
+  const [isTypingPage, setIsTypingPage] = useState(false);
   const [expandedChapters, setExpandedChapters] = useState([0, 1, 2, 3]); // Expand virtual pages and first chapter by default
   const [globalPageCounts, setGlobalPageCounts] = useState([]);
   const [totalBookPages, setTotalBookPages] = useState(1);
@@ -437,8 +438,10 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   };
 
   useEffect(() => {
-    setPageInput(getCurrentGlobalPage().toString());
-  }, [activeColumnIdx, activeChapterIdx, activeSubthemeIdx, globalPageCounts]);
+    if (!isTypingPage) {
+      setPageInput(getCurrentGlobalPage().toString());
+    }
+  }, [activeColumnIdx, activeChapterIdx, activeSubthemeIdx, globalPageCounts, isTypingPage]);
 
   const chapter = chapters[activeChapterIdx];
   const subthemeObj = chapter?.pages?.[activeSubthemeIdx];
@@ -500,13 +503,14 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
   };
 
   const handlePageSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     const val = parseInt(pageInput);
     if (!isNaN(val) && val >= 1 && val <= totalBookPages) {
       navigateToGlobalPage(val);
     } else {
       setPageInput(getCurrentGlobalPage().toString());
     }
+    document.activeElement?.blur?.();
   };
 
   const toggleChapter = (idx) => {
@@ -976,9 +980,15 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                 <form onSubmit={handlePageSubmit} style={{ display: 'inline-block', margin: 0 }}>
                   <input 
                     type="text" 
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={pageInput}
+                    onFocus={() => setIsTypingPage(true)}
                     onChange={(e) => setPageInput(e.target.value)}
-                    onBlur={handlePageSubmit}
+                    onBlur={(e) => {
+                      setIsTypingPage(false);
+                      handlePageSubmit(e);
+                    }}
                     style={{
                       width: '45px', textAlign: 'center', background: 'transparent', 
                       color: themeColors.text, border: `1px solid ${themeColors.border}`, 
