@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { BookOpen, Type, Maximize, Upload, Layout, ArrowDown, ArrowUp, Download, FileText } from 'lucide-react';
 
-export default function TypesettingDashboard({ book, universe, onUpdateBook, onUpdateData }) {
+export default function TypesettingDashboard({ book, universe, onUpdateBook, onUpdateUniverse }) {
   // Configurações de Formato Físico
   const [format, setFormat] = useState('14x21'); 
   const [fontFamily, setFontFamily] = useState('Merriweather, serif');
@@ -19,7 +19,7 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   const chapterMarginTop = universe?.typesettingChapterMarginTop || 0;
   const illustrations = universe?.typesettingIllustrations || {};
 
-  const updateSetting = (key, val) => onUpdateData && onUpdateData({ ...universe, [key]: val });
+  const updateSetting = (key, val) => onUpdateUniverse && onUpdateUniverse({ ...universe, [key]: val });
 
   // Estados do Motor de Paginação
   const contentRef = useRef(null);
@@ -91,11 +91,11 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
   };
 
   const handleTitlePageChange = (e) => {
-    if (onUpdateData) onUpdateData({ ...universe, typesettingTitlePage: e.currentTarget.innerHTML });
+    if (onUpdateUniverse) onUpdateUniverse({ ...universe, typesettingTitlePage: e.currentTarget.innerHTML });
   };
 
   const handleDedicationChange = (e) => {
-    if (onUpdateData) onUpdateData({ ...universe, typesettingDedication: e.currentTarget.innerHTML });
+    if (onUpdateUniverse) onUpdateUniverse({ ...universe, typesettingDedication: e.currentTarget.innerHTML });
   };
 
   const handleUploadBackground = (e) => {
