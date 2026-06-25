@@ -283,10 +283,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     return acc;
   }, []);
 
-  // When chapter changes, reset subtheme and page
+  // Add chapter to expanded list when it becomes active
   useEffect(() => {
-    setActiveSubthemeIdx(initialChapterIdx === activeChapterIdx ? initialSubthemeIdx : 0);
-    setActiveColumnIdx(initialChapterIdx === activeChapterIdx ? initialColumnIdx : 0);
     if (!expandedChapters.includes(activeChapterIdx)) {
       setExpandedChapters(prev => [...prev, activeChapterIdx]);
     }
@@ -456,6 +454,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
         return;
       }
       setActiveChapterIdx(activeChapterIdx + 1);
+      setActiveSubthemeIdx(0);
+      setActiveColumnIdx(0);
     }
   };
 
@@ -603,6 +603,23 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
 
 
 
+  // Touch state for swiping pages
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.changedTouches[0].screenX;
+  };
+
+  const handleTouchEnd = (e) => {
+    touchEndX.current = e.changedTouches[0].screenX;
+    if (touchEndX.current < touchStartX.current - 50) {
+      handleNextPage();
+    } else if (touchEndX.current > touchStartX.current + 50) {
+      handlePrevPage();
+    }
+  };
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000,
@@ -728,6 +745,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                       toggleChapter(idx); 
                       if (!isExpanded || isActiveChapter) { 
                         setActiveChapterIdx(idx); 
+                        setActiveSubthemeIdx(0);
+                        setActiveColumnIdx(0);
                         setIsSidebarOpen(false); 
                       } 
                     }}
@@ -798,6 +817,8 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             
             <div 
               ref={readerWrapperRef} 
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
               style={{ 
                 width: '100%',
                 minWidth: 0,
