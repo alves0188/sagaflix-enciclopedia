@@ -500,91 +500,102 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           ) : (
             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum livro publicado.</span>
           )}
-
-          {/* Internal Tabs */}
-          {activeBookForPlanning && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.3rem', borderRadius: '8px' }}>
-              <button 
-                onClick={() => setPlanningTab('resumo')}
-                style={{ 
-                  background: planningTab === 'resumo' ? 'var(--accent-gold)' : 'transparent', 
-                  color: planningTab === 'resumo' ? '#000' : 'var(--text-main)', 
-                  border: planningTab === 'resumo' ? 'none' : '1px solid var(--border-color)',
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '6px', 
-                  cursor: 'pointer',
-                  fontWeight: planningTab === 'resumo' ? 'bold' : 'normal',
-                  transition: 'all 0.2s'
-                }}>
-                Resumo / Premissa
-              </button>
-              <button 
-                onClick={() => setPlanningTab('escaleta')}
-                style={{ 
-                  background: planningTab === 'escaleta' ? 'var(--accent-gold)' : 'transparent', 
-                  color: planningTab === 'escaleta' ? '#000' : 'var(--text-main)', 
-                  border: planningTab === 'escaleta' ? 'none' : '1px solid var(--border-color)',
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '6px', 
-                  cursor: 'pointer',
-                  fontWeight: planningTab === 'escaleta' ? 'bold' : 'normal',
-                  transition: 'all 0.2s'
-                }}>
-                Escaletas
-              </button>
-              <button 
-                onClick={() => setPlanningTab('ideias')}
-                style={{ 
-                  background: planningTab === 'ideias' ? 'var(--accent-gold)' : 'transparent', 
-                  color: planningTab === 'ideias' ? '#000' : 'var(--text-main)', 
-                  border: planningTab === 'ideias' ? 'none' : '1px solid var(--border-color)',
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '6px', 
-                  cursor: 'pointer',
-                  fontWeight: planningTab === 'ideias' ? 'bold' : 'normal',
-                  transition: 'all 0.2s'
-                }}>
-                Painel de Ideias
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Board Area */}
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center' }}>
           {activeBookForPlanning ? (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              {planningTab === 'resumo' && (
-                <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
-                  <BookPremissaBoard 
-                    book={activeBookForPlanning} 
-                    onUpdateBook={(updatedBook) => {
-                      const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
-                      onUpdateData(newDb);
-                    }} 
-                  />
-                </div>
-              )}
-              {planningTab === 'ideias' && (
-                <BookIdeasBoard 
-                  book={activeBookForPlanning} 
-                  onUpdateBook={(updatedBook) => {
-                    const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
-                    onUpdateData(newDb);
-                  }} 
-                />
-              )}
-              {planningTab === 'escaleta' && (
-                <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
-                  <BookEscaletaBoard 
-                    book={activeBookForPlanning} 
-                    onUpdateBook={(updatedBook) => {
-                      const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
-                      onUpdateData(newDb);
-                    }} 
-                  />
-                </div>
-              )}
+              {(() => {
+                const headerTabs = (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.3rem', borderRadius: '8px', flexShrink: 0 }}>
+                    <button 
+                      onClick={() => setPlanningTab('resumo')}
+                      style={{ 
+                        background: planningTab === 'resumo' ? 'var(--accent-gold)' : 'transparent', 
+                        color: planningTab === 'resumo' ? '#000' : 'var(--text-main)', 
+                        border: planningTab === 'resumo' ? 'none' : '1px solid var(--border-color)',
+                        padding: '0.4rem 0.8rem', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer',
+                        fontWeight: planningTab === 'resumo' ? 'bold' : 'normal',
+                        transition: 'all 0.2s',
+                        fontSize: '0.9rem'
+                      }}>
+                      Resumo / Premissa
+                    </button>
+                    <button 
+                      onClick={() => setPlanningTab('escaleta')}
+                      style={{ 
+                        background: planningTab === 'escaleta' ? 'var(--accent-gold)' : 'transparent', 
+                        color: planningTab === 'escaleta' ? '#000' : 'var(--text-main)', 
+                        border: planningTab === 'escaleta' ? 'none' : '1px solid var(--border-color)',
+                        padding: '0.4rem 0.8rem', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer',
+                        fontWeight: planningTab === 'escaleta' ? 'bold' : 'normal',
+                        transition: 'all 0.2s',
+                        fontSize: '0.9rem'
+                      }}>
+                      Escaletas
+                    </button>
+                    <button 
+                      onClick={() => setPlanningTab('ideias')}
+                      style={{ 
+                        background: planningTab === 'ideias' ? 'var(--accent-gold)' : 'transparent', 
+                        color: planningTab === 'ideias' ? '#000' : 'var(--text-main)', 
+                        border: planningTab === 'ideias' ? 'none' : '1px solid var(--border-color)',
+                        padding: '0.4rem 0.8rem', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer',
+                        fontWeight: planningTab === 'ideias' ? 'bold' : 'normal',
+                        transition: 'all 0.2s',
+                        fontSize: '0.9rem'
+                      }}>
+                      Painel de Ideias
+                    </button>
+                  </div>
+                );
+
+                return (
+                  <>
+                    {planningTab === 'resumo' && (
+                      <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
+                        <BookPremissaBoard 
+                          book={activeBookForPlanning} 
+                          onUpdateBook={(updatedBook) => {
+                            const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                            onUpdateData(newDb);
+                          }}
+                          headerActions={headerTabs}
+                        />
+                      </div>
+                    )}
+                    {planningTab === 'ideias' && (
+                      <BookIdeasBoard 
+                        book={activeBookForPlanning} 
+                        onUpdateBook={(updatedBook) => {
+                          const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                          onUpdateData(newDb);
+                        }}
+                        headerActions={headerTabs}
+                      />
+                    )}
+                    {planningTab === 'escaleta' && (
+                      <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
+                        <BookEscaletaBoard 
+                          book={activeBookForPlanning} 
+                          onUpdateBook={(updatedBook) => {
+                            const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                            onUpdateData(newDb);
+                          }}
+                          headerActions={headerTabs}
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           ) : (
             <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>

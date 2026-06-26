@@ -59,7 +59,7 @@ function DebouncedTextarea({ value, onChange, placeholder, style, onFocus }) {
   return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} onFocus={onFocus} placeholder={placeholder} style={style} />;
 }
 
-export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu }) {
+export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerActions }) {
   const [showLegends, setShowLegends] = useState(false);
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState(null);
@@ -148,10 +148,11 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem 1.5rem 0 1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', lineHeight: '1.4' }}>
-            Painel de Ideias:<br/>{book.title}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', flex: 1 }}>
+            Painel de Ideias: {book.title}
           </h2>
+          {headerActions}
           {onOpenMenu && (
             <button 
               className="mobile-only admin-mobile-menu-btn"

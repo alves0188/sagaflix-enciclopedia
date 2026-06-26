@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Menu } from 'lucide-react';
 
-export default function BookPremissaBoard({ book, onUpdateBook, onOpenMenu }) {
+export default function BookPremissaBoard({ book, onUpdateBook, onOpenMenu, headerActions }) {
   const [formData, setFormData] = useState({
     premise: book.premise || '',
     synopsis: book.synopsis || ''
   });
+
+  useEffect(() => {
+    setFormData({
+      premise: book.premise || '',
+      synopsis: book.synopsis || ''
+    });
+  }, [book.id, book.premise, book.synopsis]);
 
   const handleChange = (e) => {
     const newFormData = { ...formData, [e.target.name]: e.target.value };
@@ -16,9 +23,10 @@ export default function BookPremissaBoard({ book, onUpdateBook, onOpenMenu }) {
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt' }}>
-          Resumo da Obra
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', flex: 1 }}>
+          Resumo da Obra: {book.title}
         </h2>
+        {headerActions}
         {onOpenMenu && (
           <button 
             className="mobile-only admin-mobile-menu-btn"

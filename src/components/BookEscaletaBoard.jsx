@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, GripVertical, Trash2, Edit2, Save, X, AlignLeft, Layers, Settings, ChevronDown, ChevronRight, BookOpen, Menu } from 'lucide-react';
 
-export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu }) {
+export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, headerActions }) {
   const mode = book.escaletaMode || null;
   const groups = book.escaletaGroups || [];
 
@@ -243,12 +243,13 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h2 style={{ margin: '0 0 0.5rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Escaleta 
+            <h2 style={{ margin: '0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Escaleta: {book.title}
               <span style={{ fontSize: '0.9rem', background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontFamily: 'sans-serif' }}>
                 {mode === 'free' ? 'Livre' : mode === 'acts' ? 'Atos' : 'Capítulos'}
               </span>
             </h2>
+            {headerActions}
             {onOpenMenu && (
               <button 
                 className="mobile-only admin-mobile-menu-btn"
