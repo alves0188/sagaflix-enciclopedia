@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Palette, Plus, ChevronDown, ChevronUp, Trash2, Maximize2, X, Menu } from 'lucide-react';
+import JoditEditor from 'jodit-react';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -57,6 +58,54 @@ function DebouncedTextarea({ value, onChange, placeholder, style, onFocus }) {
   };
 
   return <textarea value={localValue || ''} onChange={handleChange} onBlur={() => onChange(localValue)} onFocus={onFocus} placeholder={placeholder} style={style} />;
+}
+
+function DebouncedRichTextEditor({ value, onChange, placeholder, style, onFocus }) {
+  const editorRef = useRef(null);
+  
+  const config = useMemo(() => ({
+    readonly: false,
+    placeholder: placeholder || 'Escreva sua ideia aqui...',
+    theme: 'dark',
+    toolbarInline: true,
+    showCharsCounter: false,
+    showWordsCounter: false,
+    showXPathInStatusbar: false,
+    minHeight: 150,
+    buttons: ['bold', 'italic', 'underline', 'strikethrough', 'ul', 'ol', 'font', 'fontsize', 'paragraph', 'brush'],
+    style: {
+      background: 'transparent',
+      color: 'var(--text-main)',
+      border: 'none',
+    }
+  }), [placeholder]);
+
+  const [localValue, setLocalValue] = useState(value);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleChange = (newContent) => {
+    setLocalValue(newContent);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      onChange(newContent);
+    }, 800);
+  };
+
+  return (
+    <div style={style} onFocus={onFocus} onClick={(e) => e.stopPropagation()} className="jodit-transparent-container">
+      <JoditEditor
+        ref={editorRef}
+        value={localValue || ''}
+        config={config}
+        onBlur={newContent => onChange(newContent)}
+        onChange={handleChange}
+      />
+    </div>
+  );
 }
 
 export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerActions }) {
@@ -343,25 +392,15 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
                 </div>
 
                 {/* Conteúdo Textual da Ideia */}
-                <DebouncedTextarea 
+                <DebouncedRichTextEditor 
                   value={idea.text || ''}
                   onChange={(val) => handleUpdateIdeaText(idea.id, val)}
                   onFocus={() => setExpandedIdeaId(idea.id)}
                   placeholder="Escreva sua ideia aqui..."
                   style={{ 
                     flex: 1, 
-                    background: 'transparent', 
-                    border: 'none', 
                     width: '100%',
-                    minHeight: '60px',
-                    resize: 'vertical',
-                    fontSize: '0.95rem',
-                    color: 'var(--text-secondary)',
-                    outline: 'none',
-                    lineHeight: '1.5',
-                    marginTop: '0.2rem',
-                    fontFamily: 'inherit',
-                    padding: 0
+                    marginTop: '0.2rem'
                   }}
                 />
               </div>
@@ -424,11 +463,11 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
                     </button>
                   </div>
                   
-                  <DebouncedTextarea 
+                  <DebouncedRichTextEditor 
                     value={idea.text || ''}
                     onChange={(val) => handleUpdateIdeaText(idea.id, val)}
                     placeholder="Escreva sua ideia aqui..."
-                    style={{ flex: 1, background: 'transparent', border: 'none', width: '100%', resize: 'none', fontSize: '1.1rem', color: 'var(--text-main)', outline: 'none', lineHeight: '1.6', fontFamily: 'inherit', padding: '0.5rem 0' }}
+                    style={{ flex: 1, width: '100%', padding: '0.5rem 0', overflowY: 'auto' }}
                   />
                   
                   <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>

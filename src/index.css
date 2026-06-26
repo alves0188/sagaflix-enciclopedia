@@ -1821,3 +1821,33 @@ select option, select optgroup {
   display: flex;
 }
 
+
+/* Jodit Customizations for BookIdeasBoard */
+.jodit-transparent-container .jodit-container {
+  border: none !important;
+  background: transparent !important;
+}
+.jodit-transparent-container .jodit-workplace {
+  background: transparent !important;
+  border: none !important;
+  min-height: 60px !important;
+}
+.jodit-transparent-container .jodit-wysiwyg {
+  padding: 0 !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  font-family: inherit !important;
+}
+.jodit-transparent-container .jodit-toolbar__box {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+}
+.jodit-transparent-container .jodit-toolbar-button__button {
+  color: var(--text-main) !important;
+}
+.jodit-transparent-container .jodit-toolbar-button__button:hover {
+  background: rgba(255,255,255,0.1) !important;
+}
+
