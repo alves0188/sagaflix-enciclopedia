@@ -451,7 +451,9 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
             padding: '2rem',
             gap: '1.5rem',
             boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            border: '1px solid var(--border-color)'
+            border: '1px solid var(--border-color)',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
           }} onClick={e => e.stopPropagation()}>
             {(() => {
               const idea = ideas.find(i => i.id === expandedIdeaId);
@@ -482,7 +484,7 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
                     value={idea.text || ''}
                     onChange={(val) => handleUpdateIdeaText(idea.id, val)}
                     placeholder="Escreva sua ideia aqui..."
-                    style={{ flex: 1, width: '100%', padding: '0.5rem 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}
+                    style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}
                   />
                   
                   <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
