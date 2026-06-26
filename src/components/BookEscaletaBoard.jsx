@@ -174,9 +174,12 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
 
   if (!mode) {
     return (
-      <div style={{ padding: '2rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', width: '100%' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '2rem' }}>Assistente de Escaleta</h2>
+      <div style={{ padding: '1.5rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ margin: '0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, fontSize: '15pt' }}>
+            Assistente de Escaleta: {book.title}
+          </h2>
+          {headerActions}
           {onOpenMenu && (
             <button 
               className="mobile-only admin-mobile-menu-btn"
@@ -187,11 +190,13 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
             </button>
           )}
         </div>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', textAlign: 'center', maxWidth: '600px' }}>
-          Escolha como você deseja planejar as cenas da sua história. Você poderá alterar essa estrutura no futuro sem perder seus dados.
-        </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', width: '100%', maxWidth: '1000px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', textAlign: 'center', maxWidth: '600px' }}>
+            Escolha como você deseja planejar as cenas da sua história. Você poderá alterar essa estrutura no futuro sem perder seus dados.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', width: '100%', maxWidth: '1000px' }}>
           {/* Livre */}
           <div 
             onClick={() => handleSelectMode('free')}
@@ -233,6 +238,7 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
               Crie blocos de Capítulos e planeje as micro-cenas que acontecerão dentro de cada um deles.
             </p>
           </div>
+          </div>
         </div>
       </div>
     );
@@ -249,7 +255,6 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
                 {mode === 'free' ? 'Livre' : mode === 'acts' ? 'Atos' : 'Capítulos'}
               </span>
             </h2>
-            {headerActions}
             {onOpenMenu && (
               <button 
                 className="mobile-only admin-mobile-menu-btn"
@@ -260,11 +265,12 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
               </button>
             )}
           </div>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
             Planeje o esqueleto da sua história. Adicione cartões para cada cena e arraste para reordenar.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {headerActions}
           <button className="btn-secondary" onClick={() => onUpdateBook({ ...book, escaletaMode: null })} style={{ padding: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} title="Trocar Modelo (Suas cenas não serão apagadas)">
             <Settings size={18} /> <span className="desktop-only">Alterar Estrutura</span>
           </button>
