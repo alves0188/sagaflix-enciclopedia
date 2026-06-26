@@ -63,32 +63,30 @@ function DebouncedTextarea({ value, onChange, placeholder, style, onFocus }) {
 function DebouncedRichTextEditor({ value, onChange, placeholder, style, onFocus }) {
   const editorRef = useRef(null);
   
-  const config = useMemo(() => ({
-    readonly: false,
-    placeholder: placeholder || 'Escreva sua ideia aqui...',
-    theme: 'dark',
-    toolbarInline: false,
-    toolbarSticky: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    minHeight: 150,
-    buttons: [
-      'bold', 'italic', 'underline', 'strikethrough', 'eraser', '|',
-      'ul', 'ol', '|',
-      {
-        name: 'more',
-        icon: 'dots',
-        tooltip: 'Mais ferramentas',
-        buttons: ['font', 'fontsize', 'brush', 'paragraph', 'align', 'image', 'link', 'undo', 'redo']
+  const config = useMemo(() => {
+    const toolbarButtons = ['bold', 'italic', 'underline', 'strikethrough', 'eraser', '|', 'ul', 'ol', '|', 'brush'];
+    return {
+      readonly: false,
+      placeholder: placeholder || 'Escreva sua ideia aqui...',
+      theme: 'dark',
+      toolbarInline: false,
+      toolbarSticky: true,
+      toolbarAdaptive: false,
+      showCharsCounter: false,
+      showWordsCounter: false,
+      showXPathInStatusbar: false,
+      minHeight: 150,
+      buttons: toolbarButtons,
+      buttonsMD: toolbarButtons,
+      buttonsSM: toolbarButtons,
+      buttonsXS: toolbarButtons,
+      style: {
+        background: 'transparent',
+        color: 'var(--text-main)',
+        border: 'none',
       }
-    ],
-    style: {
-      background: 'transparent',
-      color: 'var(--text-main)',
-      border: 'none',
-    }
-  }), [placeholder]);
+    };
+  }, [placeholder]);
 
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef(null);
