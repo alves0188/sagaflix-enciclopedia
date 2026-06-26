@@ -1,4 +1,5 @@
 import { toast } from 'react-hot-toast';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect } from 'react';
 
 const REPORT_CATEGORY_LABELS = {

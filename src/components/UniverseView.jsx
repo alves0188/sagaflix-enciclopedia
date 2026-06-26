@@ -1,4 +1,5 @@
 import { toast } from 'react-hot-toast';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect } from 'react';
 import { Home, Users, Map, Search, BookOpen, Settings, Key, Building, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';

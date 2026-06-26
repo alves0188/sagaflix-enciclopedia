@@ -179,7 +179,7 @@ export default function App() {
       const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
       if (updateError) throw updateError;
 
-      alert('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
+      toast.success('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
       window.history.replaceState({}, document.title, '/');
       setResetTokenActive(null);
     } catch (err) {
@@ -279,7 +279,7 @@ export default function App() {
   const handleDeleteAccount = async () => {
     const confirmation = window.prompt("Tem certeza que deseja apagar sua conta? Todos os seus dados, preferências e obras (se houver) serão APAGADOS permanentemente.\n\nDigite CONFIRMAR para prosseguir:");
     if (confirmation !== "CONFIRMAR") {
-      alert("A exclusão foi cancelada.");
+      toast.success("A exclusão foi cancelada.");
       return;
     }
 
@@ -301,12 +301,12 @@ export default function App() {
       const { error } = await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
       if (error) throw error;
       
-      alert("Sua conta e dados foram excluídos com sucesso. Lamentamos ver você partir!");
+      toast.success("Sua conta e dados foram excluídos com sucesso. Lamentamos ver você partir!");
       handleLogout();
       setIsProfileModalOpen(false);
     } catch (err) {
       console.error("Erro ao excluir conta:", err);
-      alert("Ocorreu um erro ao excluir sua conta. Tente novamente.");
+      toast.error("Ocorreu um erro ao excluir sua conta. Tente novamente.");
     }
   };
 
@@ -330,7 +330,7 @@ export default function App() {
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     if (!profileForm.name || !profileForm.email || !profileForm.password) {
-      alert('Nome, e-mail e senha são obrigatórios.');
+      toast.error('Nome, e-mail e senha são obrigatórios.');
       return;
     }
 
@@ -340,7 +340,7 @@ export default function App() {
         (u.nickname || '').toLowerCase() === profileForm.nickname.toLowerCase() && u.id !== currentUser.id
       );
       if (existingNickname) {
-        alert('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
+        toast.error('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
         return;
       }
     }
@@ -378,7 +378,7 @@ export default function App() {
     localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
     await handleUpdateData(newDb);
     setIsEditingProfile(false);
-    alert('Configurações salvas com sucesso!');
+    toast.success('Configurações salvas com sucesso!');
   };
 
   const handleProfileAvatarUpload = async (e) => {
@@ -393,7 +393,7 @@ export default function App() {
       }
     } catch (err) {
       console.error("Erro no upload de avatar", err);
-      alert(err.message || "Erro ao fazer upload da imagem.");
+      toast.error(err.message || "Erro ao fazer upload da imagem.");
     }
     setProfileUploading(false);
     e.target.value = null;
@@ -613,7 +613,7 @@ export default function App() {
     }
 
     if (notif.type === 'message') {
-      alert(`📩 MENSAGEM DA CURADORIA:\n\n"${notif.details}"\n\nEnviado em: ${notif.date}`);
+      toast(`📩 MENSAGEM DA CURADORIA:\n\n"${notif.details}"\n\nEnviado em: ${notif.date}`, { duration: 6000, icon: '📩' });
     }
 
     if (currentUser.role === 'curator') {

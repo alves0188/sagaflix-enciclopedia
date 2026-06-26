@@ -1,4 +1,5 @@
 import { toast } from 'react-hot-toast';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect, useRef } from 'react';
 import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';

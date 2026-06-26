@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
+import 'react-loading-skeleton/dist/skeleton.css'
 import App from './App.jsx'
 
 window.API_BASE_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3001');
@@ -32,11 +33,23 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+import { Toaster } from 'react-hot-toast';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
         <App />
+        <Toaster 
+          position="bottom-right" 
+          toastOptions={{ 
+            style: { 
+              background: '#1a1a24', 
+              color: '#f0f0f0', 
+              border: '1px solid #d4af37' 
+            } 
+          }} 
+        />
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,
