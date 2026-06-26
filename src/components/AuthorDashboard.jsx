@@ -32,14 +32,17 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
 
   useEffect(() => {
     async function loadAuthorData() {
-      const [{ data: profiles }, { data: books }, { data: support_tickets }, { data: note_requests }] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('books').select('*'),
-        supabase.from('support_tickets').select('*'),
-        supabase.from('note_requests').select('*')
-      ]);
+      try {
+        const [{ data: profiles, error: err1 }, { data: books, error: err2 }, { data: support_tickets, error: err3 }, { data: note_requests, error: err4 }] = await Promise.all([
+          supabase.from('profiles').select('*'),
+          supabase.from('books').select('*'),
+          supabase.from('support_tickets').select('*'),
+          supabase.from('note_requests').select('*')
+        ]);
+        
+        if (err1 || err2 || err3 || err4) console.error("Data load error:", err1, err2, err3, err4);
 
-      setLocalData({
+        setLocalData({
         users: (profiles || []).map(p => ({
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
         })),
@@ -61,7 +64,34 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
     if (currentUser) loadAuthorData();
   }, [currentUser]);
 
-  if (!localData) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Carregando Estúdio...</p></div>;
+  if (!localData) {
+    return (
+      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+          {/* Sidebar Skeleton */}
+          <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', padding: '2rem' }}>
+            <Skeleton circle width={60} height={60} style={{ marginBottom: '1rem' }} />
+            <Skeleton width="80%" height={24} style={{ marginBottom: '2rem' }} />
+            <Skeleton count={4} height={40} style={{ marginBottom: '1rem' }} />
+          </div>
+          {/* Main Content Skeleton */}
+          <div style={{ flex: 1, padding: '2rem' }}>
+             <Skeleton width={300} height={40} style={{ marginBottom: '2rem' }} />
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                <Skeleton height={120} borderRadius={12} />
+                <Skeleton height={120} borderRadius={12} />
+                <Skeleton height={120} borderRadius={12} />
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                <Skeleton height={300} borderRadius={12} />
+                <Skeleton height={300} borderRadius={12} />
+                <Skeleton height={300} borderRadius={12} />
+             </div>
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
 
   const db = localData;
 
