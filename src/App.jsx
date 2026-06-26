@@ -105,12 +105,16 @@ export default function App() {
   const [resetError, setResetError] = useState('');
 
   // Roteamento Nativo Simples
-  const path = window.location.pathname;
+  const path = window.location.pathname.toLowerCase();
   let portalRole = 'reader';
   if (path.startsWith('/curador')) portalRole = 'curator';
   if (path.startsWith('/autor')) portalRole = 'author';
 
-  const viewRole = viewRoleOverride || (currentUser ? currentUser.role : null);
+  let resolvedRole = currentUser ? currentUser.role : null;
+  if (currentUser && currentUser.role === 'author' && portalRole === 'reader') {
+    resolvedRole = 'reader';
+  }
+  const viewRole = viewRoleOverride || resolvedRole;
 
   const handleVerifyEmail = async (token) => {
     try {

@@ -68,36 +68,9 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
     if (currentUser) loadAuthorData();
   }, [currentUser]);
 
-  if (!localData) {
-    return (
-      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
-          {/* Sidebar Skeleton */}
-          <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', padding: '2rem' }}>
-            <Skeleton circle width={60} height={60} style={{ marginBottom: '1rem' }} />
-            <Skeleton width="80%" height={24} style={{ marginBottom: '2rem' }} />
-            <Skeleton count={4} height={40} style={{ marginBottom: '1rem' }} />
-          </div>
-          {/* Main Content Skeleton */}
-          <div style={{ flex: 1, padding: '2rem' }}>
-             <Skeleton width={300} height={40} style={{ marginBottom: '2rem' }} />
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-                <Skeleton height={120} borderRadius={12} />
-                <Skeleton height={120} borderRadius={12} />
-                <Skeleton height={120} borderRadius={12} />
-             </div>
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-                <Skeleton height={300} borderRadius={12} />
-                <Skeleton height={300} borderRadius={12} />
-                <Skeleton height={300} borderRadius={12} />
-             </div>
-          </div>
-        </div>
-      </SkeletonTheme>
-    );
-  }
 
-  const db = localData;
+
+  const db = localData || { users: [], books: [], supportTickets: [], noteRequests: [] };
 
   const onUpdateData = async (newDb) => {
     setLocalData(newDb);
@@ -1681,6 +1654,36 @@ const renderSuporte = () => {
     ...(db.noteRequests || []).filter(r => myBooksForCalc.includes(r.bookId)).map(r => ({...r, read: r.read !== undefined ? r.read : (r.status !== 'pending')}))
   ];
   const hasUnreadUniverseRequests = allInboxRequests.some(r => !r.read);
+
+
+  if (!localData) {
+    return (
+      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+          {/* Sidebar Skeleton */}
+          <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', padding: '2rem' }}>
+            <Skeleton circle width={60} height={60} style={{ marginBottom: '1rem' }} />
+            <Skeleton width="80%" height={24} style={{ marginBottom: '2rem' }} />
+            <Skeleton count={4} height={40} style={{ marginBottom: '1rem' }} />
+          </div>
+          {/* Main Content Skeleton */}
+          <div style={{ flex: 1, padding: '2rem' }}>
+             <Skeleton width={300} height={40} style={{ marginBottom: '2rem' }} />
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                <Skeleton height={120} borderRadius={12} />
+                <Skeleton height={120} borderRadius={12} />
+                <Skeleton height={120} borderRadius={12} />
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                <Skeleton height={300} borderRadius={12} />
+                <Skeleton height={300} borderRadius={12} />
+                <Skeleton height={300} borderRadius={12} />
+             </div>
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
 
   return (
     <div className="author-dashboard-container dashboard-container" style={{ position: 'relative' }}>

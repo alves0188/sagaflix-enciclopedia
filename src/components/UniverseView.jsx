@@ -65,8 +65,6 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     if (currentUser) loadUniverseData();
   }, [currentUser, bookId]);
 
-  if (!localData) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Abrindo Livro...</p></div>;
-
   const db = localData;
 
   const onUpdateData = async (newDb) => {
