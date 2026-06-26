@@ -140,10 +140,10 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         {/* Progress Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.5rem', position: 'relative' }}>
             <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '2px', background: 'var(--border-color)', zIndex: 0 }}></div>
-            <div style={{ position: 'absolute', top: '50%', left: 0, width: \`\${((step - 1) / (totalSteps - 1)) * 100}%\`, height: '2px', background: 'var(--accent-gold)', zIndex: 0, transition: 'width 0.3s ease' }}></div>
+            <div style={{ position: 'absolute', top: '50%', left: 0, width: `${((step - 1) / (totalSteps - 1)) * 100}%`, height: '2px', background: 'var(--accent-gold)', zIndex: 0, transition: 'width 0.3s ease' }}></div>
             
             {Array.from({length: totalSteps}).map((_, i) => (
-                <div key={i} style={{ width: '32px', height: '32px', borderRadius: '50%', background: step >= i + 1 ? 'var(--accent-gold)' : 'var(--bg-main)', border: \`2px solid \${step >= i + 1 ? 'var(--accent-gold)' : 'var(--border-color)'}\`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1, color: step >= i + 1 ? '#000' : 'var(--text-muted)', fontWeight: 'bold', transition: 'all 0.3s ease' }}>
+                <div key={i} style={{ width: '32px', height: '32px', borderRadius: '50%', background: step >= i + 1 ? 'var(--accent-gold)' : 'var(--bg-main)', border: `2px solid ${step >= i + 1 ? 'var(--accent-gold)' : 'var(--border-color)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1, color: step >= i + 1 ? '#000' : 'var(--text-muted)', fontWeight: 'bold', transition: 'all 0.3s ease' }}>
                     {i + 1}
                 </div>
             ))}
