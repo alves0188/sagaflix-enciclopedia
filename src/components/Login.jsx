@@ -29,7 +29,29 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
         setError('E-mail ou senha incorretos.');
         return;
       }
-      // O onAuthStateChange no App.jsx vai assumir daqui!
+      // Buscar perfil do usuario e chamar onLogin
+      const userId = data.user.id;
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      if (profile) {
+        const userObj = {
+          id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
+          email: profile.email, avatar: profile.avatar_url,
+          favorites: profile.favorites, readingStatus: profile.reading_status
+        };
+        onLogin(userObj);
+      } else {
+        // Fallback: usar dados do sagaflix_db
+        const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+        if (dbData && dbData.data && dbData.data.users) {
+          const fallbackUser = dbData.data.users.find(u => u.email === email);
+          if (fallbackUser) {
+            onLogin(fallbackUser);
+            return;
+          }
+        }
+        // Ultimo recurso: criar usuario basico com dados do auth
+        onLogin({ id: userId, email: data.user.email, name: data.user.user_metadata?.name || email.split('@')[0], role: 'author' });
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError('Erro ao conectar com o servidor: ' + (err.message || 'Erro desconhecido.'));
