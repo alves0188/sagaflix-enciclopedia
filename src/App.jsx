@@ -436,8 +436,9 @@ export default function App() {
   // Se o usuário logou, garantir que ele está no portal certo
   // (Ex: Um leitor não pode logar na URL /curador)
   const isAuthorOnReaderPortal = currentUser.role === 'author' && portalRole === 'reader';
+  const isAdmin = currentUser.role === 'admin';
   
-  if (currentUser.role !== portalRole && !isAuthorOnReaderPortal) {
+  if (currentUser.role !== portalRole && !isAuthorOnReaderPortal && !isAdmin) {
     return (
       <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
         <h2>Acesso Negado</h2>
