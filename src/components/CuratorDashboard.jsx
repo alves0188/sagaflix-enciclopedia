@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 
 const REPORT_CATEGORY_LABELS = {
@@ -118,7 +119,60 @@ const getCuratorPermissions = (user) => {
   return { ...preset, ...(user.permissions || {}) };
 };
 
-export default function CuratorDashboard({ db, onUpdateData, currentUser, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen, onSelectBook, onSelectBookUniverse }) {
+
+export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen, onSelectBook, onSelectBookUniverse }) {
+  const [localData, setLocalData] = useState(null);
+
+  useEffect(() => {
+    async function loadCuratorData() {
+      const [{ data: profiles }, { data: books }, { data: support_tickets }] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('books').select('*'),
+        supabase.from('support_tickets').select('*')
+      ]);
+
+      setLocalData({
+        users: (profiles || []).map(p => ({
+          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, status: 'approved'
+        })),
+        books: (books || []).map(b => ({
+          id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
+          synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+          coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
+          universe: { notes: [] }
+        })),
+        supportTickets: (support_tickets || []).map(t => ({
+          id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
+          status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
+        })),
+        gamificationBadges: [], banners: []
+      });
+    }
+    if (currentUser) loadCuratorData();
+  }, [currentUser]);
+
+  if (!localData) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Carregando Curadoria...</p></div>;
+
+  const db = localData;
+
+  const onUpdateData = async (newDb) => {
+    setLocalData(newDb);
+    // Generic sync back
+    for (const b of newDb.books) {
+      await supabase.from('books').update({ status: b.status }).eq('id', b.id);
+    }
+    for (const t of newDb.supportTickets || []) {
+      await supabase.from('support_tickets').update({
+        status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
+      }).eq('id', t.id);
+    }
+    for (const u of newDb.users) {
+      if (u.role !== 'reader') {
+        await supabase.from('profiles').update({ role: u.role }).eq('id', u.id);
+      }
+    }
+  };
+
   const permissions = getCuratorPermissions(currentUser);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dashTab, setDashTab] = useState('geral');
@@ -280,7 +334,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         newDb
       );
       onUpdateData(newDb);
-      alert("Banner excluído com sucesso!");
+      toast("Banner excluído com sucesso!");
     }
   };
 
@@ -296,7 +350,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       }
     } catch (err) {
       console.error("Erro no upload do banner", err);
-      alert(err.message || "Erro ao fazer upload da imagem do banner.");
+      toast.error(err.message || "Erro ao fazer upload da imagem do banner.");
     } finally {
       setBannerUploading(false);
     }
@@ -305,7 +359,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const handleSaveBanner = (e) => {
     e.preventDefault();
     if (!bannerFormData.title || !bannerFormData.imageUrl) {
-      alert("Por favor, preencha o título e a imagem do banner.");
+      toast("Por favor, preencha o título e a imagem do banner.");
       return;
     }
 
@@ -332,7 +386,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     onUpdateData(newDb);
     setEditingBanner(null);
-    alert(isNew ? "Banner criado com sucesso!" : "Banner editado com sucesso!");
+    toast(isNew ? "Banner criado com sucesso!" : "Banner editado com sucesso!");
   };
 
   const renderBanners = () => {
@@ -470,7 +524,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
   const handleSaveCurator = (e) => {
     e.preventDefault();
     if (!curatorForm.name || !curatorForm.email || !curatorForm.password) {
-      alert('Preencha todos os campos!');
+      toast('Preencha todos os campos!');
       return;
     }
     
@@ -480,7 +534,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
     if (editingCurator) {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase() && u.id !== editingCurator.id);
       if (emailExists) {
-        alert('Este e-mail jÃ¡ estÃ¡ em uso por outro usuÃ¡rio.');
+        toast('Este e-mail jÃ¡ estÃ¡ em uso por outro usuÃ¡rio.');
         return;
       }
       
@@ -507,11 +561,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         `Editou dados do curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${editingCurator.id === 'admin' ? 'admin' : selectedRole}`,
         newDb
       );
-      alert('Dados do curador atualizados!');
+      toast('Dados do curador atualizados!');
     } else {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase());
       if (emailExists) {
-        alert('Este e-mail jÃ¡ estÃ¡ cadastrado.');
+        toast('Este e-mail jÃ¡ estÃ¡ cadastrado.');
         return;
       }
       
@@ -532,7 +586,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         `Adicionou o curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${selectedRole}`,
         newDb
       );
-      alert('Novo curador adicionado com sucesso!');
+      toast('Novo curador adicionado com sucesso!');
     }
 
     onUpdateData(newDb);
@@ -543,11 +597,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   const handleDeleteCurator = (curatorId) => {
     if (curatorId === 'admin') {
-      alert('O Administrador Principal (admin) não pode ser excluído.');
+      toast('O Administrador Principal (admin) não pode ser excluído.');
       return;
     }
     if (curatorId === currentUser.id) {
-      alert('Você não pode excluir a si mesmo.');
+      toast('Você não pode excluir a si mesmo.');
       return;
     }
     
@@ -565,7 +619,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       );
       
       onUpdateData(newDb);
-      alert('Curador removido com sucesso.');
+      toast('Curador removido com sucesso.');
     }
   };
 
@@ -1270,7 +1324,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       newDb
     );
     onUpdateData(loggedDb);
-    alert(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editÃ¡-lo.`);
+    toast(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editÃ¡-lo.`);
   };
 
   const handleRejectRequest = (notif) => {
@@ -1285,7 +1339,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       newDb
     );
     onUpdateData(loggedDb);
-    alert('Pedido rejeitado.');
+    toast('Pedido rejeitado.');
   };
 
   const handleSendMessage = () => {
@@ -1320,7 +1374,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     onUpdateData(newDb);
     setMsgText('');
-    alert('Mensagem enviada com sucesso!');
+    toast('Mensagem enviada com sucesso!');
   };
 
   const handleInvestigateReport = (report) => {
@@ -1463,11 +1517,11 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
   const handleResolveReport = () => {
     if (!reportValidation) {
-      alert("Por favor, valide se a denúncia é procedente ou infundada.");
+      toast("Por favor, valide se a denúncia é procedente ou infundada.");
       return;
     }
     if (!reportCuratorNote.trim()) {
-      alert("Por favor, adicione uma nota interna justificando sua decisão.");
+      toast("Por favor, adicione uma nota interna justificando sua decisão.");
       return;
     }
 
@@ -1543,7 +1597,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     onUpdateData(newDb);
     setSelectedReportForReview(null);
-    alert('Denúncia resolvida com sucesso!');
+    toast('Denúncia resolvida com sucesso!');
   };
 
   const renderReportReviewModal = () => {
@@ -2470,7 +2524,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
     const handleDownloadBackup = () => {
       if (!selectedBook.universe || !selectedBook.universe.chapters || selectedBook.universe.chapters.length === 0) {
-        alert("Não hÃ¡ capítulos salvos para fazer backup.");
+        toast("Não hÃ¡ capítulos salvos para fazer backup.");
         return;
       }
       let content = `=========================================\n`;
@@ -2990,7 +3044,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
 
       onUpdateData(newDb);
       setTicketReplyText('');
-      alert("Resposta enviada com sucesso!");
+      toast("Resposta enviada com sucesso!");
     };
 
     const handleToggleTicketStatus = (ticket) => {
@@ -3022,7 +3076,7 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
       );
 
       onUpdateData(newDb);
-      alert(`Chamado marcado como ${newStatus === 'resolved' ? 'Resolvido' : 'Aberto'}!`);
+      toast(`Chamado marcado como ${newStatus === 'resolved' ? 'Resolvido' : 'Aberto'}!`);
     };
 
     return (
@@ -3405,10 +3459,10 @@ export default function CuratorDashboard({ db, onUpdateData, currentUser, focusA
         await sendEmail(userEmail, subject, message);
       }
 
-      alert('Status atualizado com sucesso!');
+      toast('Status atualizado com sucesso!');
       window.location.reload();
     } catch (err) {
-      alert('Erro ao atualizar autor: ' + err.message);
+      toast.error('Erro ao atualizar autor: ' + err.message);
     }
   };
 

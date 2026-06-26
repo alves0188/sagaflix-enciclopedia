@@ -22,32 +22,14 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
     e.preventDefault();
     setError('');
     try {
-      const { data: result, error: fetchError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (fetchError) throw fetchError;
-      const data = result.data;
-      
-      const user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-      
-      if (user) {
-        if (user.role !== portalRole) {
-          setError(`Esta conta não tem permissão de ${portalRole}. Verifique a URL.`);
-          return;
-        }
-
-        if (user.status === 'pending_email') {
-          setError('Por favor, confirme seu e-mail pelo link de ativação que enviamos.');
-          return;
-        }
-
-        if (user.role === 'author' && user.status === 'pending_approval') {
-          setError('Sua conta de autor ainda está sob análise da curadoria.');
-          return;
-        }
-        
-        onLogin(user, data);
-      } else {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email, password
+      });
+      if (authError) {
         setError('E-mail ou senha incorretos.');
+        return;
       }
+      // O onAuthStateChange no App.jsx vai assumir daqui!
     } catch (err) {
       console.error('Login error:', err);
       setError('Erro ao conectar com o servidor: ' + (err.message || 'Erro desconhecido.'));

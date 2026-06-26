@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, ChevronLeft, ChevronRight, Moon, Sun, ArrowLeft, ZoomIn, ZoomOut, Lock, MessageSquare, Heart, Send, Gift, ThumbsUp, ThumbsDown, AlertTriangle } from 'lucide-react';
 import ShopModal from './ShopModal';
@@ -220,7 +221,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       reports: [...(db.reports || []), newReport]
     });
 
-    alert("Sua denúncia foi enviada para a curadoria. Obrigado!");
+    toast("Sua denúncia foi enviada para a curadoria. Obrigado!");
     setShowReportModal(false);
     setReportReason('');
     setReportCategory('');
@@ -455,7 +456,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     } else if (activeChapterIdx < chapters.length - 1) {
       const nextCh = chapters[activeChapterIdx + 1];
       if (isChapterLocked(nextCh)) {
-        alert(`O próximo capítulo estará disponível em ${formatDateDisplay(nextCh.publishDate)}!`);
+        toast(`O próximo capítulo estará disponível em ${formatDateDisplay(nextCh.publishDate)}!`);
         return;
       }
       setActiveChapterIdx(activeChapterIdx + 1);
@@ -745,7 +746,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                   <div 
                     onClick={() => { 
                       if (locked) {
-                        alert(`Este capítulo estará disponível em ${formatDateDisplay(ch.publishDate)}!`);
+                        toast(`Este capítulo estará disponível em ${formatDateDisplay(ch.publishDate)}!`);
                         return;
                       }
                       toggleChapter(idx); 

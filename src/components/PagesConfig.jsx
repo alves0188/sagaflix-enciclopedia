@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { Save, Upload, Info, X, Menu } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
@@ -37,14 +38,14 @@ export default function PagesConfig({ universe, onUpdate, isReadOnly, currentBoo
       }
     } catch (err) {
       console.error('Erro no upload', err);
-      alert(err.message || 'Erro ao fazer upload da capa.');
+      toast.error(err.message || 'Erro ao fazer upload da capa.');
     }
     setUploading(false);
   };
 
   const handleSave = () => {
     onUpdate({ ...universe, pages });
-    alert("Configurações das páginas salvas com sucesso!");
+    toast("Configurações das páginas salvas com sucesso!");
   };
 
   const getTabTutorial = (tabKey) => {

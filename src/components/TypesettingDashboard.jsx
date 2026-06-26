@@ -313,14 +313,24 @@ export default function TypesettingDashboard({ book, universe, onUpdateBook, onU
             
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Plano de Fundo das Páginas (Textura)
-              <input type="file" accept="image/*" onChange={handleUploadBackground} style={{ fontSize: '0.7rem' }} />
-              {bgImage && <button onClick={() => updateSetting('typesettingBackgroundImage', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover Fundo</button>}
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <label className="btn-secondary" style={{ cursor: 'pointer', fontSize: '0.7rem', padding: '0.3rem 0.6rem', margin: 0 }}>
+                  Escolher arquivo
+                  <input type="file" accept="image/*" onChange={handleUploadBackground} style={{ display: 'none' }} />
+                </label>
+                {bgImage && <button onClick={() => updateSetting('typesettingBackgroundImage', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>Remover Fundo</button>}
+              </div>
             </label>
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>
               Ornamento do Capítulo (Floral)
-              <input type="file" accept="image/*" onChange={handleUploadOrnament} style={{ fontSize: '0.7rem' }} />
-              {chapterOrnament && <button onClick={() => updateSetting('typesettingChapterOrnament', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Remover Ornamento</button>}
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <label className="btn-secondary" style={{ cursor: 'pointer', fontSize: '0.7rem', padding: '0.3rem 0.6rem', margin: 0 }}>
+                  Escolher arquivo
+                  <input type="file" accept="image/*" onChange={handleUploadOrnament} style={{ display: 'none' }} />
+                </label>
+                {chapterOrnament && <button onClick={() => updateSetting('typesettingChapterOrnament', '')} style={{ fontSize: '0.7rem', color: 'red', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>Remover Ornamento</button>}
+              </div>
             </label>
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.8rem', marginTop: '0.5rem' }}>

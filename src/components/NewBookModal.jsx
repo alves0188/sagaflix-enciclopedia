@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { X, Upload, Save } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
@@ -33,7 +34,7 @@ export default function NewBookModal({ onClose, onSave }) {
       }
     } catch (err) {
       console.error('Erro no upload', err);
-      alert(err.message || 'Erro ao fazer upload da capa.');
+      toast.error(err.message || 'Erro ao fazer upload da capa.');
     }
     setUploading(false);
   };
@@ -50,15 +51,15 @@ export default function NewBookModal({ onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title) {
-      alert("O título é obrigatório");
+      toast("O título é obrigatório");
       return;
     }
     if (!formData.distributionMode) {
-      alert("Selecione o modelo de lançamento (Distribuição).");
+      toast("Selecione o modelo de lançamento (Distribuição).");
       return;
     }
     if (!formData.workType) {
-      alert("Selecione o tipo de obra.");
+      toast("Selecione o tipo de obra.");
       return;
     }
     const finalData = {

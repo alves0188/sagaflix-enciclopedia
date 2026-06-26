@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info, Menu, CheckCircle } from 'lucide-react';
 import { uploadImage } from '../lib/supabaseClient';
@@ -122,7 +123,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
       }
     } catch (err) {
       console.error('Erro no upload', err);
-      alert(err.message || 'Erro ao fazer upload da capa.');
+      toast.error(err.message || 'Erro ao fazer upload da capa.');
     }
     setUploading(false);
   };
@@ -136,7 +137,7 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
     if (onLogChange) {
       onLogChange('Editou a Sinopse', `Livro: ${book.title}`);
     }
-    alert("Dados do livro salvos com sucesso!");
+    toast("Dados do livro salvos com sucesso!");
   };
 
   const handleTogglePublish = () => {

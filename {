@@ -1,1 +1,0 @@
-s.from('sagaflix_db').select('data').eq('id',1).single().then(async r = let d = r.data.data; d.gamificationBadges = d.badges 

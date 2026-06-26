@@ -189,67 +189,22 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      const { data: result, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (error) throw error;
-      const data = result.data;
-      
-      let needsDbSave = false;
-      if (!data.tutorials) {
-        data.tutorials = [];
-        needsDbSave = true;
-      }
-      if (!data.gamificationBadges) data.gamificationBadges = [];
-      if (!data.gamificationBadges.find(b => b.name === 'Detetive do ano')) {
-        data.gamificationBadges.push({
-          id: 'bdg_detetive_ano',
-          name: 'Detetive do ano',
-          description: 'Mestre da investigação: solicitou e teve acesso aprovado a mais de 100 notas secretas de autores.',
-          icon: '🕵️',
-          conditionTarget: 'secretNotesApproved',
-          conditionOperator: '>=',
-          conditionValue: 100,
-          color: '#FFCC80'
-        });
-        needsDbSave = true;
-      }
-
-      // Migrate users to be permanent (protection against deletion)
-      if (data.users) {
-        data.users = data.users.map(u => {
-          if (u.isPermanent === undefined) {
-            needsDbSave = true;
-            return { ...u, isPermanent: true };
-          }
-          return u;
-        });
-      }
-
-      if (needsDbSave) {
-        await supabase.from('sagaflix_db').update({ data: data }).eq('id', 1);
-      }
-
-      setDb(data);
-      
-      const saved = localStorage.getItem('sagaflix_user');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          const latest = data.users.find(u => u.id === parsed.id);
-          if (latest) {
-            setCurrentUser(latest);
-            localStorage.setItem('sagaflix_user', JSON.stringify(latest));
-          } else {
-            setCurrentUser(null);
-            localStorage.removeItem('sagaflix_user');
-          }
-        } catch (e) {
-          localStorage.removeItem('sagaflix_user');
+      const savedUser = localStorage.getItem('sagaflix_user');
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', parsed.id).single();
+        if (profile) {
+          const userObj = {
+            id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
+            email: profile.email, avatar: profile.avatar_url
+          };
+          setCurrentUser(userObj);
+          localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
         }
       }
-      
       setLoading(false);
     } catch (err) {
-      console.error('Erro ao buscar dados.', err);
+      console.error(err);
       setLoading(false);
     }
   };

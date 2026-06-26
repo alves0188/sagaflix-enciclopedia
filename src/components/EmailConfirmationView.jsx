@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { CheckCircle, BookOpen, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
@@ -51,7 +52,7 @@ export default function EmailConfirmationView({ token, onConfirm }) {
 
         await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
 
-        alert('E-mail confirmado com sucesso! Seja bem-vindo(a) à Sagaflix.');
+        toast('E-mail confirmado com sucesso! Seja bem-vindo(a) à Sagaflix.');
         onConfirm(user, db); // Faz login automático
       } else {
         setError('E-mail ou senha incorretos.');

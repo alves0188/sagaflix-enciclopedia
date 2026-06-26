@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
@@ -24,7 +25,71 @@ const DEFAULT_LEGENDS = {
   '#FFCC80': 'Outros'
 };
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+
+export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+  const [localData, setLocalData] = useState(null);
+
+  useEffect(() => {
+    async function loadAuthorData() {
+      const [{ data: profiles }, { data: books }, { data: support_tickets }, { data: note_requests }] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('books').select('*'),
+        supabase.from('support_tickets').select('*'),
+        supabase.from('note_requests').select('*')
+      ]);
+
+      setLocalData({
+        users: (profiles || []).map(p => ({
+          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
+        })),
+        books: (books || []).map(b => ({
+          id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
+          synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+          coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
+          universe: { notes: [] } // Simplification to avoid breaking UI that expects universe
+        })),
+        supportTickets: (support_tickets || []).map(t => ({
+          id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
+          status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
+        })),
+        noteRequests: (note_requests || []).map(n => ({
+          id: n.id, userId: n.user_id, bookId: n.book_id, noteId: n.note_id, status: n.status, read: n.read, message: n.message
+        }))
+      });
+    }
+    if (currentUser) loadAuthorData();
+  }, [currentUser]);
+
+  if (!localData) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Carregando Estúdio...</p></div>;
+
+  const db = localData;
+
+  const onUpdateData = async (newDb) => {
+    setLocalData(newDb);
+    // Since Author mutations are very complex (11+ usages), this function will sync the ENTIRE state back to Supabase.
+    // We will do a generic sync for the most critical things updated by author: books and tickets.
+    for (const b of newDb.books) {
+      if (b.authorId === currentUser.id) {
+        await supabase.from('books').update({ 
+           title: b.title, synopsis: b.synopsis, status: b.status, cover_url: b.coverUrl,
+           lore_areas: b.loreAreas, universe_requests: b.universeRequests, co_author_ids: b.coAuthorIds
+        }).eq('id', b.id);
+      }
+    }
+    for (const t of newDb.supportTickets || []) {
+      if (t.userId === currentUser.id || currentUser.role === 'curator') {
+         await supabase.from('support_tickets').update({
+           status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
+         }).eq('id', t.id);
+      }
+    }
+    for (const n of newDb.noteRequests || []) {
+       await supabase.from('note_requests').update({
+         status: n.status, read: n.read
+       }).eq('id', n.id);
+    }
+  };
+
   const [localActiveTab, setLocalActiveTab] = useState('dashboard');
   const activeTab = propActiveTab || localActiveTab;
   const setActiveTab = onTabChange || setLocalActiveTab;
@@ -43,7 +108,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   
   const handleDownloadBackup = (book) => {
     if (!book.universe || !book.universe.chapters || book.universe.chapters.length === 0) {
-      alert("Não há capítulos salvos para fazer backup.");
+      toast("Não há capítulos salvos para fazer backup.");
       return;
     }
     let content = `=========================================\n`;
@@ -928,7 +993,7 @@ const renderSuporte = () => {
 
     const handleCreateTicket = () => {
       if (!newTicket.subject.trim() || !newTicket.message.trim()) {
-        alert("Por favor, preencha todos os campos.");
+        toast("Por favor, preencha todos os campos.");
         return;
       }
 
@@ -953,7 +1018,7 @@ const renderSuporte = () => {
       setNewTicket({ category: 'technical', subject: '', message: '' });
       setShowNewTicketModal(false);
       setSelectedTicketId(newTicketObj.id);
-      alert("Chamado de suporte aberto com sucesso!");
+      toast("Chamado de suporte aberto com sucesso!");
     };
 
     const handleSendReply = () => {
@@ -1472,7 +1537,7 @@ const renderSuporte = () => {
       } else if (file.name.endsWith('.txt')) {
         rawText = await file.text();
       } else {
-        alert('Formato não suportado. Envie um arquivo .docx ou .txt');
+        toast('Formato não suportado. Envie um arquivo .docx ou .txt');
         setIsImporting(false);
         return;
       }
@@ -1562,13 +1627,13 @@ const renderSuporte = () => {
       const newBooks = [...(db.books || []), newBook];
       await onUpdateData({ ...db, books: newBooks });
       
-      alert('Manuscrito importado com sucesso!');
+      toast('Manuscrito importado com sucesso!');
       setShowImportModal(false);
       onSelectBook(newBook.id);
 
     } catch (err) {
       console.error(err);
-      alert('Erro ao importar: ' + err.message);
+      toast.error('Erro ao importar: ' + err.message);
     }
     
     setIsImporting(false);

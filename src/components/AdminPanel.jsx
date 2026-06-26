@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe } from 'lucide-react';
 import CuratorDashboard from './CuratorDashboard';
@@ -335,7 +336,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         }
       } catch (err) {
         console.error("Erro no upload", err);
-        alert(err.message || "Erro ao fazer upload da imagem: " + file.name);
+        toast.error(err.message || "Erro ao fazer upload da imagem: " + file.name);
       }
     }
 
@@ -375,11 +376,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           const secName = sectionNames[sectionKey] || sectionKey;
           onLogChange(`Alterou imagem de destaque`, `Seção: ${secName}`);
         }
-        alert("Imagem de destaque atualizada com sucesso!");
+        toast("Imagem de destaque atualizada com sucesso!");
       }
     } catch (err) {
       console.error("Erro no upload da imagem de destaque", err);
-      alert(err.message || "Erro ao fazer upload da imagem de destaque.");
+      toast.error(err.message || "Erro ao fazer upload da imagem de destaque.");
     }
     setUploading(false);
     e.target.value = null;
@@ -395,7 +396,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const handleSendRequest = () => {
     if (isReadOnly) return;
     if (!requestData.what || !requestData.why) {
-      alert("Preencha os campos obrigatórios.");
+      toast("Preencha os campos obrigatórios.");
       return;
     }
     if (onLogChange) {
@@ -403,7 +404,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     }
     setShowRequestModal(false);
     setRequestData({ what: '', why: '', impact: '' });
-    alert("Pedido enviado para a curadoria com sucesso!");
+    toast("Pedido enviado para a curadoria com sucesso!");
   };
 
   const handleAddPage = () => {
@@ -430,7 +431,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
     } catch (err) {
       console.error("Erro no upload", err);
-      alert(err.message || "Erro ao fazer upload da imagem");
+      toast.error(err.message || "Erro ao fazer upload da imagem");
     }
     setUploading(false);
     e.target.value = null;
@@ -491,7 +492,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         const deletedReview = (currentBook.ratings || []).find(r => r.userId === userId);
         onLogChange('Moderou avaliação', `Removeu avaliação de ${deletedReview?.userName || userId} (Nota: ${deletedReview?.stars})`);
       }
-      alert('Avaliação removida com sucesso!');
+      toast('Avaliação removida com sucesso!');
     }
   };
 
@@ -500,7 +501,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (trashItem.itemType === 'session') {
       const parentChapter = (data.chapters || []).find(c => c.id === trashItem.parentId);
       if (!parentChapter) {
-        alert('O capítulo dessa sessão foi excluído. Restaure o capítulo primeiro.');
+        toast('O capítulo dessa sessão foi excluído. Restaure o capítulo primeiro.');
         return;
       }
       const updatedChapter = { ...parentChapter, pages: [...(parentChapter.pages || []), trashItem.itemData] };
@@ -525,7 +526,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     
     const updatedTrash = (currentBook.trash || []).filter(t => t.id !== trashItem.id);
     onUpdateBook({ ...currentBook, trash: updatedTrash });
-    alert('Item restaurado com sucesso!');
+    toast('Item restaurado com sucesso!');
   };
 
   const handleDeletePermanently = (id) => {
@@ -1057,7 +1058,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           }} 
           onClick={() => {
             if (currentBook?.status !== 'finished' && currentBook?.status !== 'published') {
-              alert('Finalize a obra primeiro! Você só pode acessar a diagramação visual após finalizar a escrita do livro.');
+              toast('Finalize a obra primeiro! Você só pode acessar a diagramação visual após finalizar a escrita do livro.');
               return;
             }
             setActiveList('diagramacao'); 

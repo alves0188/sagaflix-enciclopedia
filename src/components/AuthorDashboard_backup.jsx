@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
@@ -614,7 +615,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
     const handleCreateTicket = () => {
       if (!newTicket.subject.trim() || !newTicket.message.trim()) {
-        alert("Por favor, preencha todos os campos.");
+        toast("Por favor, preencha todos os campos.");
         return;
       }
 
@@ -639,7 +640,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       setNewTicket({ category: 'technical', subject: '', message: '' });
       setShowNewTicketModal(false);
       setSelectedTicketId(newTicketObj.id);
-      alert("Chamado de suporte aberto com sucesso!");
+      toast("Chamado de suporte aberto com sucesso!");
     };
 
     const handleSendReply = () => {
@@ -1158,7 +1159,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       } else if (file.name.endsWith('.txt')) {
         rawText = await file.text();
       } else {
-        alert('Formato não suportado. Envie um arquivo .docx ou .txt');
+        toast('Formato não suportado. Envie um arquivo .docx ou .txt');
         setIsImporting(false);
         return;
       }
@@ -1248,13 +1249,13 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       const newBooks = [...(db.books || []), newBook];
       await onUpdateData({ ...db, books: newBooks });
       
-      alert('Manuscrito importado com sucesso!');
+      toast('Manuscrito importado com sucesso!');
       setShowImportModal(false);
       onSelectBook(newBook.id);
 
     } catch (err) {
       console.error(err);
-      alert('Erro ao importar: ' + err.message);
+      toast.error('Erro ao importar: ' + err.message);
     }
     
     setIsImporting(false);

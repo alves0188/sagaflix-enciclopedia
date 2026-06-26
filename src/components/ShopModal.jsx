@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import React, { useState, useEffect } from 'react';
 import { X, Crown, Gem, AlertTriangle, Gift } from 'lucide-react';
 
@@ -77,7 +78,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
                 <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-main)' }}>R$ 14,90 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>/mês</span></span>
                 <button 
-                  onClick={() => alert("O Clube Premium será lançado no final de 2026! Aproveite a plataforma 100% gratuita por enquanto!")}
+                  onClick={() => toast("O Clube Premium será lançado no final de 2026! Aproveite a plataforma 100% gratuita por enquanto!")}
                   className="btn-primary" style={{ width: '100%', maxWidth: '300px', margin: '1rem 0 0 0' }}>
                   Assinar (Em Breve)
                 </button>
@@ -103,7 +104,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Cristais</div>
                     <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>R$ 4,90</div>
                     <button 
-                      onClick={() => alert("A Loja de Cristais chega na próxima atualização principal!")}
+                      onClick={() => toast("A Loja de Cristais chega na próxima atualização principal!")}
                       className="btn-secondary" style={{ width: '100%', margin: 0, padding: '0.4rem', fontSize: '0.8rem' }}>Comprar</button>
                   </div>
 
@@ -115,7 +116,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Cristais</div>
                     <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>R$ 19,90</div>
                     <button 
-                      onClick={() => alert("A Loja de Cristais chega na próxima atualização principal!")}
+                      onClick={() => toast("A Loja de Cristais chega na próxima atualização principal!")}
                       className="btn-primary" style={{ width: '100%', margin: 0, padding: '0.4rem', fontSize: '0.8rem' }}>Comprar</button>
                   </div>
 
@@ -126,7 +127,7 @@ const ShopModal = ({ isOpen, onClose, userName }) => {
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Cristais (+20% Bônus)</div>
                     <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.5rem' }}>R$ 39,90</div>
                     <button 
-                      onClick={() => alert("A Loja de Cristais chega na próxima atualização principal!")}
+                      onClick={() => toast("A Loja de Cristais chega na próxima atualização principal!")}
                       className="btn-secondary" style={{ width: '100%', margin: 0, padding: '0.4rem', fontSize: '0.8rem' }}>Comprar</button>
                   </div>
 

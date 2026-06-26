@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { Plus, GripVertical, Trash2, Edit2, Save, X, AlignLeft, Layers, Settings, ChevronDown, ChevronRight, BookOpen, Menu } from 'lucide-react';
 
@@ -143,7 +144,7 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
 
   const handleDeleteGroup = (groupIdx) => {
     if (groups[groupIdx].scenes.length > 0) {
-      alert("Você não pode excluir um bloco que possui cenas. Remova ou mova as cenas antes.");
+      toast("Você não pode excluir um bloco que possui cenas. Remova ou mova as cenas antes.");
       return;
     }
     if (window.confirm("Tem certeza que deseja excluir este bloco vazio?")) {

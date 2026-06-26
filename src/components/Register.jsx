@@ -61,127 +61,39 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading) return;
-    setIsLoading(true);
     setError('');
-    
-    if (!termsAccepted) {
-      setError('Você precisa ler e aceitar os Termos de Uso e Privacidade para criar uma conta.');
-      setIsLoading(false);
-      return;
-    }
-
-    if (formData.password !== confirmPassword) {
-      setError('As senhas digitadas não coincidem.');
-      setIsLoading(false);
-      return;
-    }
-
+    setLoading(true);
     try {
-      const { data: result, error: fetchError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (fetchError) throw fetchError;
-      const db = result.data;
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password
+      });
       
-      // Verifica Email
-      const existingUser = db.users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
-      if (existingUser) {
-        if (existingUser.status === 'pending_email') {
-          let token = existingUser.verificationToken;
-          if (!token) {
-            token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            existingUser.verificationToken = token;
-            await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
-          }
-          setError('Este e-mail já está cadastrado, mas a conta ainda não foi ativada. Reenviamos o link de confirmação para o seu e-mail.');
-          try {
-            await fetch(window.API_BASE_URL + '/api/send-verification-email', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: existingUser.email,
-                token: token,
-                name: existingUser.name
-              })
-            });
-          } catch (mailErr) {
-            console.error('Falha ao acionar reenvio de e-mail:', mailErr);
-          }
-          setIsLoading(false);
-          return;
-        } else {
-          setError('Este e-mail já está em uso.');
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // Verifica Nickname Único
-      const newNickname = (formData.nickname || formData.name.split(' ')[0]).trim();
-      const existingNickname = db.users.find(u => 
-        (u.nickname || '').toLowerCase() === newNickname.toLowerCase()
-      );
-      
-      if (existingNickname) {
-        setError('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
-        setIsLoading(false);
+      if (authError) {
+        setError('Erro ao criar conta: ' + authError.message);
+        setLoading(false);
         return;
       }
 
-      const newId = 'u_' + Date.now();
-      const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-      const newUser = {
-        id: newId,
-        role: role,
-        name: formData.name,
-        nickname: newNickname,
-        displayMode: formData.displayMode,
+      // Cria o profile
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
         email: formData.email,
-        password: formData.password,
-        age: formData.age,
-        tastes: formData.tastes,
-        about: formData.about, // Bio do autor
-        avatar: formData.avatar, // Foto de perfil
-        status: role === 'author' ? 'pending_approval' : 'pending_email',
-        verificationToken,
-        isPremium: false,
-        crystals: 0
-      };
+        role: portalRole,
+        name: formData.name,
+        nickname: formData.pseudonym || formData.name,
+        bio: formData.about || '',
+        writing_style: formData.writingStyle || '',
+        avatar_url: formData.avatar || ''
+      });
 
-      db.users.push(newUser);
-
-      if (role === 'author') {
-        if (!db.authorRequests) db.authorRequests = [];
-        db.authorRequests.push({
-          id: 'req_' + Date.now(),
-          userId: newUser.id,
-          phone: formData.phone,
-          bookTitle: formData.bookTitle,
-          sampleText: formData.sampleText,
-          synopsis: formData.synopsis,
-          status: 'pending_approval',
-          createdAt: new Date().toISOString()
-        });
+      if (profileError) {
+        setError('Conta criada, mas erro ao salvar perfil.');
+        setLoading(false);
+        return;
       }
 
-      await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
-
-      if (role === 'author') {
-        const subject = 'Cadastro Recebido - Sagaflix';
-        const message = `Olá ${newUser.name},\n\nRecebemos sua solicitação para ser Autor na Sagaflix. Nossos curadores já estão analisando sua amostra de texto. Assim que você for aprovado, enviaremos um novo e-mail de boas-vindas com a liberação de acesso!\n\nEquipe Sagaflix`;
-        
-        await sendEmail(newUser.email, subject, message);
-        alert('Seu cadastro foi enviado para a Curadoria! Aguarde a aprovação.');
-      } else {
-        const fakeLink = `${window.location.origin}/#confirmacao/${verificationToken}`;
-        const subject = 'Confirme seu E-mail - Sagaflix';
-        const message = `Olá ${newUser.name},\n\nBem-vindo à Sagaflix! Para acessar a plataforma, clique no link abaixo para confirmar seu e-mail:\n\n${fakeLink}\n\nEquipe Sagaflix`;
-        
-        await sendEmail(newUser.email, subject, message);
-        alert('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
-      }
-      onNavigateLogin();
-
+      // O onAuthStateChange no App.jsx vai detectar e logar!
     } catch (err) {
       setError('Erro ao conectar com o servidor.');
     } finally {

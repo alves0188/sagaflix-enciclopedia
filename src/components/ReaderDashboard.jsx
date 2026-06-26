@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown, Award } from 'lucide-react';
 import { GENRES_LIST } from '../lib/genres';
@@ -51,8 +52,67 @@ const getAgeRatingBadge = (rating) => {
   };
 };
 
-export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
+import { supabase } from '../lib/supabaseClient';
+
+export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [localData, setLocalData] = useState(null);
+
+  useEffect(() => {
+    async function loadReaderData() {
+      // Fetch books, authors, banners
+      const [{ data: books }, { data: profiles }, { data: reviews }] = await Promise.all([
+        supabase.from('books').select('*').eq('status', 'published'),
+        supabase.from('profiles').select('*'),
+        supabase.from('reviews').select('*')
+      ]);
+
+      const mappedBooks = (books || []).map(b => ({
+        id: b.id,
+        authorId: b.author_id,
+        title: b.title,
+        status: b.status,
+        coverUrl: b.cover_url,
+        bannerUrl: b.banner_url,
+        synopsis: b.synopsis,
+        loreAreas: b.lore_areas || [],
+        universeRequests: b.universe_requests || [],
+        coAuthorIds: b.co_author_ids || [],
+        ratings: (reviews || []).filter(r => r.book_id === b.id).map(r => ({
+           userId: r.user_id,
+           rating: r.rating,
+           comment: r.comment
+        }))
+      }));
+
+      const mappedUsers = (profiles || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        nickname: p.nickname,
+        avatar: p.avatar_url,
+        favorites: p.favorites || [],
+        readingStatus: p.reading_status || {},
+        badges: p.gamification_badges || []
+      }));
+
+      setLocalData({
+        books: mappedBooks,
+        users: mappedUsers,
+        banners: DEFAULT_BANNERS,
+        gamificationBadges: BADGES_DB || []
+      });
+    }
+    if (currentUser) {
+       loadReaderData();
+    }
+  }, [currentUser]);
+
+  if (!localData) {
+    return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Carregando Biblioteca...</p></div>;
+  }
+
+  const db = localData; // Magic alias to keep the rest of the file working!
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -150,7 +210,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
   const handleSendRequest = () => {
     if (requestForm.features.length === 0) {
-      alert("Por favor, selecione pelo menos uma área de interesse.");
+      toast("Por favor, selecione pelo menos uma área de interesse.");
       return;
     }
     
@@ -168,7 +228,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
       onUpdateData(newDb);
     }
     
-    alert("Seu pedido foi enviado ao autor!");
+    toast("Seu pedido foi enviado ao autor!");
     setShowRequestModal(false);
     setRequestForm({ features: [], message: '' });
   };
@@ -304,7 +364,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
 
   const handleSaveReview = () => {
     if (ratingStars === 0) {
-      alert('Por favor, selecione uma nota de 1 a 5 estrelas.');
+      toast('Por favor, selecione uma nota de 1 a 5 estrelas.');
       return;
     }
     
@@ -329,7 +389,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
     });
 
     onUpdateData(newDb);
-    alert('Avaliação salva com sucesso!');
+    toast('Avaliação salva com sucesso!');
   };
 
   const handleBannerAction = (banner) => {
@@ -340,7 +400,7 @@ export default function ReaderDashboard({ db, currentUser, onUpdateData, onSelec
       } else if (banner.actionUrl.startsWith('http')) {
         window.open(banner.actionUrl, '_blank');
       } else {
-        alert(`Destino do banner: ${banner.actionUrl}`);
+        toast(`Destino do banner: ${banner.actionUrl}`);
       }
     }
   };
