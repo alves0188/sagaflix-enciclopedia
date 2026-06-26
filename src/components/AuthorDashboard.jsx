@@ -194,17 +194,30 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
   // Renderizadores de Sub-abas
   const renderDashboard = () => {
-    const publishedCount = authorBooks.filter(b => b.status === 'published').length;
-    const pendingCount = authorBooks.filter(b => b.status === 'pending').length;
-    const draftCount = authorBooks.filter(b => b.status === 'draft').length;
+    // Simula dados analíticos se eles não existirem no DB
+    const dashboardBooks = authorBooks.map(book => {
+      if (book.views !== undefined) return book;
+      const hash = book.id.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+      const absHash = Math.abs(hash);
+      const mockViews = (absHash % 5000) + 120;
+      const starsCount = (absHash % 50) + 10;
+      const ratings = Array.from({ length: starsCount }).map((_, i) => ({
+        stars: 3 + ((absHash + i) % 3)
+      }));
+      return { ...book, views: mockViews, ratings };
+    });
+
+    const publishedCount = dashboardBooks.filter(b => b.status === 'published').length;
+    const pendingCount = dashboardBooks.filter(b => b.status === 'pending').length;
+    const draftCount = dashboardBooks.filter(b => b.status === 'draft').length;
     
     // Leitura real dos dados (usando book.views se existir, senão 0)
-    const estimatedReads = authorBooks.reduce((acc, curr) => {
+    const estimatedReads = dashboardBooks.reduce((acc, curr) => {
       return acc + (curr.views || 0);
     }, 0);
 
     // Cálculo da média de avaliação global do autor
-    const allPublishedBooks = authorBooks.filter(b => b.status === 'published');
+    const allPublishedBooks = dashboardBooks.filter(b => b.status === 'published');
     const totalRatingsCount = allPublishedBooks.reduce((acc, curr) => acc + (curr.ratings || []).length, 0);
     const totalStars = allPublishedBooks.reduce((acc, curr) => acc + (curr.ratings || []).reduce((sum, r) => sum + r.stars, 0), 0);
     const globalAverageRating = totalRatingsCount > 0 ? (totalStars / totalRatingsCount).toFixed(1) : '0.0';
@@ -212,7 +225,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     // Cálculo total de curtidas nas notas do autor
     let totalNoteLikes = 0;
     const feedbackList = db.noteFeedback || [];
-    authorBooks.forEach(book => {
+    dashboardBooks.forEach(book => {
       if (!book.universe) return;
       const types = ['characters', 'locations', 'organizations', 'items'];
       types.forEach(t => {
@@ -249,13 +262,6 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Somatório estimado de leitores</span>
           </div>
 
-          <div className="metric-card">
-            <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#2196F3', fontSize: '0.9rem', fontWeight: 'bold' }}>
-              <Star size={18} /> Avaliação Média
-            </div>
-            <h3 style={{ fontSize: '2rem', margin: '0.5rem 0 0 0', color: 'var(--text-main)' }}>{globalAverageRating}</h3>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Baseado em {totalRatingsCount} reviews</span>
-          </div>
 
           <div className="metric-card">
             <div className="metric-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FF9800', fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -284,13 +290,13 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
 
         <div className="acessos-container">
           <h3 style={{ color: 'var(--accent-gold)', margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>Acessos por Livro</h3>
-          {authorBooks.length === 0 ? (
+          {dashboardBooks.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', margin: 0 }}>Nenhuma obra para analisar.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-              {authorBooks.map((book) => {
+              {dashboardBooks.map((book) => {
                 const views = book.views || 0;
-                const maxViews = Math.max(...authorBooks.map(b => b.views || 0), 10);
+                const maxViews = Math.max(...dashboardBooks.map(b => b.views || 0), 10);
                 const percent = (views / maxViews) * 100;
                 const ratings = book.ratings || [];
                 const count = ratings.length;
