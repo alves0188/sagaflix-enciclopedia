@@ -246,8 +246,8 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
 
   return (
     <div style={{ padding: '1.5rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', minHeight: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+        <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <h2 style={{ margin: '0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               Escaleta: {book.title}
@@ -265,25 +265,29 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
               </button>
             )}
           </div>
-          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
             Planeje o esqueleto da sua história. Adicione cartões para cada cena e arraste para reordenar.
           </p>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="btn-secondary" onClick={() => onUpdateBook({ ...book, escaletaMode: null })} style={{ padding: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }} title="Trocar Modelo (Suas cenas não serão apagadas)">
+              <Settings size={18} /> <span className="desktop-only">Alterar Estrutura</span>
+            </button>
+            {mode !== 'free' && (
+              <button className="btn-secondary" onClick={handleAddGroup} style={{ padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <Plus size={16} /> Novo Bloco
+              </button>
+            )}
+            {mode === 'free' && (
+              <button className="btn-primary" onClick={() => handleAddScene(0)} style={{ padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Plus size={16} /> Nova Cena
+              </button>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginLeft: '1rem' }}>
           {headerActions}
-          <button className="btn-secondary" onClick={() => onUpdateBook({ ...book, escaletaMode: null })} style={{ padding: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} title="Trocar Modelo (Suas cenas não serão apagadas)">
-            <Settings size={18} /> <span className="desktop-only">Alterar Estrutura</span>
-          </button>
-          {mode !== 'free' && (
-            <button className="btn-secondary" onClick={handleAddGroup} style={{ padding: '0.6rem 1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={16} /> Novo Bloco
-            </button>
-          )}
-          {mode === 'free' && (
-            <button className="btn-primary" onClick={() => handleAddScene(0)} style={{ padding: '0.6rem 1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={16} /> Nova Cena
-            </button>
-          )}
         </div>
       </div>
 
