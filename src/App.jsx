@@ -111,6 +111,9 @@ export default function App() {
   if (path.startsWith('/autor')) portalRole = 'author';
 
   let resolvedRole = currentUser ? currentUser.role : null;
+  if (currentUser && currentUser.role === 'admin') {
+    resolvedRole = portalRole; // admin assume o papel do portal que está acessando
+  }
   if (currentUser && currentUser.role === 'author' && portalRole === 'reader') {
     resolvedRole = 'reader';
   }
