@@ -207,7 +207,8 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       return { ...book, views: mockViews, ratings };
     });
 
-    const publishedCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'published' || s === 'finished'; }).length;
+    const publishedCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'published'; }).length;
+    const finishedCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'finished'; }).length;
     const pendingCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'pending'; }).length;
     const draftCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'draft' || s === ''; }).length;
     
@@ -251,7 +252,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
             <div className="metric-card-title">
               <BookOpen size={18} /> Projetos Totais
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{publishedCount} Publicados | {draftCount} Rascunhos</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{publishedCount} Publicados | {finishedCount} Finalizados | {draftCount} Rascunhos</span>
           </div>
 
           <div className="metric-card">
