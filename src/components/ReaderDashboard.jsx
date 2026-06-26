@@ -55,62 +55,11 @@ const getAgeRatingBadge = (rating) => {
 
 import { supabase } from '../lib/supabaseClient';
 
-export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
+export default function ReaderDashboard({ db, onUpdateData, currentUser, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [localData, setLocalData] = useState(null);
 
-  useEffect(() => {
-    async function loadReaderData() {
-      // Fetch books, authors, banners
-      const [{ data: books }, { data: profiles }, { data: reviews }] = await Promise.all([
-        supabase.from('books').select('*').eq('status', 'published'),
-        supabase.from('profiles').select('*'),
-        supabase.from('reviews').select('*')
-      ]);
 
-      const mappedBooks = (books || []).map(b => ({
-        id: b.id,
-        authorId: b.author_id,
-        title: b.title,
-        status: b.status,
-        coverUrl: b.cover_url,
-        bannerUrl: b.banner_url,
-        synopsis: b.synopsis,
-        loreAreas: b.lore_areas || [],
-        universeRequests: b.universe_requests || [],
-        coAuthorIds: b.co_author_ids || [],
-        ratings: (reviews || []).filter(r => r.book_id === b.id).map(r => ({
-           userId: r.user_id,
-           rating: r.rating,
-           comment: r.comment
-        }))
-      }));
-
-      const mappedUsers = (profiles || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        nickname: p.nickname,
-        avatar: p.avatar_url,
-        favorites: p.favorites || [],
-        readingStatus: p.reading_status || {},
-        badges: p.gamification_badges || []
-      }));
-
-      setLocalData({
-        books: mappedBooks,
-        users: mappedUsers,
-        banners: DEFAULT_BANNERS,
-        gamificationBadges: BADGES_DB || []
-      });
-    }
-    if (currentUser) {
-       loadReaderData();
-    }
-  }, [currentUser]);
-
-
-
-  const db = localData || { books: [], users: [], banners: [], gamificationBadges: [] }; // Magic alias to keep the rest of the file working!
 
 
   useEffect(() => {

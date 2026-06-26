@@ -1,0 +1,118 @@
+
+--- AuthorDashboard.jsx ---
+Line 3 (depth 0): import { useState, useEffect, useRef } from 'react';
+Line 31 (depth 1): const [localData, setLocalData] = useState(null);
+Line 33 (depth 1): useEffect(() => {
+Line 101 (depth 1): const [localActiveTab, setLocalActiveTab] = useState('dashboard');
+Line 106 (depth 1): const [showCreationChoice, setShowCreationChoice] = useState(false);
+Line 107 (depth 1): const [showImportModal, setShowImportModal] = useState(false);
+Line 108 (depth 1): const [showHqModal, setShowHqModal] = useState(false);
+Line 109 (depth 1): const [isImporting, setIsImporting] = useState(false);
+Line 110 (depth 1): const [importProgress, setImportProgress] = useState('');
+Line 111 (depth 1): const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
+Line 112 (depth 1): const [planningTab, setPlanningTab] = useState('ideias');
+Line 113 (depth 1): const [noteRequestTab, setNoteRequestTab] = useState('pending');
+Line 114 (depth 1): const [universeRequestTab, setUniverseRequestTab] = useState('unread');
+Line 115 (depth 1): const [selectedUniverseRequest, setSelectedUniverseRequest] = useState(null);
+Line 158 (depth 1): const [searchText, setSearchText] = useState('');
+Line 159 (depth 1): const [letterFilter, setLetterFilter] = useState('');
+Line 162 (depth 1): const [selectedTicketId, setSelectedTicketId] = useState(null);
+Line 163 (depth 1): const [showNewTicketModal, setShowNewTicketModal] = useState(false);
+Line 164 (depth 1): const [newTicket, setNewTicket] = useState({ category: 'technical', subject: '', message: '' });
+Line 165 (depth 1): const [replyText, setReplyText] = useState('');
+Line 167 (depth 1): useEffect(() => {
+
+--- CuratorDashboard.jsx ---
+Line 3 (depth 0): import { useState, useEffect } from 'react';
+Line 125 (depth 1): const [localData, setLocalData] = useState(null);
+Line 127 (depth 1): useEffect(() => {
+Line 182 (depth 1): const [activeTab, setActiveTab] = useState('dashboard');
+Line 183 (depth 1): const [dashTab, setDashTab] = useState('geral');
+Line 184 (depth 1): const [selectedAuthor, setSelectedAuthor] = useState(null);
+Line 185 (depth 1): const [selectedRequest, setSelectedRequest] = useState(null);
+Line 186 (depth 1): const [showHqModal, setShowHqModal] = useState(false);
+Line 187 (depth 1): const [selectedBook, setSelectedBook] = useState(null);
+Line 188 (depth 1): const [viewingAuthorDashId, setViewingAuthorDashId] = useState(null);
+Line 190 (depth 1): const [msgTarget, setMsgTarget] = useState('all');
+Line 191 (depth 1): const [msgText, setMsgText] = useState('');
+Line 192 (depth 1): const [searchAuthor, setSearchAuthor] = useState('');
+Line 193 (depth 1): const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+Line 195 (depth 1): const [authorSearchText, setAuthorSearchText] = useState('');
+Line 198 (depth 1): const [showUserForm, setShowUserForm] = useState(false);
+Line 199 (depth 1): const [editingUser, setEditingUser] = useState(null);
+Line 200 (depth 1): const [userFormData, setUserFormData] = useState({ name: '', email: '', phone: '', role: 'author', avatar: '', bio: '', incompleteProfile: false });
+Line 201 (depth 1): const [selectedReaderDossier, setSelectedReaderDossier] = useState(null);
+Line 202 (depth 1): const [authorIdSearchText, setAuthorIdSearchText] = useState('');
+Line 203 (depth 1): const [authorLetterFilter, setAuthorLetterFilter] = useState('');
+Line 206 (depth 1): const [selectedTicketId, setSelectedTicketId] = useState(null);
+Line 207 (depth 1): const [ticketReplyText, setTicketReplyText] = useState('');
+Line 208 (depth 1): const [supportStatusFilter, setSupportStatusFilter] = useState('open'); // 'open' | 'resolved' | 'all'
+Line 209 (depth 1): const [supportSearchText, setSupportSearchText] = useState('');
+Line 210 (depth 1): const [supportCategoryFilter, setSupportCategoryFilter] = useState('all'); // 'all' | 'technical' | 'curator' | 'financial' | 'other'
+Line 211 (depth 1): const [reportCategoryFilter, setReportCategoryFilter] = useState('all');
+Line 214 (depth 1): const [selectedReportForReview, setSelectedReportForReview] = useState(null);
+Line 215 (depth 1): const [reportValidation, setReportValidation] = useState(''); // 'procedente' | 'infundada'
+Line 216 (depth 1): const [reportAction, setReportAction] = useState('none'); // 'none' | 'warning' | 'strike' | 'suspend'
+Line 217 (depth 1): const [reportCuratorNote, setReportCuratorNote] = useState('');
+Line 218 (depth 1): const [reportMessageToAuthor, setReportMessageToAuthor] = useState('');
+Line 219 (depth 1): const [reportInternalComment, setReportInternalComment] = useState('');
+Line 220 (depth 1): const [reportSendToAuthor, setReportSendToAuthor] = useState(false);
+Line 221 (depth 1): const [showAddCuratorToReport, setShowAddCuratorToReport] = useState(false);
+Line 223 (depth 1): const [equipeSubTab, setEquipeSubTab] = useState('membros');
+Line 224 (depth 1): const [showCuratorModal, setShowCuratorModal] = useState(false);
+Line 225 (depth 1): const [editingCurator, setEditingCurator] = useState(null);
+Line 226 (depth 1): const [curatorForm, setCuratorForm] = useState({ name: '', email: '', password: '', curatorRole: 'approver' });
+Line 227 (depth 1): const [auditSearchText, setAuditSearchText] = useState('');
+Line 228 (depth 1): const [auditCuratorFilter, setAuditCuratorFilter] = useState('all');
+Line 229 (depth 1): const [auditActionFilter, setAuditActionFilter] = useState('all');
+Line 232 (depth 1): const [editingBanner, setEditingBanner] = useState(null);
+Line 233 (depth 1): const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '' });
+Line 234 (depth 1): const [bannerUploading, setBannerUploading] = useState(false);
+Line 237 (depth 1): const [gamificacaoSubTab, setGamificacaoSubTab] = useState('ranking');
+Line 238 (depth 1): const [expandedReader, setExpandedReader] = useState(null);
+Line 239 (depth 1): const [gamificacaoChatUser, setGamificacaoChatUser] = useState(null);
+Line 240 (depth 1): const [gamificacaoChatInput, setGamificacaoChatInput] = useState('');
+Line 241 (depth 1): const [editingBadge, setEditingBadge] = useState(null);
+Line 242 (depth 1): const [badgeForm, setBadgeForm] = useState({ id: '', name: '', description: '', icon: '', minPages: 0 });
+Line 243 (depth 1): const [badgeUploading, setBadgeUploading] = useState(false);
+Line 245 (depth 1): useEffect(() => {
+Line 257 (depth 1): useEffect(() => {
+
+--- UniverseView.jsx ---
+Line 3 (depth 0): import { useState, useEffect } from 'react';
+Line 13 (depth 1): const [expanded, setExpanded] = useState(false);
+Line 35 (depth 1): const [localData, setLocalData] = useState(null);
+Line 37 (depth 1): useEffect(() => {
+Line 82 (depth 1): const [activeTab, setActiveTab] = useState(initialTab || 'home');
+Line 83 (depth 1): const [searchQuery, setSearchQuery] = useState('');
+Line 84 (depth 1): const [selectedItem, setSelectedItem] = useState(null);
+Line 87 (depth 1): const [selectedAuthor, setSelectedAuthor] = useState(null);
+Line 89 (depth 1): const [lightboxImage, setLightboxImage] = useState(null);
+Line 92 (depth 1): const [showUniverseRequestModal, setShowUniverseRequestModal] = useState(false);
+Line 93 (depth 1): const [universeRequestData, setUniverseRequestData] = useState({
+Line 124 (depth 1): useEffect(() => {
+
+--- Register.jsx ---
+Line 1 (depth 0): import { useState } from 'react';
+Line 10 (depth 1): const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
+Line 11 (depth 1): const [showPassword, setShowPassword] = useState(false);
+Line 12 (depth 1): const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+Line 13 (depth 1): const [confirmPassword, setConfirmPassword] = useState('');
+Line 14 (depth 1): const [termsAccepted, setTermsAccepted] = useState(false);
+Line 15 (depth 1): const [showTermsModal, setShowTermsModal] = useState(false);
+Line 16 (depth 1): const [step, setStep] = useState(1);
+Line 18 (depth 1): const [formData, setFormData] = useState({
+Line 34 (depth 1): const [error, setError] = useState('');
+Line 35 (depth 1): const [isLoading, setIsLoading] = useState(false);
+
+--- Login.jsx ---
+Line 1 (depth 0): import { useState } from 'react';
+Line 7 (depth 1): const [email, setEmail] = useState('');
+Line 8 (depth 1): const [password, setPassword] = useState('');
+Line 9 (depth 1): const [showPassword, setShowPassword] = useState(false);
+Line 10 (depth 1): const [error, setError] = useState('');
+Line 13 (depth 1): const [showForgotPassword, setShowForgotPassword] = useState(false);
+Line 14 (depth 1): const [forgotEmail, setForgotEmail] = useState('');
+Line 15 (depth 1): const [forgotLoading, setForgotLoading] = useState(false);
+Line 16 (depth 1): const [forgotMessage, setForgotMessage] = useState('');
+Line 17 (depth 1): const [forgotError, setForgotError] = useState('');

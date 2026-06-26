@@ -1,0 +1,25 @@
+Line 3 (depth 0): import { useState, useEffect, useRef } from 'react';
+Line 59 (depth 1): const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+Line 60 (depth 1): const [localData, setLocalData] = useState(null);
+Line 62 (depth 1): useEffect(() => {
+Line 116 (depth 1): useEffect(() => {
+Line 122 (depth 1): const [localActiveTab, setLocalActiveTab] = useState('vitrine');
+Line 123 (depth 1): const [openBadgeDetails, setOpenBadgeDetails] = useState(null);
+Line 129 (depth 1): const [searchText, setSearchText] = useState('');
+Line 130 (depth 1): const [selectedBook, setSelectedBook] = useState(null);
+Line 131 (depth 1): const [showRequestModal, setShowRequestModal] = useState(false);
+Line 132 (depth 1): const [bookForRequest, setBookForRequest] = useState(null);
+Line 133 (depth 1): const [requestForm, setRequestForm] = useState({
+Line 139 (depth 1): const [showGenresDropdown, setShowGenresDropdown] = useState(false);
+Line 140 (depth 1): const [selectedGenre, setSelectedGenre] = useState('');
+Line 141 (depth 1): const [selectedAgeRating, setSelectedAgeRating] = useState('');
+Line 142 (depth 1): const [selectedAuthorFilter, setSelectedAuthorFilter] = useState('');
+Line 143 (depth 1): const [letterFilter, setLetterFilter] = useState('');
+Line 146 (depth 1): const [ratingStars, setRatingStars] = useState(0);
+Line 147 (depth 1): const [ratingComment, setRatingComment] = useState('');
+Line 148 (depth 1): const [hoverStars, setHoverStars] = useState(0);
+Line 153 (depth 1): useEffect(() => {
+Line 167 (depth 1): const [currentSlide, setCurrentSlide] = useState(0);
+Line 168 (depth 1): const touchStartX = useRef(null);
+Line 169 (depth 1): const touchStartY = useRef(null);
+Line 202 (depth 1): useEffect(() => {

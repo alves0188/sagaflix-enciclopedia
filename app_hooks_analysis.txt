@@ -1,0 +1,38 @@
+Line 1 (depth 0): import { useState, useEffect } from 'react';
+Line 14 (depth 0): import { useHashHistory } from './hooks/useHashHistory';
+Line 15 (depth 0): import { useHashTabs } from './hooks/useHashTabs';
+Line 19 (depth 1): const [db, setDb] = useState(null);
+Line 20 (depth 1): const [loading, setLoading] = useState(true);
+Line 21 (depth 1): const [currentUser, setCurrentUser] = useState(() => {
+Line 29 (depth 1): const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+Line 31 (depth 1): useEffect(() => {
+Line 36 (depth 1): const [currentBookId, setCurrentBookIdState] = useState(() => {
+Line 49 (depth 1): const handleCloseBook = useHashHistory(!!currentBookId, 'livro', () => setCurrentBookId(null));
+Line 51 (depth 1): const [selectedAuthor, setSelectedAuthor] = useState(null);
+Line 52 (depth 1): const [showNewBook, setShowNewBook] = useState(false);
+Line 53 (depth 1): const [authView, setAuthView] = useState(() => {
+Line 57 (depth 1): const [confirmToken, setConfirmToken] = useState(() => {
+Line 64 (depth 1): const [showNotifications, setShowNotifications] = useState(false);
+Line 65 (depth 1): const [focusAuthorId, setFocusAuthorId] = useState(null);
+Line 66 (depth 1): const [showProfileModal, setShowProfileModal] = useState(false);
+Line 67 (depth 1): const handleCloseProfileModal = useHashHistory(showProfileModal, 'perfil', () => setShowProfileModal(false));
+Line 69 (depth 1): const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+Line 70 (depth 1): const [isEditingProfile, setIsEditingProfile] = useState(false);
+Line 71 (depth 1): const [profileForm, setProfileForm] = useState({});
+Line 72 (depth 1): const [profileUploading, setProfileUploading] = useState(false);
+Line 73 (depth 1): const [viewRoleOverride, setViewRoleOverride] = useState(null);
+Line 74 (depth 1): const [isShopModalOpen, setIsShopModalOpen] = useState(false);
+Line 75 (depth 1): const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
+Line 84 (depth 1): const [readerActiveTab, setReaderActiveTab] = useHashTabs('vitrine', ['vitrine', 'favoritos', 'lendo', 'lidos', 'dossie'], 'sagaflix_readerTab');
+Line 86 (depth 1): const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte'], 'sagaflix_authorTab');
+Line 88 (depth 1): const [showProfilePassword, setShowProfilePassword] = useState(false);
+Line 96 (depth 1): const [verifying, setVerifying] = useState(isVerificationRoute);
+Line 97 (depth 1): const [verifyStatus, setVerifyStatus] = useState('verifying');
+Line 98 (depth 1): const [verifyMessage, setVerifyMessage] = useState('');
+Line 100 (depth 1): const [resetTokenActive, setResetTokenActive] = useState(isResetRoute ? verificationToken : null);
+Line 101 (depth 1): const [newPassword, setNewPassword] = useState('');
+Line 102 (depth 1): const [confirmNewPassword, setConfirmNewPassword] = useState('');
+Line 103 (depth 1): const [showNewPassword, setShowNewPassword] = useState(false);
+Line 104 (depth 1): const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+Line 105 (depth 1): const [resetError, setResetError] = useState('');
+Line 225 (depth 1): useEffect(() => {
