@@ -67,12 +67,22 @@ function DebouncedRichTextEditor({ value, onChange, placeholder, style, onFocus 
     readonly: false,
     placeholder: placeholder || 'Escreva sua ideia aqui...',
     theme: 'dark',
-    toolbarInline: true,
+    toolbarInline: false,
+    toolbarSticky: false,
     showCharsCounter: false,
     showWordsCounter: false,
     showXPathInStatusbar: false,
     minHeight: 150,
-    buttons: ['bold', 'italic', 'underline', 'strikethrough', 'ul', 'ol', 'font', 'fontsize', 'paragraph', 'brush'],
+    buttons: [
+      'bold', 'italic', 'underline', 'strikethrough', 'eraser', '|',
+      'ul', 'ol', '|',
+      {
+        name: 'more',
+        icon: 'dots',
+        tooltip: 'Mais ferramentas',
+        buttons: ['font', 'fontsize', 'brush', 'paragraph', 'align', 'image', 'link', 'undo', 'redo']
+      }
+    ],
     style: {
       background: 'transparent',
       color: 'var(--text-main)',
@@ -391,17 +401,24 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
                   </div>
                 </div>
 
-                {/* Conteúdo Textual da Ideia */}
-                <DebouncedRichTextEditor 
-                  value={idea.text || ''}
-                  onChange={(val) => handleUpdateIdeaText(idea.id, val)}
-                  onFocus={() => setExpandedIdeaId(idea.id)}
-                  placeholder="Escreva sua ideia aqui..."
-                  style={{ 
-                    flex: 1, 
+                {/* Conteúdo Textual da Ideia (Prévia) */}
+                <div 
+                  onClick={() => setExpandedIdeaId(idea.id)}
+                  style={{
+                    flex: 1,
                     width: '100%',
-                    marginTop: '0.2rem'
+                    marginTop: '0.2rem',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    color: idea.text ? 'var(--text-secondary)' : 'var(--text-muted)',
+                    lineHeight: '1.5',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
+                  dangerouslySetInnerHTML={{ __html: idea.text || '<em>Escreva sua ideia aqui... (clique para expandir)</em>' }}
                 />
               </div>
             ))}
