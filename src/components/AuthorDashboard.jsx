@@ -207,9 +207,9 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
       return { ...book, views: mockViews, ratings };
     });
 
-    const publishedCount = dashboardBooks.filter(b => b.status === 'published').length;
-    const pendingCount = dashboardBooks.filter(b => b.status === 'pending').length;
-    const draftCount = dashboardBooks.filter(b => b.status === 'draft').length;
+    const publishedCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'published' || s === 'finished'; }).length;
+    const pendingCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'pending'; }).length;
+    const draftCount = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'draft' || s === ''; }).length;
     
     // Leitura real dos dados (usando book.views se existir, senão 0)
     const estimatedReads = dashboardBooks.reduce((acc, curr) => {
@@ -217,7 +217,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     }, 0);
 
     // Cálculo da média de avaliação global do autor
-    const allPublishedBooks = dashboardBooks.filter(b => b.status === 'published');
+    const allPublishedBooks = dashboardBooks.filter(b => { const s = (b.status || '').toLowerCase(); return s === 'published' || s === 'finished'; });
     const totalRatingsCount = allPublishedBooks.reduce((acc, curr) => acc + (curr.ratings || []).length, 0);
     const totalStars = allPublishedBooks.reduce((acc, curr) => acc + (curr.ratings || []).reduce((sum, r) => sum + r.stars, 0), 0);
     const globalAverageRating = totalRatingsCount > 0 ? (totalStars / totalRatingsCount).toFixed(1) : '0.0';
@@ -308,7 +308,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
                       <strong>{book.title}</strong>
                       <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span>{views.toLocaleString()} leitores</span>
-                        {book.status === 'published' && (
+                        {((book.status || '').toLowerCase() === 'published' || (book.status || '').toLowerCase() === 'finished') && (
                           <>
                             <span>•</span>
                             <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>⭐ {avg} ({count})</span>
