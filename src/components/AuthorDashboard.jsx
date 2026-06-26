@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
+import BookEscaletaBoard from './BookEscaletaBoard';
+import BookPremissaBoard from './BookPremissaBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
 import HQModal from './HQModal';
 
@@ -34,6 +36,7 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState('');
   const [selectedIdeaBookId, setSelectedIdeaBookId] = useState(null);
+  const [planningTab, setPlanningTab] = useState('ideias');
   const [noteRequestTab, setNoteRequestTab] = useState('pending');
   const [universeRequestTab, setUniverseRequestTab] = useState('unread');
   const [selectedUniverseRequest, setSelectedUniverseRequest] = useState(null);
@@ -462,18 +465,18 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
     );
   };
 
-  const renderIdeas = () => {
+  const renderPlanning = () => {
     const sortedBooks = [...authorBooks].sort((a, b) => a.title.localeCompare(b.title));
-    const activeBookForIdeas = sortedBooks.find(b => b.id === selectedIdeaBookId) || sortedBooks[0];
+    const activeBookForPlanning = sortedBooks.find(b => b.id === selectedIdeaBookId) || sortedBooks[0];
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh', gap: '0' }}>
         {/* Header Section with Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1.5rem 1.5rem 1rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-          <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Minhas Histórias:</h3>
+          <h3 style={{ margin: 0, color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Planejamento:</h3>
           {sortedBooks.length > 0 ? (
             <select
-              value={selectedIdeaBookId || activeBookForIdeas?.id || ''}
+              value={selectedIdeaBookId || activeBookForPlanning?.id || ''}
               onChange={(e) => setSelectedIdeaBookId(e.target.value)}
               style={{
                 padding: '0.6rem 1rem',
@@ -497,23 +500,95 @@ export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelec
           ) : (
             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhum livro publicado.</span>
           )}
+
+          {/* Internal Tabs */}
+          {activeBookForPlanning && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.3rem', borderRadius: '8px' }}>
+              <button 
+                onClick={() => setPlanningTab('resumo')}
+                style={{ 
+                  background: planningTab === 'resumo' ? 'var(--accent-gold)' : 'transparent', 
+                  color: planningTab === 'resumo' ? '#000' : 'var(--text-main)', 
+                  border: planningTab === 'resumo' ? 'none' : '1px solid var(--border-color)',
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontWeight: planningTab === 'resumo' ? 'bold' : 'normal',
+                  transition: 'all 0.2s'
+                }}>
+                Resumo / Premissa
+              </button>
+              <button 
+                onClick={() => setPlanningTab('escaleta')}
+                style={{ 
+                  background: planningTab === 'escaleta' ? 'var(--accent-gold)' : 'transparent', 
+                  color: planningTab === 'escaleta' ? '#000' : 'var(--text-main)', 
+                  border: planningTab === 'escaleta' ? 'none' : '1px solid var(--border-color)',
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontWeight: planningTab === 'escaleta' ? 'bold' : 'normal',
+                  transition: 'all 0.2s'
+                }}>
+                Escaletas
+              </button>
+              <button 
+                onClick={() => setPlanningTab('ideias')}
+                style={{ 
+                  background: planningTab === 'ideias' ? 'var(--accent-gold)' : 'transparent', 
+                  color: planningTab === 'ideias' ? '#000' : 'var(--text-main)', 
+                  border: planningTab === 'ideias' ? 'none' : '1px solid var(--border-color)',
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer',
+                  fontWeight: planningTab === 'ideias' ? 'bold' : 'normal',
+                  transition: 'all 0.2s'
+                }}>
+                Painel de Ideias
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Board Area */}
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center' }}>
-          {activeBookForIdeas ? (
-            <div style={{ width: '100%' }}>
-              <BookIdeasBoard 
-                book={activeBookForIdeas} 
-                onUpdateBook={(updatedBook) => {
-                  const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
-                  onUpdateData(newDb);
-                }} 
-              />
+          {activeBookForPlanning ? (
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              {planningTab === 'resumo' && (
+                <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
+                  <BookPremissaBoard 
+                    book={activeBookForPlanning} 
+                    onUpdateBook={(updatedBook) => {
+                      const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                      onUpdateData(newDb);
+                    }} 
+                  />
+                </div>
+              )}
+              {planningTab === 'ideias' && (
+                <BookIdeasBoard 
+                  book={activeBookForPlanning} 
+                  onUpdateBook={(updatedBook) => {
+                    const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                    onUpdateData(newDb);
+                  }} 
+                />
+              )}
+              {planningTab === 'escaleta' && (
+                <div style={{ height: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }}>
+                  <BookEscaletaBoard 
+                    book={activeBookForPlanning} 
+                    onUpdateBook={(updatedBook) => {
+                      const newDb = { ...db, books: db.books.map(b => b.id === updatedBook.id ? updatedBook : b) };
+                      onUpdateData(newDb);
+                    }} 
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
-              Crie um livro para começar a ter ideias.
+              Crie um livro para começar a planejar.
             </div>
           )}
         </div>
@@ -1623,7 +1698,7 @@ const renderSuporte = () => {
         {/* Links Menu */}
         <button onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'dashboard')}><BarChart2 size={18}/> Dashboard</button>
         <button onClick={() => { setActiveTab('livros'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'livros')}><BookOpen size={18}/> Minhas Histórias</button>
-        <button id="tour-ideas-board" onClick={() => { setActiveTab('ideias'); setIsSidebarOpen(false); }} style={navItemStyle('ideias')}><Palette size={18}/> Painel de Ideias</button>
+        <button id="tour-ideas-board" onClick={() => { setActiveTab('planejamento'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'planejamento')}><Palette size={18}/> Planejamento</button>
         
         <button onClick={() => { setActiveTab('pedidos_fas'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'pedidos_fas')}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -1655,7 +1730,7 @@ const renderSuporte = () => {
 
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'livros' && renderBooks()}
-        {activeTab === 'ideias' && renderIdeas()}
+        {activeTab === 'planejamento' && renderPlanning()}
         
         {activeTab === 'pedidos_fas' && renderUniverseRequests()}
         {activeTab === 'suporte' && renderSuporte()}
