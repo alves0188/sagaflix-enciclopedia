@@ -138,9 +138,14 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         })),
         books: (books || []).map(b => ({
           id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
-          synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+          bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
           coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
-          universe: { notes: [] }
+          genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
+          ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
+          ideaLegends: b.idea_legends || {}, escaletaMode: b.escaleta_mode,
+          escaletaGroups: b.escaleta_groups || [], trash: b.trash || [],
+          ratings: b.ratings || [], releaseMode: b.release_model,
+          typesettingSettings: b.typesetting_settings || {}
         })),
         supportTickets: (support_tickets || []).map(t => ({
           id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,

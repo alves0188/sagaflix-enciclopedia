@@ -27,14 +27,86 @@ const DEFAULT_LEGENDS = {
 };
 
 
-export default function AuthorDashboard({ db, onUpdateData, currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
+  const [localData, setLocalData] = useState(null);
+
+  useEffect(() => {
+    async function loadAuthorData() {
+      try {
+        const [{ data: profiles, error: err1 }, { data: books, error: err2 }, { data: support_tickets, error: err3 }, { data: note_requests, error: err4 }] = await Promise.all([
+          supabase.from('profiles').select('*'),
+          supabase.from('books').select('*'),
+          supabase.from('support_tickets').select('*'),
+          supabase.from('note_requests').select('*')
+        ]);
+        
+        if (err1 || err2 || err3 || err4) console.error("Data load error:", err1, err2, err3, err4);
+
+        setLocalData({
+        users: (profiles || []).map(p => ({
+          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
+        })),
+        books: (books || []).map(b => ({
+          id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
+          bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+          coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
+          genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
+          ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
+          ideaLegends: b.idea_legends || {}, escaletaMode: b.escaleta_mode,
+          escaletaGroups: b.escaleta_groups || [], trash: b.trash || [],
+          ratings: b.ratings || [], releaseMode: b.release_model,
+          typesettingSettings: b.typesetting_settings || {}
+        })),
+        supportTickets: (support_tickets || []).map(t => ({
+          id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
+          status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
+        })),
+        noteRequests: (note_requests || []).map(n => ({
+          id: n.id, userId: n.user_id, bookId: n.book_id, noteId: n.note_id, status: n.status, read: n.read, message: n.message
+        }))
+      });
+      } catch (err) {
+        console.error(err);
+        setLocalData({ users: [], books: [], supportTickets: [], noteRequests: [] });
+      }
+    }
+    if (currentUser) loadAuthorData();
+  }, [currentUser]);
 
 
 
+  const db = localData || { users: [], books: [], supportTickets: [], noteRequests: [] };
 
-  
-
-  
+  const onUpdateData = async (newDb) => {
+    setLocalData(newDb);
+    // Since Author mutations are very complex (11+ usages), this function will sync the ENTIRE state back to Supabase.
+    // We will do a generic sync for the most critical things updated by author: books and tickets.
+    for (const b of newDb.books) {
+      if (b.authorId === currentUser.id) {
+        await supabase.from('books').update({ 
+           title: b.title, synopsis: b.synopsis, status: b.status, cover_url: b.coverUrl,
+           banner_url: b.bannerUrl, release_model: b.releaseMode, book_type: b.bookType,
+           genres: b.genres, premise: b.premise, age_rating: b.ageRating,
+           lore_areas: b.loreAreas, universe_requests: b.universeRequests, co_author_ids: b.coAuthorIds,
+           ideas: b.ideas, escaleta: b.escaleta, universe: b.universe, idea_legends: b.ideaLegends,
+           escaleta_mode: b.escaletaMode, escaleta_groups: b.escaletaGroups, trash: b.trash,
+           ratings: b.ratings, typesetting_settings: b.typesettingSettings
+        }).eq('id', b.id);
+      }
+    }
+    for (const t of newDb.supportTickets || []) {
+      if (t.userId === currentUser.id || currentUser.role === 'curator') {
+         await supabase.from('support_tickets').update({
+           status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
+         }).eq('id', t.id);
+      }
+    }
+    for (const n of newDb.noteRequests || []) {
+       await supabase.from('note_requests').update({
+         status: n.status, read: n.read
+       }).eq('id', n.id);
+    }
+  };
 
   const [localActiveTab, setLocalActiveTab] = useState('dashboard');
   const activeTab = propActiveTab || localActiveTab;
@@ -1570,8 +1642,30 @@ const renderSuporte = () => {
 
       setImportProgress('Salvando na plataforma...');
       
-      const newBooks = [...(db.books || []), newBook];
-      await onUpdateData({ ...db, books: newBooks });
+      
+      try {
+        const insertBook = {
+          title: newBook.title,
+          synopsis: newBook.synopsis,
+          cover_url: newBook.coverUrl,
+          author_id: newBook.authorId,
+          status: newBook.status,
+          sku: newBook.sku,
+          distribution_mode: newBook.distributionMode,
+          book_type: newBook.bookType,
+          universe_requests: [], co_author_ids: [], lore_areas: [], genres: [], escaleta_groups: [], trash: [], ratings: [], typesetting_settings: {},
+          universe: { home: false, characters: false, locations: false, organizations: false, clues: false, events: false, charactersData: [], locationsData: [], organizationsData: [], cluesData: [], items: [], events: [] },
+          ideas: [], escaleta: []
+        };
+        const { data, error } = await supabase.from('books').insert(insertBook).select().single();
+        if (error) throw error;
+        toast.success("Livro salvo!");
+        const newDbBooks = [...db.books, { ...newBook, id: data.id }];
+        setLocalDb({ ...db, books: newDbBooks });
+      } catch (err) {
+        toast.error("Erro ao salvar o livro.");
+      }
+
       
       toast('Manuscrito importado com sucesso!');
       setShowImportModal(false);

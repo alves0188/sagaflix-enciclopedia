@@ -35,32 +35,30 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   const [localData, setLocalData] = useState(null);
 
   useEffect(() => {
-    async function loadUniverseData() {
-      const [{ data: profiles }, { data: bookResult }, { data: chapters }, { data: lore_items }] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('books').select('*').eq('id', bookId).single(),
-        supabase.from('chapters').select('*').eq('book_id', bookId),
-        supabase.from('lore_items').select('*').eq('book_id', bookId)
-      ]);
+        async function loadUniverseData() {
+      try {
+        const [{ data: profiles }, { data: bookResult }] = await Promise.all([
+          supabase.from('profiles').select('*'),
+          supabase.from('books').select('*').eq('id', bookId).single()
+        ]);
 
-      setLocalData({
-        users: (profiles || []).map(p => ({
-          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
-        })),
-        books: bookResult ? [{
-          id: bookResult.id, authorId: bookResult.author_id, title: bookResult.title, status: bookResult.status, coverUrl: bookResult.cover_url,
-          synopsis: bookResult.synopsis, bookType: bookResult.book_type, typesettingSettings: bookResult.typesetting_settings || {},
-          coAuthorIds: bookResult.co_author_ids || [], loreAreas: bookResult.lore_areas || [],
-          chapters: (chapters || []).map(c => ({
-            id: c.id, title: c.title, pages: c.pages || [], isPublished: c.is_published, publishDate: c.publish_date, orderIndex: c.order_index
+        setLocalData({
+          users: (profiles || []).map(p => ({
+            id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url, displayMode: p.display_mode
           })),
-          universe: {
-             notes: (lore_items || []).map(l => ({
-                id: l.id, type: l.type, title: l.name, content: l.description, authorId: bookResult.author_id, ...l.fields
-             }))
-          }
-        }] : []
-      });
+          books: bookResult ? [{
+            id: bookResult.id, authorId: bookResult.author_id, title: bookResult.title, status: bookResult.status, coverUrl: bookResult.cover_url,
+            synopsis: bookResult.synopsis, bookType: bookResult.book_type, typesettingSettings: bookResult.typesetting_settings || {},
+            coAuthorIds: bookResult.co_author_ids || [], loreAreas: bookResult.lore_areas || [],
+            chapters: (bookResult.universe && bookResult.universe.chapters) ? bookResult.universe.chapters : [],
+            ideas: bookResult.ideas || [],
+            escaleta: bookResult.escaleta || [],
+            universe: bookResult.universe || {}
+          }] : []
+        });
+      } catch (err) {
+        console.error("Error loading universe data:", err);
+      }
     }
     if (currentUser) loadUniverseData();
   }, [currentUser, bookId]);
@@ -68,14 +66,22 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   const db = localData;
 
   const onUpdateData = async (newDb) => {
-    setLocalData(newDb);
-    // Generic sync back
-    const b = newDb.books[0];
-    if (b && (b.authorId === currentUser.id || currentUser.role === 'curator')) {
-       // Since the universe view can change chapters, we should really just sync the book object if needed.
-       // However, UniverseView mainly reads. Reader changes (like reading status) are in ReaderDashboard.
-    }
-  };
+      setLocalData(newDb);
+      const b = newDb.books[0];
+      if (b && currentUser && (b.authorId === currentUser.id || currentUser.role === 'curator')) {
+         try {
+           const { error } = await supabase.from('books').update({
+             ideas: b.ideas,
+             escaleta: b.escaleta,
+             lore_areas: b.loreAreas,
+             universe: b.universe
+           }).eq('id', b.id);
+           if (error) throw error;
+         } catch (err) {
+           console.error("Error updating book data to Supabase:", err);
+         }
+      }
+    };
 
   const [activeTab, setActiveTab] = useState(initialTab || 'home');
   const [searchQuery, setSearchQuery] = useState('');

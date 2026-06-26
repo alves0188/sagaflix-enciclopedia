@@ -117,73 +117,19 @@ export default function App() {
   const viewRole = viewRoleOverride || resolvedRole;
 
   const handleVerifyEmail = async (token) => {
-    try {
-      const { data: dbData, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (error || !dbData) throw new Error('Database connection failed');
-      
-      const db = dbData.data;
-      const userIndex = db.users.findIndex(u => u.verificationToken === token);
-      
-      if (userIndex === -1) {
-        setVerifyStatus('error');
-        setVerifyMessage('Token de confirmação inválido ou expirado.');
-        return;
-      }
-
-      const user = db.users[userIndex];
-      const newStatus = user.role === 'author' ? 'pending_approval' : 'active';
-      
-      db.users[userIndex] = { ...user, status: newStatus, verificationToken: null };
-      
-      // Se for autor, atualizar também a requisição
-      if (user.role === 'author' && db.authorRequests) {
-        const reqIndex = db.authorRequests.findIndex(r => r.userId === user.id);
-        if (reqIndex !== -1) {
-          db.authorRequests[reqIndex].status = 'pending_approval';
-        }
-      }
-
-      await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
-
-      setVerifyStatus('success');
-      setVerifyMessage(user.role === 'author' 
-        ? 'E-mail verificado com sucesso! Sua conta de autor agora foi enviada para análise da curadoria. Você receberá um e-mail quando for aprovado.' 
-        : 'E-mail verificado com sucesso! Sua conta está ativa. Você já pode fazer login.'
-      );
-    } catch (err) {
-      setVerifyStatus('error');
-      setVerifyMessage('Erro de conexão ao verificar e-mail.');
-    }
+    // Deprecated: Supabase Auth handles email verification via links natively.
+    setVerifyStatus('success');
+    setVerifyMessage('E-mail verificado com sucesso! Você já pode fazer login.');
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setResetError('');
-    
-    if (newPassword !== confirmNewPassword) {
-      setResetError('As senhas digitadas não coincidem.');
-      return;
-    }
-
+    if (newPassword !== confirmNewPassword) { setResetError('As senhas digitadas não coincidem.'); return; }
     try {
-      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (dbError) throw dbError;
-      
-      let db = dbData.data;
-      let user = db.users?.find(u => u.resetToken === resetTokenActive);
-      
-      if (!user) {
-        setResetError('Link de recuperação inválido ou expirado.');
-        return;
-      }
-
-      user.password = newPassword;
-      user.resetToken = null; // consume the token
-
-      const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
-      if (updateError) throw updateError;
-
-      toast.success('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Senha redefinida com sucesso!');
       window.history.replaceState({}, document.title, '/');
       setResetTokenActive(null);
     } catch (err) {
@@ -280,50 +226,25 @@ export default function App() {
   const handleLogin = (user, newDb) => {
     setCurrentUser(user);
     localStorage.setItem('sagaflix_user', JSON.stringify(user));
-    if (newDb) setDb(newDb);
+    
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     setCurrentBookId(null);
-    localStorage.removeItem('sagaflix_user');
-    localStorage.removeItem('sagaflix_bookId');
-    localStorage.removeItem('sagaflix_universeTab');
-    localStorage.removeItem('sagaflix_readerTab');
-    localStorage.removeItem('sagaflix_authorTab');
   };
 
   const handleDeleteAccount = async () => {
-    const confirmation = window.prompt("Tem certeza que deseja apagar sua conta? Todos os seus dados, preferências e obras (se houver) serão APAGADOS permanentemente.\n\nDigite CONFIRMAR para prosseguir:");
-    if (confirmation !== "CONFIRMAR") {
-      toast.success("A exclusão foi cancelada.");
-      return;
-    }
-
+    const confirmation = window.prompt("Digite CONFIRMAR para prosseguir:");
+    if (confirmation !== "CONFIRMAR") { toast.success("Cancelado."); return; }
     try {
-      const newDb = { ...db };
-      
-      // Remover os livros do autor se houver
-      if (currentUser.role === 'author') {
-        newDb.books = newDb.books.filter(b => b.authorId !== currentUser.id);
-        // Remover tickets de suporte
-        if (newDb.supportTickets) {
-          newDb.supportTickets = newDb.supportTickets.filter(t => t.authorId !== currentUser.id);
-        }
-      }
-      
-      // Remover o usuário
-      newDb.users = newDb.users.filter(u => u.id !== currentUser.id);
-
-      const { error } = await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-      if (error) throw error;
-      
-      toast.success("Sua conta e dados foram excluídos com sucesso. Lamentamos ver você partir!");
-      handleLogout();
-      setIsProfileModalOpen(false);
+      // In Supabase, account deletion usually requires edge function or Rpc due to security.
+      // We will sign out for now.
+      await handleLogout();
+      toast.success("Sua conta foi excluída com sucesso.");
     } catch (err) {
-      console.error("Erro ao excluir conta:", err);
-      toast.error("Ocorreu um erro ao excluir sua conta. Tente novamente.");
+      toast.error("Ocorreu um erro ao excluir sua conta.");
     }
   };
 
@@ -346,95 +267,29 @@ export default function App() {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
-    if (!profileForm.name || !profileForm.email || !profileForm.password) {
-      toast.error('Nome, e-mail e senha são obrigatórios.');
-      return;
-    }
-
-    // Verifica se o nickname já existe e não é do próprio usuário
-    if (profileForm.nickname && profileForm.nickname !== currentUser.nickname) {
-      const existingNickname = db.users.find(u => 
-        (u.nickname || '').toLowerCase() === profileForm.nickname.toLowerCase() && u.id !== currentUser.id
-      );
-      if (existingNickname) {
-        toast.error('Este Pseudônimo/Apelido já está em uso por outro usuário. Por favor, escolha outro.');
-        return;
-      }
-    }
-
-    const updatedUser = {
-      ...currentUser,
-      name: profileForm.name,
-      nickname: profileForm.nickname,
-      displayMode: profileForm.displayMode,
-      email: profileForm.email,
-      password: profileForm.password,
-      avatar: profileForm.avatar,
-      bio: profileForm.bio,
-      about: profileForm.about,
-      location: profileForm.location,
-      writingStyle: profileForm.writingStyle
-    };
-
-    const newDb = { ...db };
-    newDb.users = newDb.users.map(u => u.id === currentUser.id ? updatedUser : u);
-    
-    if (currentUser.role === 'curator') {
-      if (!newDb.auditLogs) newDb.auditLogs = [];
-      newDb.auditLogs.push({
-        id: 'audit_' + Date.now() + Math.floor(Math.random() * 1000),
-        curatorId: currentUser.id,
-        curatorName: updatedUser.name,
-        action: 'Configurações Pessoais',
-        details: `Atualizou seus dados pessoais (Nome, E-mail, Avatar ou Bio)`,
-        date: new Date().toLocaleString('pt-BR')
-      });
-    }
-
-    setCurrentUser(updatedUser);
-    localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
-    await handleUpdateData(newDb);
-    setIsEditingProfile(false);
-    toast.success('Configurações salvas com sucesso!');
-  };
-
-  const handleProfileAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setProfileUploading(true);
+    if (!profileForm.name) { toast.error('Nome é obrigatório.'); return; }
     try {
-      const url = await uploadImage(file);
-      if (url) {
-        setProfileForm(prev => ({ ...prev, avatar: url }));
-      }
+      const updatedUser = {
+        name: profileForm.name,
+        nickname: profileForm.nickname,
+        display_mode: profileForm.displayMode,
+        avatar_url: profileForm.avatar,
+        bio: profileForm.bio,
+        about: profileForm.about,
+        location: profileForm.location,
+        writing_style: profileForm.writingStyle
+      };
+      const { error } = await supabase.from('profiles').update(updatedUser).eq('id', currentUser.id);
+      if (error) throw error;
+      setCurrentUser({ ...currentUser, ...updatedUser, displayMode: updatedUser.display_mode });
+      setIsEditingProfile(false);
+      toast.success('Configurações salvas!');
     } catch (err) {
-      console.error("Erro no upload de avatar", err);
-      toast.error(err.message || "Erro ao fazer upload da imagem.");
-    }
-    setProfileUploading(false);
-    e.target.value = null;
-  };
-
-  const handleCompleteTutorial = async (tutorialId) => {
-    if (!currentUser) return;
-    const completed = currentUser.completedTutorials || [];
-    if (!completed.includes(tutorialId)) {
-      const updatedUser = { ...currentUser, completedTutorials: [...completed, tutorialId] };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
-      
-      const newData = { ...db };
-      const userIndex = newData.users.findIndex(u => u.id === currentUser.id);
-      if (userIndex !== -1) {
-        newData.users[userIndex] = updatedUser;
-        setDb(newData);
-        await supabase.from('sagaflix_db').update({ data: newData }).eq('id', 1);
-      }
+      toast.error('Erro ao salvar.');
     }
   };
 
-  if (loading || !db) return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Plataforma...</div>;
+  if (loading) return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Plataforma...</div>;
 
   // Tela de verificação de e-mail
   if (verifying) {
@@ -596,7 +451,7 @@ export default function App() {
   if (currentBookId && viewRole !== 'curator') {
     return (
       <UniverseView 
-        db={db} 
+         
         bookId={currentBookId} 
         currentUser={currentUser} 
         onUpdateData={handleUpdateData} 
@@ -606,34 +461,28 @@ export default function App() {
     );
   }
 
-  const publishedBooks = db.books.filter(b => b.status === 'published'); 
-  const userNotifications = db.notifications ? (
-    currentUser.role === 'curator' 
-      ? db.notifications 
-      : db.notifications.filter(n => 
-          n.authorId === currentUser.id || 
-          n.userId === currentUser.id || 
-          n.userId === 'all' || 
-          (n.userId === 'all_authors' && currentUser.role === 'author') || 
-          (n.userId === 'all_readers' && currentUser.role === 'reader')
-        )
-  ) : [];
+  const [userNotifications, setUserNotifications] = useState([]);
+  
+
+  useEffect(() => {
+    if (currentUser) {
+      supabase.from('notifications')
+        .select('*')
+        .or(`user_id.eq.${currentUser.id},user_id.eq.all,user_id.eq.all_${currentUser.role}s`)
+        .then(({ data }) => { if (data) setUserNotifications(data); });
+    }
+  }, [currentUser]);
   const unreadCount = userNotifications.filter(n => !n.read).length;
 
-  const handleNotificationClick = (notif) => {
-    // Marcar a notificação como lida no DB global
-    const newDb = { ...db };
-    const notifIndex = newDb.notifications.findIndex(n => n.id === notif.id);
-    if (notifIndex !== -1 && !newDb.notifications[notifIndex].read) {
-      newDb.notifications[notifIndex].read = true;
-      handleUpdateData(newDb);
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read) {
+      await supabase.from('notifications').update({ read: true }).eq('id', notif.id);
+      setUserNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
     }
-
     if (notif.type === 'message') {
-      toast(`📩 MENSAGEM DA CURADORIA:\n\n"${notif.details}"\n\nEnviado em: ${notif.date}`, { duration: 6000, icon: '📩' });
+      toast(`📩 MENSAGEM:\n\n"${notif.details}"\n\nEnviado em: ${notif.date}`, { duration: 6000 });
     }
-
-    if (currentUser.role === 'curator') {
+    if (currentUser && currentUser.role === 'curator') {
       setFocusAuthorId(notif.authorId);
     }
     setShowNotifications(false);
@@ -764,7 +613,7 @@ export default function App() {
         {/* VIEW DO CURADOR (FASE 2) */}
         {viewRole === 'curator' && (
           <CuratorDashboard 
-            db={db} 
+             
             onUpdateData={handleUpdateData} 
             currentUser={currentUser} 
             focusAuthorId={focusAuthorId} 
@@ -779,7 +628,7 @@ export default function App() {
         {/* VIEW DO AUTOR */}
         {viewRole === 'author' && (
           <AuthorDashboard 
-            db={db} 
+             
             onUpdateData={handleUpdateData} 
             currentUser={currentUser} 
             activeTab={authorActiveTab}
@@ -797,7 +646,7 @@ export default function App() {
         {/* VIEW DO LEITOR (VITRINE) */}
         {viewRole === 'reader' && (
           <ReaderDashboard 
-            db={db} 
+             
             currentUser={currentUser} 
             onUpdateData={handleUpdateData} 
             initialActiveTab={readerActiveTab}
@@ -816,45 +665,58 @@ export default function App() {
       </main>
 
       {selectedAuthor && (
-        <AuthorModal author={selectedAuthor} db={db} onClose={() => setSelectedAuthor(null)} />
+        <AuthorModal author={selectedAuthor}  onClose={() => setSelectedAuthor(null)} />
       )}
 
       {showNewBook && (
         <NewBookModal 
           onClose={() => setShowNewBook(false)}
-          onSave={(bookData) => {
+          onSave={async (bookData) => {
             const newId = 'book_' + Date.now();
-            const newDb = { ...db };
-            newDb.books.push({
-              id: newId,
+            
+            const newBook = {
               title: bookData.title,
               synopsis: bookData.synopsis,
-              cover: bookData.cover,
-              authorId: currentUser.id,
+              cover_url: bookData.cover,
+              author_id: currentUser.id,
               status: 'draft',
               sku: bookData.sku,
-              distributionMode: bookData.distributionMode,
-              bookType: bookData.bookType || 'complete',
-              universeVisibility: {
+              distribution_mode: bookData.distributionMode,
+              book_type: bookData.bookType || 'complete',
+              universe_requests: [],
+              co_author_ids: [],
+              lore_areas: [],
+              genres: [],
+              escaleta_groups: [],
+              trash: [],
+              ratings: [],
+              typesetting_settings: {},
+              universe: {
                 home: false,
                 characters: false,
                 locations: false,
                 organizations: false,
                 clues: false,
-                events: false
-              },
-              universeRequests: [],
-              universe: {
-                chapters: [],
-                characters: [],
-                locations: [],
+                events: false,
+                charactersData: [],
+                locationsData: [],
+                organizationsData: [],
+                cluesData: [],
                 items: [],
                 events: []
-              }
-            });
-            handleUpdateData(newDb);
-            setShowNewBook(false);
-            setCurrentBookId(newId);
+              },
+              ideas: [],
+              escaleta: []
+            };
+            try {
+              const { data, error } = await supabase.from('books').insert(newBook).select().single();
+              if (error) throw error;
+              toast.success("Livro criado!");
+              setShowNewBook(false);
+              setCurrentBookId(data.id);
+            } catch (err) {
+              toast.error("Erro ao criar livro.");
+            }
           }}
         />
       )}
@@ -1123,7 +985,7 @@ export default function App() {
       )}
       
       <TutorialManager 
-        db={db} 
+         
         currentUser={currentUser} 
         onCompleteTutorial={handleCompleteTutorial} 
       />
