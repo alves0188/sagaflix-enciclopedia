@@ -60,6 +60,10 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
           id: n.id, userId: n.user_id, bookId: n.book_id, noteId: n.note_id, status: n.status, read: n.read, message: n.message
         }))
       });
+      } catch (err) {
+        console.error(err);
+        setLocalData({ users: [], books: [], supportTickets: [], noteRequests: [] });
+      }
     }
     if (currentUser) loadAuthorData();
   }, [currentUser]);
