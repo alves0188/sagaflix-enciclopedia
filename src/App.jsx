@@ -189,6 +189,12 @@ export default function App() {
 
   const fetchData = async () => {
     try {
+      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+      if (dbError) throw dbError;
+      if (dbData && dbData.data) {
+         setDb(dbData.data);
+      }
+      
       const savedUser = localStorage.getItem('sagaflix_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
@@ -196,10 +202,17 @@ export default function App() {
         if (profile) {
           const userObj = {
             id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
-            email: profile.email, avatar: profile.avatar_url
+            email: profile.email, avatar: profile.avatar_url,
+            favorites: profile.favorites,
+            readingStatus: profile.reading_status
           };
           setCurrentUser(userObj);
           localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
+        } else if (dbData && dbData.data && dbData.data.users) {
+          const fallbackUser = dbData.data.users.find(u => u.id === parsed.id);
+          if (fallbackUser) {
+             setCurrentUser(fallbackUser);
+          }
         }
       }
       setLoading(false);
