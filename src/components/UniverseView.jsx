@@ -239,7 +239,7 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     toast('Sua solicitação foi enviada ao autor com sucesso!');
   };
 
-  if (!db || !currentBook) return <div style={{color:'white', padding:'3rem', textAlign:'center'}}>Carregando Universo...</div>;
+
 
 
 
@@ -328,6 +328,29 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   }
 
   const showBookCover = activeTab === 'home' && !searchQuery;
+
+
+  if (!db || !currentBook) {
+    return (
+      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+          <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', padding: '2rem' }}>
+            <Skeleton width="80%" height={24} style={{ marginBottom: '2rem' }} />
+            <Skeleton count={8} height={40} style={{ marginBottom: '1rem' }} />
+          </div>
+          <div style={{ flex: 1, padding: '2rem' }}>
+             <Skeleton width={300} height={40} style={{ marginBottom: '2rem' }} />
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                <Skeleton height={200} borderRadius={12} />
+                <Skeleton height={200} borderRadius={12} />
+                <Skeleton height={200} borderRadius={12} />
+                <Skeleton height={200} borderRadius={12} />
+             </div>
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
 
   return (
     <div className="app-container">

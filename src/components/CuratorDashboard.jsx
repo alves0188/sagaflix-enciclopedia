@@ -126,13 +126,13 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
   useEffect(() => {
     async function loadCuratorData() {
-      const [{ data: profiles }, { data: books }, { data: support_tickets }] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('books').select('*'),
-        supabase.from('support_tickets').select('*')
-      ]);
-
-      setLocalData({
+      try {
+        const [{ data: profiles }, { data: books }, { data: support_tickets }] = await Promise.all([
+          supabase.from('profiles').select('*'),
+          supabase.from('books').select('*'),
+          supabase.from('support_tickets').select('*')
+        ]);
+        setLocalData({
         users: (profiles || []).map(p => ({
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, status: 'approved'
         })),
@@ -148,13 +148,17 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         })),
         gamificationBadges: [], banners: []
       });
+      } catch (err) {
+        console.error(err);
+        setLocalData({ users: [], books: [], supportTickets: [], gamificationBadges: [], banners: [] });
+      }
     }
     if (currentUser) loadCuratorData();
   }, [currentUser]);
 
-  if (!localData) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}><p style={{ color: 'var(--accent-gold)' }}>Carregando Curadoria...</p></div>;
 
-  const db = localData;
+
+  const db = localData || { users: [], books: [], supportTickets: [] };
 
   const onUpdateData = async (newDb) => {
     setLocalData(newDb);
@@ -4056,6 +4060,29 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       </div>
     );
   };
+
+
+  if (!localData) {
+    return (
+      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+          <div style={{ width: '250px', borderRight: '1px solid var(--border-color)', padding: '2rem' }}>
+            <Skeleton width="80%" height={24} style={{ marginBottom: '2rem' }} />
+            <Skeleton count={6} height={40} style={{ marginBottom: '1rem' }} />
+          </div>
+          <div style={{ flex: 1, padding: '2rem' }}>
+             <Skeleton width={200} height={40} style={{ marginBottom: '2rem' }} />
+             <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                <Skeleton width={150} height={100} borderRadius={12} />
+                <Skeleton width={150} height={100} borderRadius={12} />
+                <Skeleton width={150} height={100} borderRadius={12} />
+             </div>
+             <Skeleton count={5} height={60} style={{ marginBottom: '1rem' }} borderRadius={8} />
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
 
   return (
     <div className="curator-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>

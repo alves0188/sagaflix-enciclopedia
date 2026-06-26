@@ -108,35 +108,9 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
     }
   }, [currentUser]);
 
-  if (!localData) {
-    return (
-      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', padding: '2rem' }}>
-          {/* Header Skeleton */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-             <Skeleton width={200} height={40} />
-             <Skeleton circle width={40} height={40} />
-          </div>
-          {/* Banner Skeleton */}
-          <div style={{ marginBottom: '2rem' }}>
-            <Skeleton height={280} borderRadius={16} />
-          </div>
-          {/* Content Skeleton */}
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-             {Array.from({length: 8}).map((_, i) => (
-                <div key={i} style={{ width: '200px' }}>
-                   <Skeleton height={300} borderRadius={8} style={{ marginBottom: '1rem' }} />
-                   <Skeleton width="80%" height={20} style={{ marginBottom: '0.5rem' }} />
-                   <Skeleton width="60%" height={15} />
-                </div>
-             ))}
-          </div>
-        </div>
-      </SkeletonTheme>
-    );
-  }
 
-  const db = localData; // Magic alias to keep the rest of the file working!
+
+  const db = localData || { books: [], users: [], banners: [], gamificationBadges: [] }; // Magic alias to keep the rest of the file working!
 
 
   useEffect(() => {
@@ -865,6 +839,35 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
       </div>
     );
   };
+
+
+  if (!localData) {
+    return (
+      <SkeletonTheme baseColor="#1a1c20" highlightColor="#2a2d35">
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', padding: '2rem' }}>
+          {/* Header Skeleton */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+             <Skeleton width={200} height={40} />
+             <Skeleton circle width={40} height={40} />
+          </div>
+          {/* Banner Skeleton */}
+          <div style={{ marginBottom: '2rem' }}>
+            <Skeleton height={280} borderRadius={16} />
+          </div>
+          {/* Content Skeleton */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+             {Array.from({length: 8}).map((_, i) => (
+                <div key={i} style={{ width: '200px' }}>
+                   <Skeleton height={300} borderRadius={8} style={{ marginBottom: '1rem' }} />
+                   <Skeleton width="80%" height={20} style={{ marginBottom: '0.5rem' }} />
+                   <Skeleton width="60%" height={15} />
+                </div>
+             ))}
+          </div>
+        </div>
+      </SkeletonTheme>
+    );
+  }
 
   return (
     <div className="reader-dashboard-container" style={{ 
