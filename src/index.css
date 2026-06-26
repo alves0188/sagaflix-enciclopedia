@@ -1870,3 +1870,9 @@ select option, select optgroup {
   min-height: 0 !important;
 }
 
+
+.jodit-transparent-container .jodit-wysiwyg {
+  height: auto !important;
+  min-height: 100% !important;
+}
+
