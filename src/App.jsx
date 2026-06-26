@@ -103,6 +103,16 @@ export default function App() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [resetError, setResetError] = useState('');
+  const [userNotifications, setUserNotifications] = useState([]);
+
+  useEffect(() => {
+    if (currentUser) {
+      supabase.from('notifications')
+        .select('*')
+        .or(`user_id.eq.${currentUser.id},user_id.eq.all,user_id.eq.all_${currentUser.role}s`)
+        .then(({ data }) => { if (data) setUserNotifications(data); });
+    }
+  }, [currentUser]);
 
   // Roteamento Nativo Simples
   const path = window.location.pathname.toLowerCase();
@@ -465,17 +475,6 @@ export default function App() {
     );
   }
 
-  const [userNotifications, setUserNotifications] = useState([]);
-  
-
-  useEffect(() => {
-    if (currentUser) {
-      supabase.from('notifications')
-        .select('*')
-        .or(`user_id.eq.${currentUser.id},user_id.eq.all,user_id.eq.all_${currentUser.role}s`)
-        .then(({ data }) => { if (data) setUserNotifications(data); });
-    }
-  }, [currentUser]);
   const unreadCount = userNotifications.filter(n => !n.read).length;
 
   const handleNotificationClick = async (notif) => {
