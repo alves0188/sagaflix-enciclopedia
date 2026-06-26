@@ -1851,3 +1851,22 @@ select option, select optgroup {
   background: rgba(255,255,255,0.1) !important;
 }
 
+
+.jodit-transparent-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.jodit-transparent-container .jodit-container {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1;
+  min-height: 0 !important;
+}
+.jodit-transparent-container .jodit-workplace {
+  flex: 1;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+

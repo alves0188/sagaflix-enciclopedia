@@ -70,12 +70,12 @@ function DebouncedRichTextEditor({ value, onChange, placeholder, style, onFocus 
       placeholder: placeholder || 'Escreva sua ideia aqui...',
       theme: 'dark',
       toolbarInline: false,
-      toolbarSticky: true,
+      toolbarSticky: false,
       toolbarAdaptive: false,
       showCharsCounter: false,
       showWordsCounter: false,
       showXPathInStatusbar: false,
-      minHeight: 150,
+      height: '100%',
       buttons: toolbarButtons,
       buttonsMD: toolbarButtons,
       buttonsSM: toolbarButtons,
@@ -482,7 +482,7 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
                     value={idea.text || ''}
                     onChange={(val) => handleUpdateIdeaText(idea.id, val)}
                     placeholder="Escreva sua ideia aqui..."
-                    style={{ flex: 1, width: '100%', padding: '0.5rem 0', overflowY: 'auto' }}
+                    style={{ flex: 1, width: '100%', padding: '0.5rem 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}
                   />
                   
                   <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
