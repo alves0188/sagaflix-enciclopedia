@@ -167,7 +167,8 @@ export default function App() {
             id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
             email: profile.email, avatar: profile.avatar_url,
             favorites: profile.favorites,
-            readingStatus: profile.reading_status
+            readingStatus: profile.reading_status,
+            completedTutorials: profile.completed_tutorials || []
           };
           setCurrentUser(userObj);
           localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
@@ -299,6 +300,22 @@ export default function App() {
       toast.success('Configurações salvas!');
     } catch (err) {
       toast.error('Erro ao salvar.');
+    }
+  };
+
+  const handleCompleteTutorial = async (tutorialId) => {
+    if (!currentUser) return;
+    const completed = currentUser.completedTutorials || [];
+    if (!completed.includes(tutorialId)) {
+      const newCompleted = [...completed, tutorialId];
+      const updatedUser = { ...currentUser, completedTutorials: newCompleted };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('sagaflix_user', JSON.stringify(updatedUser));
+      try {
+        await supabase.from('profiles').update({ completed_tutorials: newCompleted }).eq('id', currentUser.id);
+      } catch (err) {
+        console.error('Erro ao salvar tutorial:', err);
+      }
     }
   };
 
@@ -988,7 +1005,7 @@ export default function App() {
       )}
       
       <TutorialManager 
-         
+        db={db} 
         currentUser={currentUser} 
         onCompleteTutorial={handleCompleteTutorial} 
       />

@@ -36,7 +36,8 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
         const userObj = {
           id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
           email: profile.email, avatar: profile.avatar_url,
-          favorites: profile.favorites, readingStatus: profile.reading_status
+          favorites: profile.favorites, readingStatus: profile.reading_status,
+          completedTutorials: profile.completed_tutorials || []
         };
         onLogin(userObj);
       } else {
