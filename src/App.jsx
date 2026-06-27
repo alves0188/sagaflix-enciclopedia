@@ -28,6 +28,7 @@ function AppContent() {
   const [db, setDb] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [viewRoleOverride, setViewRoleOverride] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
