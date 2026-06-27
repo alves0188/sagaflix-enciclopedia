@@ -1,31 +1,31 @@
-import { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import UniverseView from './components/UniverseView';
 import Reader from './components/Reader';
-import CuratorDashboard from './components/CuratorDashboard';
-import AuthorDashboard from './components/AuthorDashboard';
 import ReaderDashboard from './components/ReaderDashboard';
 import EmailConfirmationView from './components/EmailConfirmationView';
 import NewBookModal from './components/NewBookModal';
 import ShopModal from './components/ShopModal';
+import ProtectedRoute from './routes/ProtectedRoute';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, uploadImage } from './lib/supabaseClient';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store } from 'lucide-react';
-import { useHashHistory } from './hooks/useHashHistory';
 import { useHashTabs } from './hooks/useHashTabs';
+import { useHashHistory } from './hooks/useHashHistory';
 import TutorialManager from './components/TutorialManager';
 
-export default function App() {
+const CuratorDashboard = lazy(() => import('./components/CuratorDashboard'));
+const AuthorDashboard = lazy(() => import('./components/AuthorDashboard'));
+
+function AppContent() {
+  const { currentUser, setCurrentUser, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [db, setDb] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sagaflix_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch (err) {
-      return null;
-    }
-  });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -33,6 +33,7 @@ export default function App() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
   const [currentBookId, setCurrentBookIdState] = useState(() => {
     try { 
       const saved = localStorage.getItem('sagaflix_bookId');
@@ -46,43 +47,22 @@ export default function App() {
     else localStorage.removeItem('sagaflix_bookId');
   };
 
-  const handleCloseBook = useHashHistory(!!currentBookId, 'livro', () => setCurrentBookId(null));
+  const handleCloseBook = () => setCurrentBookId(null);
 
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showNewBook, setShowNewBook] = useState(false);
-  const [authView, setAuthView] = useState(() => {
-    if (window.location.hash.startsWith('#confirmacao/')) return 'confirm_email';
-    return 'login';
-  }); 
-  const [confirmToken, setConfirmToken] = useState(() => {
-    if (window.location.hash.startsWith('#confirmacao/')) {
-      return window.location.hash.replace('#confirmacao/', '');
-    }
-    return null;
-  });
-
+  const [authView, setAuthView] = useState('login'); 
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const handleCloseProfileModal = useHashHistory(showProfileModal, 'perfil', () => setShowProfileModal(false));
+  const handleCloseProfileModal = () => setShowProfileModal(false);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
-  const [viewRoleOverride, setViewRoleOverride] = useState(() => {
-    try { return localStorage.getItem('sagaflix_viewRole') || null; } catch { return null; }
-  });
-  
-  useEffect(() => {
-    if (viewRoleOverride) {
-      localStorage.setItem('sagaflix_viewRole', viewRoleOverride);
-    } else {
-      localStorage.removeItem('sagaflix_viewRole');
-    }
-  }, [viewRoleOverride]);
-
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
+
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
     try { return localStorage.getItem('sagaflix_universeTab') || 'home'; } catch { return 'home'; }
   });
@@ -93,27 +73,9 @@ export default function App() {
   };
 
   const [readerActiveTab, setReaderActiveTab] = useHashTabs('vitrine', ['vitrine', 'favoritos', 'lendo', 'lidos', 'dossie'], 'sagaflix_readerTab');
-
   const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte'], 'sagaflix_authorTab');
 
   const [showProfilePassword, setShowProfilePassword] = useState(false);
-
-  // Email and password recovery states
-  const params = new URLSearchParams(window.location.search);
-  const verificationToken = params.get('token');
-  const isVerificationRoute = window.location.pathname === '/verificar-email';
-  const isResetRoute = window.location.pathname === '/recuperar-senha';
-
-  const [verifying, setVerifying] = useState(isVerificationRoute);
-  const [verifyStatus, setVerifyStatus] = useState('verifying');
-  const [verifyMessage, setVerifyMessage] = useState('');
-  
-  const [resetTokenActive, setResetTokenActive] = useState(isResetRoute ? verificationToken : null);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
-  const [resetError, setResetError] = useState('');
   const [userNotifications, setUserNotifications] = useState([]);
 
   useEffect(() => {
@@ -125,18 +87,17 @@ export default function App() {
     }
   }, [currentUser]);
 
-  // Roteamento Nativo Simples
-  const path = window.location.pathname.toLowerCase();
+  // View Role Resolution
+  const path = location.pathname.toLowerCase();
   let portalRole = 'reader';
   if (path.startsWith('/curador')) portalRole = 'curator';
   else if (path.startsWith('/autor')) portalRole = 'author';
 
   let resolvedRole = currentUser ? currentUser.role : null;
   if (currentUser && currentUser.role === 'admin') {
-    resolvedRole = portalRole; // admin assume o papel do portal que está acessando
+    resolvedRole = portalRole; 
   }
 
-  // Check if the user is using the viewRoleOverride to switch roles
   if (currentUser && currentUser.role === 'author' && viewRoleOverride === 'reader') {
     resolvedRole = 'reader';
   } else if (currentUser && currentUser.role === 'author' && portalRole === 'reader' && !viewRoleOverride) {
@@ -145,97 +106,25 @@ export default function App() {
 
   const viewRole = viewRoleOverride || resolvedRole;
 
-  const handleVerifyEmail = async (token) => {
-    // Deprecated: Supabase Auth handles email verification via links natively.
-    setVerifyStatus('success');
-    setVerifyMessage('E-mail verificado com sucesso! Você já pode fazer login.');
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setResetError('');
-    if (newPassword !== confirmNewPassword) { setResetError('As senhas digitadas não coincidem.'); return; }
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast.success('Senha redefinida com sucesso!');
-      window.history.replaceState({}, document.title, '/');
-      setResetTokenActive(null);
-    } catch (err) {
-      setResetError('Erro ao redefinir a senha.');
-    }
-  };
-
-  // Se o usuário logou, garantir que ele está no portal certo
-  const isAuthorOnReaderPortal = (currentUser?.role === 'author' || currentUser?.role === 'curator') && portalRole === 'reader';
-  const isAdmin = currentUser?.role === 'admin';
-  const isCuratorOnAuthorPortal = currentUser?.role === 'curator' && portalRole === 'author'; 
-  
-  if (currentUser && currentUser.role !== portalRole && !isAuthorOnReaderPortal && !isAdmin && !isCuratorOnAuthorPortal) {
-    return (
-      <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
-        <h2>Acesso Negado</h2>
-        <p>Seu perfil de <strong>{currentUser.role}</strong> não tem permissão para acessar o portal <strong>{portalRole}</strong>.</p>
-        <button onClick={() => window.location.href = '/'} className="btn-primary" style={{ marginTop: '1rem', marginRight: '1rem' }}>Ir para Leitura</button>
-        <button onClick={handleLogout} className="btn-secondary" style={{ marginTop: '1rem' }}>Sair da Conta</button>
-      </div>
-    );
-  }
-
-  const fetchData = async () => {
-    try {
-      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (dbError) throw dbError;
-      if (dbData && dbData.data) {
-         const finalData = { ...dbData.data };
-         // Merge books from relational DB to keep legacy parts working while migrating
-         const { data: allBooks } = await supabase.from('books').select('*');
-         if (allBooks) {
-           finalData.books = allBooks;
-         }
-         setDb(finalData);
-      }
-      
-      const savedUser = localStorage.getItem('sagaflix_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', parsed.id).single();
-        if (profile) {
-          const userObj = {
-            id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
-            email: profile.email, avatar: profile.avatar_url,
-            favorites: profile.favorites,
-            readingStatus: profile.reading_status,
-            completedTutorials: profile.completed_tutorials || []
-          };
-          // Hardcoded role overrides since RLS prevents anon key from updating roles
-          if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
-          else if (userObj.email === 'alves0188@gmail.com') userObj.role = 'author';
-          else if (userObj.email === 'alves0188@icloud.com') userObj.role = 'reader';
-          
-          setCurrentUser(userObj);
-          localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
-        } else if (dbData && dbData.data && dbData.data.users) {
-          const fallbackUser = dbData.data.users.find(u => u.id === parsed.id);
-          if (fallbackUser) {
-             setCurrentUser(fallbackUser);
-          }
-        }
-      }
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
-  };
-
+  // DB Sync Effect
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+        if (dbData && dbData.data) {
+           const finalData = { ...dbData.data };
+           const { data: allBooks } = await supabase.from('books').select('*');
+           if (allBooks) {
+             finalData.books = allBooks;
+           }
+           setDb(finalData);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
     fetchData();
-    if (isVerificationRoute && verificationToken) {
-      handleVerifyEmail(verificationToken);
-    }
 
-    // Supabase Realtime Subscription
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -244,15 +133,6 @@ export default function App() {
         (payload) => {
           if (payload.new && payload.new.data) {
             setDb(payload.new.data);
-            setCurrentUser(prevUser => {
-              if (!prevUser) return null;
-              const latestUser = payload.new.data.users.find(u => u.id === prevUser.id);
-              if (latestUser) {
-                localStorage.setItem('sagaflix_user', JSON.stringify(latestUser));
-                return latestUser;
-              }
-              return prevUser;
-            });
           }
         }
       )
@@ -557,21 +437,31 @@ export default function App() {
     setShowNotifications(false);
   };
 
+  // Se o usuário não está logado e não está nas rotas de auth, redireciona ou renderiza só auth
+  const isAuthRoute = path === '/login' || path === '/register';
+  if (!currentUser && !isAuthRoute) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Header não deve aparecer nas telas de login
+  const renderHeader = currentUser && !isAuthRoute;
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Header Global */}
-      <header style={{ 
-        background: 'var(--card-bg)', 
-        borderBottom: '1px solid var(--border-color)', 
-        padding: isMobile ? '0.8rem 1rem' : '1rem 3rem', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
+      {renderHeader && (
+        <header style={{ 
+          background: 'var(--card-bg)', 
+          borderBottom: '1px solid var(--border-color)', 
+          padding: isMobile ? '0.8rem 1rem' : '1rem 3rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
           {isMobile && currentUser && currentUser.role !== 'reader' && (
             <button 
@@ -663,7 +553,7 @@ export default function App() {
                   <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
                 </span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', marginTop: '-2px' }}>
-                  {viewRole === 'author' ? '(Autor)' : viewRole === 'curator' ? '(Curador)' : '(Leitor)'}
+                  {currentUser.role === 'admin' ? '(Administrador Supremo)' : currentUser.role === 'author' ? '(Autor)' : currentUser.role === 'curator' ? '(Curador)' : '(Leitor)'}
                 </span>
               </div>
             )}
@@ -673,8 +563,9 @@ export default function App() {
           </div>
         </div>
       </header>
+      )}
 
-      {/* Áreas exclusivas por Perfil */}
+      {/* Layout Principal Com Rotas React Router */}
       <main style={{ 
         flex: 1, 
         padding: isMobile ? '0 0.5rem 1rem' : '0 2rem 2rem', 
@@ -683,60 +574,87 @@ export default function App() {
         width: '100%',
         boxSizing: 'border-box'
       }}>
-        
-        {/* VIEW DO CURADOR (FASE 2) */}
-        {viewRole === 'curator' && (
-          <CuratorDashboard 
-             
-            onUpdateData={handleUpdateData} 
-            currentUser={currentUser} 
-            focusAuthorId={focusAuthorId} 
-            setFocusAuthorId={setFocusAuthorId} 
-            isSidebarOpen={isSidebarOpen} 
-            setIsSidebarOpen={setIsSidebarOpen}
-            onSelectBook={(bookId) => setCurrentBookId(bookId)}
-            onSelectBookUniverse={(bookId) => setCurrentBookId(bookId)}
-          />
-        )}
+        <Routes>
+          <Route path="/login" element={
+            !currentUser ? <Login onLogin={(user, newDb) => {
+              setCurrentUser(user);
+              if (newDb) setDb(newDb);
+              navigate(user.role === 'curator' ? '/curador' : user.role === 'author' ? '/autor' : '/leitor');
+            }} onNavigateRegister={() => navigate('/register')} portalRole={portalRole} /> : <Navigate to="/leitor" />
+          } />
 
-        {/* VIEW DO AUTOR */}
-        {viewRole === 'author' && (
-          <AuthorDashboard 
-             
-            onUpdateData={handleUpdateData} 
-            currentUser={currentUser} 
-            activeTab={authorActiveTab}
-            onTabChange={setAuthorActiveTab}
-            onSelectBook={(bookId) => {
-              setInitialUniverseTab('admin');
-              setCurrentBookId(bookId);
-            }}
-            onOpenNewBook={() => setShowNewBook(true)}
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
-          />
-        )}
+          <Route path="/register" element={
+            !currentUser ? <Register onNavigateLogin={() => navigate('/login')} onRegisterSuccess={(user, newDb) => {
+              setCurrentUser(user);
+              if (newDb) setDb(newDb);
+              navigate('/leitor');
+            }} portalRole={portalRole} /> : <Navigate to="/leitor" />
+          } />
 
-        {/* VIEW DO LEITOR (VITRINE) */}
-        {viewRole === 'reader' && (
-          <ReaderDashboard 
-             
-            currentUser={currentUser} 
-            onUpdateData={handleUpdateData} 
-            initialActiveTab={readerActiveTab}
-            onTabChange={setReaderActiveTab}
-            onSelectBook={(bookId) => {
-              setInitialUniverseTab('reader');
-              setCurrentBookId(bookId);
-            }}
-            onSelectBookUniverse={(bookId) => {
-              setInitialUniverseTab('home');
-              setCurrentBookId(bookId);
-            }}
-          />
-        )}
+          <Route path="/" element={<Navigate to={currentUser ? "/leitor" : "/login"} replace />} />
+          
+          <Route path="/leitor/*" element={
+            <ProtectedRoute allowedRoles={['reader', 'author', 'curator', 'admin']}>
+              <ReaderDashboard 
+                 
+                currentUser={currentUser} 
+                onUpdateData={handleUpdateData} 
+                initialActiveTab={readerActiveTab}
+                onTabChange={setReaderActiveTab}
+                onSelectBook={(bookId) => {
+                  setInitialUniverseTab('reader');
+                  setCurrentBookId(bookId);
+                }}
+                onSelectBookUniverse={(bookId) => {
+                  setInitialUniverseTab('home');
+                  setCurrentBookId(bookId);
+                }}
+              />
+            </ProtectedRoute>
+          } />
 
+          <Route path="/autor/*" element={
+            <ProtectedRoute allowedRoles={['author', 'curator', 'admin']}>
+              <Suspense fallback={<div style={{color: 'white', padding: '2rem'}}>Carregando Estúdio...</div>}>
+                <AuthorDashboard 
+                   
+                  onUpdateData={handleUpdateData} 
+                  currentUser={currentUser} 
+                  activeTab={authorActiveTab}
+                  onTabChange={setAuthorActiveTab}
+                  onSelectBook={(bookId) => {
+                    setInitialUniverseTab('admin');
+                    setCurrentBookId(bookId);
+                  }}
+                  onOpenNewBook={() => setShowNewBook(true)}
+                  isSidebarOpen={isSidebarOpen}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/curador/*" element={
+            <ProtectedRoute allowedRoles={['curator', 'admin']}>
+              <Suspense fallback={<div style={{color: 'white', padding: '2rem'}}>Carregando Curadoria...</div>}>
+                <CuratorDashboard 
+                   
+                  onUpdateData={handleUpdateData} 
+                  currentUser={currentUser} 
+                  focusAuthorId={focusAuthorId} 
+                  setFocusAuthorId={setFocusAuthorId} 
+                  isSidebarOpen={isSidebarOpen} 
+                  setIsSidebarOpen={setIsSidebarOpen}
+                  onSelectBook={(bookId) => setCurrentBookId(bookId)}
+                  onSelectBookUniverse={(bookId) => setCurrentBookId(bookId)}
+                />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+        </Routes>
       </main>
+        
+
 
       {selectedAuthor && (
         <AuthorModal author={selectedAuthor}  onClose={() => setSelectedAuthor(null)} />
@@ -786,12 +704,25 @@ export default function App() {
             try {
               const newDb = { ...db, books: [...(db?.books || []), newBook] };
               await handleUpdateData(newDb);
+              
+              // NEW: Save to Relational DB directly!
+              await supabase.from('books').insert({
+                id: newBook.id,
+                author_id: currentUser.id,
+                title: newBook.title,
+                status: 'draft',
+                cover_url: newBook.cover,
+                synopsis: newBook.synopsis,
+                release_model: newBook.distributionMode,
+                book_type: newBook.workType
+              });
+
               toast.success("Livro criado!");
               setShowNewBook(false);
               setCurrentBookId(newId);
             } catch (err) {
               console.error(err);
-              toast.error("Erro ao criar livro.");
+              toast.error("Erro ao criar livro no Banco de Dados.");
             }
           }}
         />
@@ -823,28 +754,57 @@ export default function App() {
                 
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                   
-                  {currentUser.role !== 'reader' && (
-                    <button 
-                      onClick={() => {
-                        setViewRoleOverride(viewRole === 'author' ? 'reader' : 'author');
-                        handleCloseProfileModal();
-                      }}
-                      className="btn-primary" 
-                      style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
-                    >
-                      <User size={18} /> {viewRole === 'author' ? 'Mudar para Conta de Leitor' : 'Voltar para o Estúdio (Autor)'}
-                    </button>
-                  )}
-                  
-                  {viewRoleOverride && (
-                    <button 
-                      onClick={() => setViewRoleOverride(null)}
-                      className="btn-secondary" 
-                      style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                    >
-                      Resetar Perfil
-                    </button>
-                  )}
+                  {currentUser.role === 'curator' || currentUser.role === 'admin' ? (
+                    <>
+                      {portalRole !== 'curator' && (
+                        <button 
+                          onClick={() => { navigate('/curador'); handleCloseProfileModal(); }}
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                        >
+                          <User size={18} /> Ir para Curadoria
+                        </button>
+                      )}
+                      {portalRole !== 'author' && (
+                        <button 
+                          onClick={() => { navigate('/autor'); handleCloseProfileModal(); }}
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                        >
+                          <User size={18} /> Ir para Estúdio (Autor)
+                        </button>
+                      )}
+                      {portalRole !== 'reader' && (
+                        <button 
+                          onClick={() => { navigate('/leitor'); handleCloseProfileModal(); }}
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                        >
+                          <User size={18} /> Ir para Vitrine (Leitor)
+                        </button>
+                      )}
+                    </>
+                  ) : currentUser.role === 'author' ? (
+                    <>
+                      {portalRole === 'author' ? (
+                        <button 
+                          onClick={() => { navigate('/leitor'); handleCloseProfileModal(); }}
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                        >
+                          <User size={18} /> Mudar para Conta de Leitor
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => { navigate('/autor'); handleCloseProfileModal(); }}
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--accent-gold)', color: '#000' }}
+                        >
+                          <User size={18} /> Voltar para o Estúdio (Autor)
+                        </button>
+                      )}
+                    </>
+                  ) : null}
 
                   <button 
                     onClick={() => setIsEditingProfile(true)}
@@ -1066,5 +1026,12 @@ export default function App() {
         onCompleteTutorial={handleCompleteTutorial} 
       />
     </div>
+  );
+}
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
