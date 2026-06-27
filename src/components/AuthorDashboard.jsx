@@ -29,21 +29,49 @@ const DEFAULT_LEGENDS = {
 
 export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBook, forceUserId, onCloseForceView, activeTab: propActiveTab, onTabChange, focusAuthorId, setFocusAuthorId, isSidebarOpen, setIsSidebarOpen }) {
   const [localData, setLocalData] = useState(null);
-
-  useEffect(() => {
+  useEffect(() => {
     async function loadAuthorData() {
-      try {
-        const [{ data: profiles, error: err1 }, { data: books, error: err2 }, { data: support_tickets, error: err3 }, { data: note_requests, error: err4 }] = await Promise.all([
-          supabase.from('profiles').select('*'),
-          supabase.from('books').select('*'),
-          supabase.from('support_tickets').select('*'),
-          supabase.from('note_requests').select('*')
-        ]);
-        
-        if (err1 || err2 || err3 || err4) console.error("Data load error:", err1, err2, err3, err4);
-        console.log("[AuthorDashboard] FETCHED BOOKS FROM SUPABASE:", books);
+      let profiles = [];
+      let books = [];
+      let support_tickets = [];
+      let note_requests = [];
 
-        setLocalData({
+      try {
+        const { data, error } = await supabase.from('profiles').select('*');
+        if (error) console.error("[AuthorDashboard] Error profiles:", error);
+        if (data) profiles = data;
+      } catch (e) {
+        console.error("[AuthorDashboard] Profiles fetch exception:", e);
+      }
+
+      try {
+        const { data, error } = await supabase.from('books').select('*');
+        if (error) console.error("[AuthorDashboard] Error books:", error);
+        if (data) books = data;
+      } catch (e) {
+        console.error("[AuthorDashboard] Books fetch exception:", e);
+      }
+
+      try {
+        const { data, error } = await supabase.from('support_tickets').select('*');
+        if (error) console.error("[AuthorDashboard] Error support_tickets:", error);
+        if (data) support_tickets = data;
+      } catch (e) {
+        console.error("[AuthorDashboard] Support tickets fetch exception:", e);
+      }
+
+      try {
+        const { data, error } = await supabase.from('note_requests').select('*');
+        if (error) console.error("[AuthorDashboard] Error note_requests:", error);
+        if (data) note_requests = data;
+      } catch (e) {
+        console.error("[AuthorDashboard] Note requests fetch exception:", e);
+      }
+
+      console.log("[AuthorDashboard] LOADED books:", books);
+      console.log("[AuthorDashboard] CURRENT USER ID:", currentUser?.id);
+
+      setLocalData({
         users: (profiles || []).map(p => ({
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
         })),
@@ -66,13 +94,9 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
           id: n.id, userId: n.user_id, bookId: n.book_id, noteId: n.note_id, status: n.status, read: n.read, message: n.message
         }))
       });
-      } catch (err) {
-        console.error(err);
-        setLocalData({ users: [], books: [], supportTickets: [], noteRequests: [] });
-      }
     }
     if (currentUser) loadAuthorData();
-  }, [currentUser]);
+  }, [currentUser]);;
 
 
 
