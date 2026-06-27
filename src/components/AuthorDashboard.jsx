@@ -72,12 +72,39 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
       console.log("[AuthorDashboard] LOADED books:", books);
       console.log("[AuthorDashboard] CURRENT USER ID:", currentUser?.id);
 
+      const processedBooks = [];
+      const generateSKU = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let sku = 'LIV-';
+        for (let i = 0; i < 8; i++) {
+          sku += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return sku;
+      };
+
+      for (const b of (books || [])) {
+        let currentSku = b.sku;
+        if ((b.author_id === currentUser.id || b.authorId === currentUser.id) && !currentSku) {
+          currentSku = generateSKU();
+          console.log(`[AuthorDashboard] Auto-generating SKU ${currentSku} for book ${b.title}`);
+          // Update in Supabase asynchronously using current user's session
+          supabase.from('books').update({ sku: currentSku }).eq('id', b.id).then(({ error }) => {
+            if (error) console.error(`[AuthorDashboard] Failed to auto-update SKU for book ${b.id}:`, error);
+          });
+        }
+        processedBooks.push({
+          ...b,
+          sku: currentSku
+        });
+      }
+
       setLocalData({
         users: (profiles || []).map(p => ({
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
         })),
-        books: (books || []).map(b => ({
+        books: processedBooks.map(b => ({
           id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
+          sku: b.sku,
           bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
           coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
           genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,

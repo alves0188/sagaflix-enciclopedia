@@ -77,6 +77,7 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
         coverUrl: b.cover_url,
         cover: b.cover_url,
         cover_url: b.cover_url,
+        sku: b.sku,
         bannerUrl: b.banner_url,
         synopsis: b.synopsis,
         loreAreas: b.lore_areas || [],
