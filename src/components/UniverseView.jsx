@@ -37,21 +37,11 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
 
   useEffect(() => {
     async function loadUniverseData() {
-      const withTimeout = (promise, ms = 8000) => {
-        return Promise.race([
-          promise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de conexão Supabase')), ms))
-        ]);
-      };
-
       let profiles = [];
       let bookResult = null;
 
       try {
-        const { data, error } = await withTimeout(
-          supabase.from('profiles').select('*'),
-          8000
-        );
+        const { data, error } = await supabase.from('profiles').select('*');
         if (error) console.error("[UniverseView] Error profiles:", error);
         if (data) profiles = data;
       } catch (e) {
@@ -59,10 +49,7 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
       }
 
       try {
-        const { data, error } = await withTimeout(
-          supabase.from('books').select('*').eq('id', bookId).single(),
-          8000
-        );
+        const { data, error } = await supabase.from('books').select('*').eq('id', bookId).single();
         if (error) console.error("[UniverseView] Error book:", error);
         if (data) bookResult = data;
       } catch (e) {
