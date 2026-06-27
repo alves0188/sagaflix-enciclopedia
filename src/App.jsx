@@ -11,6 +11,7 @@ import ShopModal from './components/ShopModal';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, uploadImage } from './lib/supabaseClient';
+import { toast } from 'react-hot-toast';
 import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store } from 'lucide-react';
 import { useHashTabs } from './hooks/useHashTabs';
 import { useHashHistory } from './hooks/useHashHistory';
@@ -706,7 +707,7 @@ function AppContent() {
               await handleUpdateData(newDb);
               
               // NEW: Save to Relational DB directly!
-              await supabase.from('books').insert({
+              const { error: insertError } = await supabase.from('books').insert({
                 id: newBook.id,
                 author_id: currentUser.id,
                 title: newBook.title,
@@ -716,6 +717,11 @@ function AppContent() {
                 release_model: newBook.distributionMode,
                 book_type: newBook.workType
               });
+
+              if (insertError) {
+                console.error("Insert error:", insertError);
+                throw insertError;
+              }
 
               toast.success("Livro criado!");
               setShowNewBook(false);
