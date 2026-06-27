@@ -37,50 +37,73 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
 
   useEffect(() => {
     async function loadUniverseData() {
-      try {
-        const [{ data: profiles }, { data: bookResult }] = await Promise.all([
-          supabase.from('profiles').select('*'),
-          supabase.from('books').select('*').eq('id', bookId).single()
+      const withTimeout = (promise, ms = 8000) => {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de conexão Supabase')), ms))
         ]);
+      };
 
-        setLocalData({
-          users: (profiles || []).map(p => ({
-            id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url, displayMode: p.display_mode
-          })),
-          books: bookResult ? [{
-            id: bookResult.id,
-            authorId: bookResult.author_id,
-            author_id: bookResult.author_id,
-            sku: bookResult.sku,
-            title: bookResult.title,
-            status: bookResult.status,
-            coverUrl: bookResult.cover_url,
-            cover: bookResult.cover_url,
-            cover_url: bookResult.cover_url,
-            bannerUrl: bookResult.banner_url,
-            synopsis: bookResult.synopsis,
-            bookType: bookResult.book_type,
-            universeRequests: bookResult.universe_requests || [],
-            coAuthorIds: bookResult.co_author_ids || [],
-            loreAreas: bookResult.lore_areas || [],
-            genres: bookResult.genres || [],
-            premise: bookResult.premise,
-            ageRating: bookResult.age_rating,
-            ideas: bookResult.ideas || [],
-            escaleta: bookResult.escaleta || [],
-            universe: bookResult.universe || {},
-            ideaLegends: bookResult.idea_legends || {},
-            escaletaMode: bookResult.escaleta_mode,
-            escaletaGroups: bookResult.escaleta_groups || [],
-            trash: bookResult.trash || [],
-            ratings: bookResult.ratings || [],
-            releaseMode: bookResult.release_model,
-            typesettingSettings: bookResult.typesetting_settings || {}
-          }] : []
-        });
-      } catch (err) {
-        console.error("Error loading universe data:", err);
+      let profiles = [];
+      let bookResult = null;
+
+      try {
+        const { data, error } = await withTimeout(
+          supabase.from('profiles').select('*'),
+          8000
+        );
+        if (error) console.error("[UniverseView] Error profiles:", error);
+        if (data) profiles = data;
+      } catch (e) {
+        console.error("[UniverseView] Profiles fetch exception:", e);
       }
+
+      try {
+        const { data, error } = await withTimeout(
+          supabase.from('books').select('*').eq('id', bookId).single(),
+          8000
+        );
+        if (error) console.error("[UniverseView] Error book:", error);
+        if (data) bookResult = data;
+      } catch (e) {
+        console.error("[UniverseView] Book fetch exception:", e);
+      }
+
+      setLocalData({
+        users: (profiles || []).map(p => ({
+          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url, displayMode: p.display_mode
+        })),
+        books: bookResult ? [{
+          id: bookResult.id,
+          authorId: bookResult.author_id,
+          author_id: bookResult.author_id,
+          sku: bookResult.sku,
+          title: bookResult.title,
+          status: bookResult.status,
+          coverUrl: bookResult.cover_url,
+          cover: bookResult.cover_url,
+          cover_url: bookResult.cover_url,
+          bannerUrl: bookResult.banner_url,
+          synopsis: bookResult.synopsis,
+          bookType: bookResult.book_type,
+          universeRequests: bookResult.universe_requests || [],
+          coAuthorIds: bookResult.co_author_ids || [],
+          loreAreas: bookResult.lore_areas || [],
+          genres: bookResult.genres || [],
+          premise: bookResult.premise,
+          ageRating: bookResult.age_rating,
+          ideas: bookResult.ideas || [],
+          escaleta: bookResult.escaleta || [],
+          universe: bookResult.universe || {},
+          ideaLegends: bookResult.idea_legends || {},
+          escaletaMode: bookResult.escaleta_mode,
+          escaletaGroups: bookResult.escaleta_groups || [],
+          trash: bookResult.trash || [],
+          ratings: bookResult.ratings || [],
+          releaseMode: bookResult.release_model,
+          typesettingSettings: bookResult.typesetting_settings || {}
+        }] : []
+      });
     }
     if (currentUser) loadUniverseData();
   }, [currentUser, bookId]);
