@@ -682,6 +682,7 @@ function AppContent() {
               lore_areas: [],
               genres: [],
               escaleta_groups: [],
+              chapters: [],
               trash: [],
               ratings: [],
               typesetting_settings: {},
@@ -707,16 +708,29 @@ function AppContent() {
               await handleUpdateData(newDb);
               
               // NEW: Save to Relational DB directly!
-              const { error: insertError } = await supabase.from('books').insert({
+              const insertPayload = {
                 id: newBook.id,
                 author_id: currentUser.id,
                 title: newBook.title,
                 status: 'draft',
-                cover_url: newBook.cover,
-                synopsis: newBook.synopsis,
-                release_model: newBook.distributionMode,
-                book_type: newBook.workType
-              });
+                cover_url: newBook.cover_url || '',
+                synopsis: newBook.synopsis || '',
+                book_type: newBook.book_type || 'complete',
+                distribution_mode: newBook.distribution_mode || 'free',
+                genres: newBook.genres || [],
+                co_author_ids: newBook.co_author_ids || [],
+                universe: newBook.universe || {},
+                ideas: newBook.ideas || [],
+                escaleta: newBook.escaleta || [],
+                ratings: newBook.ratings || [],
+                lore_areas: newBook.lore_areas || [],
+                universe_requests: newBook.universe_requests || [],
+                escaleta_groups: newBook.escaleta_groups || [],
+                trash: newBook.trash || [],
+                typesetting_settings: newBook.typesetting_settings || {}
+              };
+              console.log("INSERT PAYLOAD:", insertPayload);
+              const { error: insertError } = await supabase.from('books').insert(insertPayload);
 
               if (insertError) {
                 console.error("Insert error:", insertError);
