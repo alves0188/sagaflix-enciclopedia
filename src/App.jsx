@@ -319,6 +319,25 @@ export default function App() {
     }
   };
 
+  const handleProfileAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setProfileUploading(true);
+    try {
+      const url = await uploadImage(file);
+      if (url) {
+        setProfileForm(prev => ({ ...prev, avatar: url }));
+        toast.success('Foto carregada! Clique em Salvar para gravar.');
+      }
+    } catch (err) {
+      console.error("Erro no upload de avatar", err);
+      toast.error(err.message || "Erro ao fazer upload da imagem.");
+    } finally {
+      setProfileUploading(false);
+      e.target.value = null;
+    }
+  };
+
   if (loading) return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Plataforma...</div>;
 
   // Tela de verificação de e-mail
@@ -695,6 +714,7 @@ export default function App() {
             const newId = 'book_' + Date.now();
             
             const newBook = {
+              id: newId,
               title: bookData.title,
               synopsis: bookData.synopsis,
               cover_url: bookData.cover,
