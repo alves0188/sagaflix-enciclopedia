@@ -520,20 +520,7 @@ export default function App() {
     }
   }
 
-  // Se o usuário logou, garantir que ele está no portal certo
-  // (Ex: Um leitor não pode logar na URL /curador)
-  const isAuthorOnReaderPortal = currentUser.role === 'author' && portalRole === 'reader';
-  const isAdmin = currentUser.role === 'admin';
-  
-  if (currentUser.role !== portalRole && !isAuthorOnReaderPortal && !isAdmin) {
-    return (
-      <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
-        <h2>Acesso Negado</h2>
-        <p>Seu perfil de <strong>{currentUser.role}</strong> não tem permissão para acessar o portal <strong>{portalRole}</strong>.</p>
-        <button onClick={handleLogout} className="btn-primary" style={{ marginTop: '1rem' }}>Sair e tentar novamente</button>
-      </div>
-    );
-  }
+
 
   // Se um livro estiver aberto, mostra o Universo
   if (currentBookId && viewRole !== 'curator') {
@@ -800,9 +787,6 @@ export default function App() {
                 cover: newBook.cover_url,
                 sku: newBook.sku,
                 premissa: newBook.synopsis,
-                synopsis: newBook.synopsis,
-                distribution_mode: newBook.distribution_mode,
-                book_type: newBook.book_type,
                 views: 0,
                 ratings: [],
                 chapters: [],
