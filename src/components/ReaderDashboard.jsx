@@ -659,7 +659,8 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
     const stats = currentUser.stats || { totalTime: 0, totalPages: 0 };
     
     // Dynamic badge evaluation based on conditions
-    const allBadges = db.gamificationBadges || [];
+    const allBadgesRaw = db.gamificationBadges || {};
+    const allBadges = Array.isArray(allBadgesRaw) ? allBadgesRaw : Object.values(allBadgesRaw).flat();
     let dynamicBadges = [...(currentUser.badges || [])];
     const pagesRead = currentUser.pagesRead || 0;
     const finishedBooks = (currentUser.finishedBooks || []).length;
