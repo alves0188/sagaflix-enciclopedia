@@ -36,7 +36,7 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   const [localData, setLocalData] = useState(null);
 
   useEffect(() => {
-        async function loadUniverseData() {
+    async function loadUniverseData() {
       try {
         const [{ data: profiles }, { data: bookResult }] = await Promise.all([
           supabase.from('profiles').select('*'),
@@ -48,13 +48,34 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
             id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url, displayMode: p.display_mode
           })),
           books: bookResult ? [{
-            id: bookResult.id, authorId: bookResult.author_id, title: bookResult.title, status: bookResult.status, coverUrl: bookResult.cover_url,
-            synopsis: bookResult.synopsis, bookType: bookResult.book_type, typesettingSettings: bookResult.typesetting_settings || {},
-            coAuthorIds: bookResult.co_author_ids || [], loreAreas: bookResult.lore_areas || [],
-            chapters: (bookResult.universe && bookResult.universe.chapters) ? bookResult.universe.chapters : [],
+            id: bookResult.id,
+            authorId: bookResult.author_id,
+            author_id: bookResult.author_id,
+            sku: bookResult.sku,
+            title: bookResult.title,
+            status: bookResult.status,
+            coverUrl: bookResult.cover_url,
+            cover: bookResult.cover_url,
+            cover_url: bookResult.cover_url,
+            bannerUrl: bookResult.banner_url,
+            synopsis: bookResult.synopsis,
+            bookType: bookResult.book_type,
+            universeRequests: bookResult.universe_requests || [],
+            coAuthorIds: bookResult.co_author_ids || [],
+            loreAreas: bookResult.lore_areas || [],
+            genres: bookResult.genres || [],
+            premise: bookResult.premise,
+            ageRating: bookResult.age_rating,
             ideas: bookResult.ideas || [],
             escaleta: bookResult.escaleta || [],
-            universe: bookResult.universe || {}
+            universe: bookResult.universe || {},
+            ideaLegends: bookResult.idea_legends || {},
+            escaletaMode: bookResult.escaleta_mode,
+            escaletaGroups: bookResult.escaleta_groups || [],
+            trash: bookResult.trash || [],
+            ratings: bookResult.ratings || [],
+            releaseMode: bookResult.release_model,
+            typesettingSettings: bookResult.typesetting_settings || {}
           }] : []
         });
       } catch (err) {
@@ -67,22 +88,40 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   const db = localData;
 
   const onUpdateData = async (newDb) => {
-      setLocalData(newDb);
-      const b = newDb.books[0];
-      if (b && currentUser && (b.authorId === currentUser.id || currentUser.role === 'curator')) {
-         try {
-           const { error } = await supabase.from('books').update({
-             ideas: b.ideas,
-             escaleta: b.escaleta,
-             lore_areas: b.loreAreas,
-             universe: b.universe
-           }).eq('id', b.id);
-           if (error) throw error;
-         } catch (err) {
-           console.error("Error updating book data to Supabase:", err);
-         }
+    setLocalData(newDb);
+    const b = newDb.books[0];
+    if (b && currentUser && (b.authorId === currentUser.id || currentUser.role === 'curator')) {
+      try {
+        const { error } = await supabase.from('books').update({
+          title: b.title,
+          status: b.status,
+          cover_url: b.coverUrl || b.cover_url || b.cover || '',
+          banner_url: b.bannerUrl || b.banner_url || '',
+          synopsis: b.synopsis,
+          book_type: b.bookType || b.book_type || 'complete',
+          universe_requests: b.universeRequests || b.universe_requests || [],
+          co_author_ids: b.coAuthorIds || b.co_author_ids || [],
+          lore_areas: b.loreAreas || b.lore_areas || [],
+          genres: b.genres || [],
+          premise: b.premise || '',
+          age_rating: b.ageRating || b.age_rating || 'L',
+          ideas: b.ideas || [],
+          escaleta: b.escaleta || [],
+          universe: b.universe || {},
+          idea_legends: b.ideaLegends || b.idea_legends || {},
+          escaleta_mode: b.escaletaMode || b.escaleta_mode || 'flat',
+          escaleta_groups: b.escaletaGroups || b.escaleta_groups || [],
+          trash: b.trash || [],
+          ratings: b.ratings || [],
+          release_model: b.releaseMode || b.release_model || 'free',
+          typesetting_settings: b.typesettingSettings || b.typesetting_settings || {}
+        }).eq('id', b.id);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error updating book data to Supabase:", err);
       }
-    };
+    }
+  };
 
   const [activeTab, setActiveTab] = useState(initialTab || 'home');
   const [searchQuery, setSearchQuery] = useState('');
