@@ -80,6 +80,81 @@ function AppContent() {
   const [showProfilePassword, setShowProfilePassword] = useState(false);
   const [userNotifications, setUserNotifications] = useState([]);
 
+  // Email and password recovery states
+  const params = new URLSearchParams(window.location.search);
+  const verificationToken = params.get('token');
+  const isVerificationRoute = window.location.pathname === '/verificar-email';
+  const isResetRoute = window.location.pathname === '/recuperar-senha';
+
+  const [verifying, setVerifying] = useState(isVerificationRoute);
+  const [verifyStatus, setVerifyStatus] = useState('verifying');
+  const [verifyMessage, setVerifyMessage] = useState('');
+  
+  const [resetTokenActive, setResetTokenActive] = useState(isResetRoute ? verificationToken : null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [resetError, setResetError] = useState('');
+
+  const handleVerifyEmail = async (token) => {
+    try {
+      const res = await fetch((window.API_BASE_URL || '') + '/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setVerifyStatus('success');
+        setVerifyMessage(data.role === 'author' 
+          ? 'E-mail verificado com sucesso! Sua conta de autor agora foi enviada para análise da curadoria. Você receberá um e-mail quando for aprovado.' 
+          : 'E-mail verificado com sucesso! Sua conta está ativa. Você já pode fazer login.'
+        );
+      } else {
+        setVerifyStatus('error');
+        setVerifyMessage(data.error || 'Token de confirmação inválido ou expirado.');
+      }
+    } catch (err) {
+      setVerifyStatus('error');
+      setVerifyMessage('Erro de conexão ao verificar e-mail.');
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    
+    if (newPassword !== confirmNewPassword) {
+      setResetError('As senhas digitadas não coincidem.');
+      return;
+    }
+
+    try {
+      const res = await fetch((window.API_BASE_URL || '') + '/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetTokenActive, password: newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Senha redefinida com sucesso! Você já pode logar com a nova senha.');
+        window.history.replaceState({}, document.title, '/');
+        setResetTokenActive(null);
+      } else {
+        setResetError(data.error || 'Erro ao redefinir a senha.');
+      }
+    } catch (err) {
+      setResetError('Erro de conexão ao redefinir a senha.');
+    }
+  };
+
+  useEffect(() => {
+    if (isVerificationRoute && verificationToken) {
+      handleVerifyEmail(verificationToken);
+    }
+  }, [isVerificationRoute, verificationToken]);
+
   useEffect(() => {
     if (currentUser) {
       supabase.from('notifications')
