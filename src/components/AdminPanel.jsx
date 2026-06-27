@@ -12,6 +12,7 @@ import BookIdeasBoard from './BookIdeasBoard';
 import BookEscaletaBoard from './BookEscaletaBoard';
 import BookPremissaBoard from './BookPremissaBoard';
 import { uploadImage } from '../lib/supabaseClient';
+import { api } from '../lib/api';
 import { useHashHistory } from '../hooks/useHashHistory';
 
 const editorConfig = {
@@ -31,6 +32,39 @@ const editorConfig = {
 
 export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly: originalIsReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
   const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished' || currentBook?.status === 'published';
+  
+  const [universeItems, setUniverseItems] = useState(null);
+  const [loadingUniverse, setLoadingUniverse] = useState(true);
+
+  useEffect(() => {
+    async function loadUniverse() {
+      if (!bookId) return;
+      try {
+        const items = await api.getUniverseItems(bookId);
+        const mapped = {
+          characters: items.filter(i => i.type === 'personagem').map(i => ({...i})),
+          locations: items.filter(i => i.type === 'local').map(i => ({...i})),
+          organizations: items.filter(i => i.type === 'organizacao').map(i => ({...i})),
+          items: items.filter(i => i.type === 'item').map(i => ({...i})),
+          clues: items.filter(i => i.type === 'pista').map(i => ({...i})),
+          events: items.filter(i => i.type === 'evento').map(i => ({...i})),
+          posts: items.filter(i => i.type === 'post').map(i => ({...i}))
+        };
+        setUniverseItems(mapped);
+      } catch (err) {
+        console.error('Erro ao carregar itens do universo:', err);
+      } finally {
+        setLoadingUniverse(false);
+      }
+    }
+    loadUniverse();
+  }, [bookId]);
+
+  const getList = (listKey) => {
+    if (['chapters', 'notes'].includes(listKey)) return data[listKey] || [];
+    return universeItems ? (universeItems[listKey] || []) : (data[listKey] || []);
+  };
+
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
   const [notesFilter, setNotesFilter] = useState('notes'); // 'notes' or 'requests'
   const [editingItem, setEditingItem] = useState(null);
@@ -68,7 +102,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const handleChapterDrop = (targetIdx) => {
     if (draggedChapterIdx === null || draggedChapterIdx === targetIdx) return;
     const listKey = 'chapters';
-    const items = [...(data[listKey] || [])];
+    const items = [...getList(listKey)];
     const [moved] = items.splice(draggedChapterIdx, 1);
     items.splice(targetIdx, 0, moved);
     onUpdate({ ...data, [listKey]: items });
@@ -122,14 +156,25 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    autoSaveTimeoutRef.current = setTimeout(() => {
+    autoSaveTimeoutRef.current = setTimeout(async () => {
       const listKey = getListKey(formData.type);
       
-      const currentItem = (data[listKey] || []).find(i => i.id === formData.id);
+      const currentItem = getList(listKey).find(i => i.id === formData.id);
       if (JSON.stringify(currentItem) === JSON.stringify(formData)) return;
 
-      const updatedList = (data[listKey] || []).map(item => item.id === formData.id ? formData : item);
-      onUpdate({ ...data, [listKey]: updatedList });
+      const updatedList = getList(listKey).map(item => item.id === formData.id ? formData : item);
+      if (['chapters', 'notes'].includes(listKey)) {
+        onUpdate({ ...data, [listKey]: updatedList });
+      } else {
+        try {
+          const typeMapping = { 'characters': 'personagem', 'locations': 'local', 'organizations': 'organizacao', 'items': 'item', 'clues': 'pista', 'events': 'evento', 'posts': 'post' };
+          const uItem = { id: formData.id, book_id: bookId, type: typeMapping[listKey] || 'personagem', name: formData.name || formData.title || 'Sem Nome', role: formData.role || '', age: formData.age || null, territory: formData.territory || '', image: formData.image || '', description: formData.description || formData.content || '', motivations: formData.motivations || '', curiosities: formData.curiosities || '', status: formData.status || 'draft', gallery: formData.gallery || [], custom_fields: formData.customFields || [], private_notes: formData.privateNotes || '' };
+          await api.saveUniverseItem(uItem);
+          setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
+        } catch (err) {
+          console.error('Autosave error:', err);
+        }
+      }
     }, 2000);
 
     return () => clearTimeout(autoSaveTimeoutRef.current);
@@ -222,7 +267,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     }
   };
 
-  const moveToTrash = (itemType, itemData, parentId = null) => {
+     const moveToTrash = (itemType, itemData, parentId = null) => {
     const trashItem = {
       id: 'trash_' + Date.now() + Math.floor(Math.random() * 1000),
       itemType,
@@ -237,15 +282,15 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     onUpdateBook(updatedBook);
   };
 
-  const handleDelete = (id, type) => {
+  const handleDelete = async (id, type) => {
     if (isReadOnly) return;
     if (window.confirm('Tem certeza que deseja excluir? Ele será movido para a Lixeira.')) {
       const listKey = getListKey(type);
-      const deletedItem = (data[listKey] || []).find(item => item.id === id);
+      const deletedItem = getList(listKey).find(item => item.id === id);
       if (deletedItem) {
         moveToTrash(type, deletedItem);
       }
-      const updatedList = (data[listKey] || []).filter(item => item.id !== id);
+      const updatedList = getList(listKey).filter(item => item.id !== id);
       
       if (onLogChange && deletedItem) {
         const typeNames = { chapters: 'capítulo', characters: 'personagem', locations: 'local', organizations: 'organização', clues: 'complemento', items: 'item', events: 'evento/tag', posts: 'notícia/post' };
@@ -253,18 +298,29 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         onLogChange(`Excluiu ${typeName}`, deletedItem.name || deletedItem.title || `ID: ${id}`);
       }
 
-      onUpdate({ ...data, [listKey]: updatedList });
+      if (['chapters', 'notes'].includes(listKey)) {
+        onUpdate({ ...data, [listKey]: updatedList });
+      } else {
+        try {
+          await api.deleteUniverseItem(id);
+          setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
+        } catch (err) {
+          console.error("Erro ao deletar item do universo", err);
+          toast.error("Erro ao excluir.");
+        }
+      }
+
       if (editingItem === id) handleCloseEdit();
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isReadOnly) return;
     const listKey = getListKey(formData.type);
     let updatedList;
     
     if (editingItem === 'new') {
-      updatedList = [...(data[listKey] || []), formData];
+      updatedList = [...getList(listKey), formData];
       setEditingItem(formData.id);
       if (onLogChange) {
         const typeNames = { chapters: 'capítulo', characters: 'personagem', locations: 'local', organizations: 'organização', clues: 'complemento', items: 'item', events: 'evento/tag', posts: 'notícia/post' };
@@ -272,7 +328,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
         onLogChange(`Criou novo(a) ${typeName}`, formData.name || formData.title || 'Sem título');
       }
     } else {
-      updatedList = (data[listKey] || []).map(item => item.id === formData.id ? formData : item);
+      updatedList = getList(listKey).map(item => item.id === formData.id ? formData : item);
       if (onLogChange) {
         const typeNames = { chapters: 'capítulo', characters: 'personagem', locations: 'local', organizations: 'organização', clues: 'complemento', items: 'item', events: 'evento/tag', posts: 'notícia/post' };
         const typeName = typeNames[activeList] || 'registro';
@@ -280,10 +336,47 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
     }
 
-    onUpdate({ ...data, [listKey]: updatedList });
+    if (['chapters', 'notes'].includes(listKey)) {
+      onUpdate({ ...data, [listKey]: updatedList });
+    } else {
+      try {
+        const typeMapping = {
+            'characters': 'personagem',
+            'locations': 'local',
+            'organizations': 'organizacao',
+            'items': 'item',
+            'clues': 'pista',
+            'events': 'evento',
+            'posts': 'post'
+        };
+        const uItem = {
+           id: formData.id,
+           book_id: bookId,
+           type: typeMapping[listKey] || 'personagem',
+           name: formData.name || formData.title || 'Sem Nome',
+           role: formData.role || '',
+           age: formData.age || null,
+           territory: formData.territory || '',
+           image: formData.image || '',
+           description: formData.description || formData.content || '',
+           motivations: formData.motivations || '',
+           curiosities: formData.curiosities || '',
+           status: formData.status || 'draft',
+           gallery: formData.gallery || [],
+           custom_fields: formData.customFields || [],
+           private_notes: formData.privateNotes || ''
+        };
+        await api.saveUniverseItem(uItem);
+        setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
+        toast.success("Salvo com sucesso!");
+      } catch (err) {
+        console.error("Erro ao salvar item do universo", err);
+        toast.error("Erro ao salvar.");
+      }
+    }
   };
 
-  const handleTogglePublishStatus = () => {
+  const handleTogglePublishStatus = async () => {
     if (isReadOnly || effectiveReadOnly) return;
     
     if (formData.status === 'draft') {
@@ -293,20 +386,49 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       const listKey = getListKey(formData.type);
       let updatedList;
       if (editingItem === 'new') {
-        updatedList = [...(data[listKey] || []), updated];
+        updatedList = [...getList(listKey), updated];
         setEditingItem(updated.id);
       } else {
-        updatedList = (data[listKey] || []).map(item => item.id === updated.id ? updated : item);
+        updatedList = getList(listKey).map(item => item.id === updated.id ? updated : item);
       }
-      onUpdate({ ...data, [listKey]: updatedList });
-      
+
+      if (['chapters', 'notes'].includes(listKey)) {
+        onUpdate({ ...data, [listKey]: updatedList });
+      } else {
+        try {
+          const typeMapping = { 'characters': 'personagem', 'locations': 'local', 'organizations': 'organizacao', 'items': 'item', 'clues': 'pista', 'events': 'evento', 'posts': 'post' };
+          const uItem = {
+             id: updated.id, book_id: bookId, type: typeMapping[listKey] || 'personagem',
+             name: updated.name || updated.title || 'Sem Nome', role: updated.role || '', age: updated.age || null, territory: updated.territory || '', image: updated.image || '', description: updated.description || updated.content || '', motivations: updated.motivations || '', curiosities: updated.curiosities || '', status: updated.status, gallery: updated.gallery || [], custom_fields: updated.customFields || [], private_notes: updated.privateNotes || ''
+          };
+          await api.saveUniverseItem(uItem);
+          setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
+        } catch (err) {
+          console.error(err);
+        }
+      }
     } else {
       const updated = { ...formData, status: 'draft' };
       setFormData(updated);
       
       const listKey = getListKey(formData.type);
-      let updatedList = (data[listKey] || []).map(item => item.id === updated.id ? updated : item);
-      onUpdate({ ...data, [listKey]: updatedList });
+      let updatedList = getList(listKey).map(item => item.id === updated.id ? updated : item);
+
+      if (['chapters', 'notes'].includes(listKey)) {
+        onUpdate({ ...data, [listKey]: updatedList });
+      } else {
+        try {
+          const typeMapping = { 'characters': 'personagem', 'locations': 'local', 'organizations': 'organizacao', 'items': 'item', 'clues': 'pista', 'events': 'evento', 'posts': 'post' };
+          const uItem = {
+             id: updated.id, book_id: bookId, type: typeMapping[listKey] || 'personagem',
+             name: updated.name || updated.title || 'Sem Nome', role: updated.role || '', age: updated.age || null, territory: updated.territory || '', image: updated.image || '', description: updated.description || updated.content || '', motivations: updated.motivations || '', curiosities: updated.curiosities || '', status: updated.status, gallery: updated.gallery || [], custom_fields: updated.customFields || [], private_notes: updated.privateNotes || ''
+          };
+          await api.saveUniverseItem(uItem);
+          setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
   };
 
@@ -496,7 +618,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     }
   };
 
-  const handleRestoreFromTrash = (trashItem) => {
+  const handleRestoreFromTrash = async (trashItem) => {
     if (isReadOnly) return;
     if (trashItem.itemType === 'session') {
       const parentChapter = (data.chapters || []).find(c => c.id === trashItem.parentId);
@@ -519,10 +641,19 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
       onUpdateBook({ ...currentBook, escaletaGroups: groups });
     } else {
-      const listKey = getListKey(trashItem.itemType);
-      const updatedList = [...(data[listKey] || []), trashItem.itemData];
-      onUpdate({ ...data, [listKey]: updatedList });
-    }
+        const listKey = getListKey(trashItem.itemType);
+        const updatedList = [...getList(listKey), trashItem.itemData];
+        if (['chapters', 'notes'].includes(listKey)) {
+          onUpdate({ ...data, [listKey]: updatedList });
+        } else {
+          try {
+            const typeMapping = { 'characters': 'personagem', 'locations': 'local', 'organizations': 'organizacao', 'items': 'item', 'clues': 'pista', 'events': 'evento', 'posts': 'post' };
+            const dItem = trashItem.itemData;
+            const uItem = { id: dItem.id, book_id: bookId, type: typeMapping[listKey] || 'personagem', name: dItem.name || dItem.title || 'Sem Nome', role: dItem.role || '', age: dItem.age || null, territory: dItem.territory || '', image: dItem.image || '', description: dItem.description || dItem.content || '', motivations: dItem.motivations || '', curiosities: dItem.curiosities || '', status: dItem.status || 'draft', gallery: dItem.gallery || [], custom_fields: dItem.customFields || [], private_notes: dItem.privateNotes || '' };
+            api.saveUniverseItem(uItem).then(() => { setUniverseItems(prev => ({ ...prev, [listKey]: updatedList })); });
+          } catch (err) { console.error(err); }
+        }
+      }
     
     const updatedTrash = (currentBook.trash || []).filter(t => t.id !== trashItem.id);
     onUpdateBook({ ...currentBook, trash: updatedTrash });
@@ -1376,7 +1507,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               isReadOnly={isReadOnly}
               bookTitle={currentBook?.title}
               universe={currentBook?.universe || {}}
-              events={data.events || []}
+              events={getList('events')}
             />
           </div>
         )

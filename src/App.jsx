@@ -70,7 +70,18 @@ export default function App() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
-  const [viewRoleOverride, setViewRoleOverride] = useState(null);
+  const [viewRoleOverride, setViewRoleOverride] = useState(() => {
+    try { return localStorage.getItem('sagaflix_viewRole') || null; } catch { return null; }
+  });
+  
+  useEffect(() => {
+    if (viewRoleOverride) {
+      localStorage.setItem('sagaflix_viewRole', viewRoleOverride);
+    } else {
+      localStorage.removeItem('sagaflix_viewRole');
+    }
+  }, [viewRoleOverride]);
+
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
     try { return localStorage.getItem('sagaflix_universeTab') || 'home'; } catch { return 'home'; }
@@ -118,15 +129,20 @@ export default function App() {
   const path = window.location.pathname.toLowerCase();
   let portalRole = 'reader';
   if (path.startsWith('/curador')) portalRole = 'curator';
-  if (path.startsWith('/autor')) portalRole = 'author';
+  else if (path.startsWith('/autor')) portalRole = 'author';
 
   let resolvedRole = currentUser ? currentUser.role : null;
   if (currentUser && currentUser.role === 'admin') {
     resolvedRole = portalRole; // admin assume o papel do portal que está acessando
   }
-  if (currentUser && currentUser.role === 'author' && portalRole === 'reader') {
+
+  // Check if the user is using the viewRoleOverride to switch roles
+  if (currentUser && currentUser.role === 'author' && viewRoleOverride === 'reader') {
+    resolvedRole = 'reader';
+  } else if (currentUser && currentUser.role === 'author' && portalRole === 'reader' && !viewRoleOverride) {
     resolvedRole = 'reader';
   }
+
   const viewRole = viewRoleOverride || resolvedRole;
 
   const handleVerifyEmail = async (token) => {
@@ -146,16 +162,38 @@ export default function App() {
       window.history.replaceState({}, document.title, '/');
       setResetTokenActive(null);
     } catch (err) {
-      setResetError('Erro de conexão ao redefinir a senha.');
+      setResetError('Erro ao redefinir a senha.');
     }
   };
+
+  // Se o usuário logou, garantir que ele está no portal certo
+  const isAuthorOnReaderPortal = (currentUser?.role === 'author' || currentUser?.role === 'curator') && portalRole === 'reader';
+  const isAdmin = currentUser?.role === 'admin';
+  const isCuratorOnAuthorPortal = currentUser?.role === 'curator' && portalRole === 'author'; 
+  
+  if (currentUser && currentUser.role !== portalRole && !isAuthorOnReaderPortal && !isAdmin && !isCuratorOnAuthorPortal) {
+    return (
+      <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>
+        <h2>Acesso Negado</h2>
+        <p>Seu perfil de <strong>{currentUser.role}</strong> não tem permissão para acessar o portal <strong>{portalRole}</strong>.</p>
+        <button onClick={() => window.location.href = '/'} className="btn-primary" style={{ marginTop: '1rem', marginRight: '1rem' }}>Ir para Leitura</button>
+        <button onClick={handleLogout} className="btn-secondary" style={{ marginTop: '1rem' }}>Sair da Conta</button>
+      </div>
+    );
+  }
 
   const fetchData = async () => {
     try {
       const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
       if (dbError) throw dbError;
       if (dbData && dbData.data) {
-         setDb(dbData.data);
+         const finalData = { ...dbData.data };
+         // Merge books from relational DB to keep legacy parts working while migrating
+         const { data: allBooks } = await supabase.from('books').select('*');
+         if (allBooks) {
+           finalData.books = allBooks;
+         }
+         setDb(finalData);
       }
       
       const savedUser = localStorage.getItem('sagaflix_user');
@@ -627,10 +665,15 @@ export default function App() {
               )}
             </div>
             {!isMobile && (
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Olá, <strong style={{ color: 'var(--text-main)' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</strong>
-                <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  Olá, <strong style={{ color: 'var(--text-main)' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</strong>
+                  <Settings size={14} style={{ color: 'var(--accent-gold)' }} />
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', marginTop: '-2px' }}>
+                  {viewRole === 'author' ? '(Autor)' : viewRole === 'curator' ? '(Curador)' : '(Leitor)'}
+                </span>
+              </div>
             )}
             {isMobile && (
               <Settings size={18} style={{ color: 'var(--accent-gold)' }} />
@@ -749,12 +792,33 @@ export default function App() {
               escaleta: []
             };
             try {
-              const { data, error } = await supabase.from('books').insert(newBook).select().single();
-              if (error) throw error;
+              const dbBook = {
+                id: newBook.id,
+                author_id: newBook.author_id,
+                title: newBook.title,
+                status: newBook.status,
+                cover: newBook.cover_url,
+                sku: newBook.sku,
+                premissa: newBook.synopsis,
+                synopsis: newBook.synopsis,
+                distribution_mode: newBook.distribution_mode,
+                book_type: newBook.book_type,
+                views: 0,
+                ratings: [],
+                chapters: [],
+                co_authors: []
+              };
+              const { data, error } = await supabase.from('books').insert(dbBook).select().single();
+              if (error) {
+                console.error("Supabase error:", error);
+                throw error;
+              }
+              setDb(prev => prev ? { ...prev, books: [...(prev.books || []), newBook] } : prev);
               toast.success("Livro criado!");
               setShowNewBook(false);
               setCurrentBookId(data.id);
             } catch (err) {
+              console.error(err);
               toast.error("Erro ao criar livro.");
             }
           }}
@@ -787,7 +851,7 @@ export default function App() {
                 
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
                   
-                  {currentUser.role === 'author' && (
+                  {currentUser.role !== 'reader' && (
                     <button 
                       onClick={() => {
                         setViewRoleOverride(viewRole === 'author' ? 'reader' : 'author');

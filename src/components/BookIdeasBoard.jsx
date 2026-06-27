@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Palette, Plus, ChevronDown, ChevronUp, Trash2, Maximize2, X, Menu } from 'lucide-react';
 import JoditEditor from 'jodit-react';
+import { api } from '../lib/api';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -116,11 +117,29 @@ function DebouncedRichTextEditor({ value, onChange, placeholder, style, onFocus 
   );
 }
 
-export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerActions }) {
+export default function BookIdeasBoard({ book, bookId, authorId, onUpdateBook, onOpenMenu, headerActions }) {
   const [showLegends, setShowLegends] = useState(false);
   const [draggedIdeaIdx, setDraggedIdeaIdx] = useState(null);
   const [expandedIdeaId, setExpandedIdeaId] = useState(null);
   const [activeColorPaletteId, setActiveColorPaletteId] = useState(null);
+  const [ideas, setIdeas] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchIdeas() {
+      if (!bookId && !authorId && !book?.id) return;
+      setIsLoading(true);
+      try {
+        const data = await api.getBookIdeas(bookId || (book ? book.id : null), authorId);
+        setIdeas(data || []);
+      } catch (err) {
+        console.error("Erro ao buscar ideias:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchIdeas();
+  }, [book?.id, bookId, authorId]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -132,25 +151,32 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const ideas = book.ideas || [];
-  const ideaLegends = { ...DEFAULT_LEGENDS, ...(book.ideaLegends || {}) };
+  const ideaLegends = { ...DEFAULT_LEGENDS, ...(book?.ideaLegends || {}) };
 
-  const handleAddIdea = () => {
+  const handleAddIdea = async () => {
     const newIdea = {
       id: 'idea_' + Date.now() + Math.floor(Math.random() * 1000),
+      book_id: bookId || (book ? book.id : null),
+        author_id: authorId,
       title: '',
       text: '',
-      color: '#FFE082' // Default amarelo
+      color: '#FFE082',
+      order_index: -1
     };
-    const updatedIdeas = [newIdea, ...ideas];
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    
+    setIdeas([newIdea, ...ideas]);
+    try {
+      await api.saveBookIdea(newIdea);
+    } catch (err) {
+      console.error("Erro ao criar ideia:", err);
+    }
   };
 
   const handleDragStart = (idx) => {
     setDraggedIdeaIdx(idx);
   };
 
-  const handleDrop = (idx) => {
+  const handleDrop = async (idx) => {
     if (draggedIdeaIdx === null || draggedIdeaIdx === idx) return;
     
     const updatedIdeas = [...ideas];
@@ -159,38 +185,59 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
     updatedIdeas.splice(draggedIdeaIdx, 1);
     updatedIdeas.splice(idx, 0, draggedItem);
     
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    setIdeas(updatedIdeas);
     setDraggedIdeaIdx(null);
+    
+    try {
+      const ideasToSave = updatedIdeas.map((i, index) => ({ ...i, order_index: index }));
+      await api.saveBookIdea(ideasToSave);
+    } catch (err) {
+      console.error("Erro ao atualizar ordem das ideias:", err);
+    }
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
   };
 
-  const handleUpdateIdeaTitle = (id, newTitle) => {
+  const handleUpdateIdeaTitle = async (id, newTitle) => {
     const updatedIdeas = ideas.map(idea => idea.id === id ? { ...idea, title: newTitle } : idea);
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    setIdeas(updatedIdeas);
+    try {
+        const target = updatedIdeas.find(i => i.id === id);
+        if (target) await api.saveBookIdea(target);
+    } catch (err) { console.error(err); }
   };
 
-  const handleUpdateIdeaText = (id, newText) => {
+  const handleUpdateIdeaText = async (id, newText) => {
     const updatedIdeas = ideas.map(idea => idea.id === id ? { ...idea, text: newText } : idea);
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    setIdeas(updatedIdeas);
+    try {
+        const target = updatedIdeas.find(i => i.id === id);
+        if (target) await api.saveBookIdea(target);
+    } catch (err) { console.error(err); }
   };
 
-  const handleUpdateIdeaColor = (id, colorHex) => {
+  const handleUpdateIdeaColor = async (id, colorHex) => {
     const updatedIdeas = ideas.map(idea => idea.id === id ? { ...idea, color: colorHex } : idea);
-    onUpdateBook({ ...book, ideas: updatedIdeas });
+    setIdeas(updatedIdeas);
+    try {
+        const target = updatedIdeas.find(i => i.id === id);
+        if (target) await api.saveBookIdea(target);
+    } catch (err) { console.error(err); }
   };
 
-  const handleDeleteIdea = (id) => {
-    if (window.confirm("Tem certeza que deseja excluir esta anotação? Ela será movida para a Lixeira.")) {
+  const handleDeleteIdea = async (id) => {
+    if (window.confirm("Tem certeza que deseja excluir esta anotação?")) {
       const updatedIdeas = ideas.filter(i => i.id !== id);
-      const ideaToDelete = ideas.find(i => i.id === id);
-      const trashItem = { ...ideaToDelete, deletedAt: new Date().toISOString(), itemType: 'ideia', itemData: ideaToDelete };
-      const updatedTrash = [...(book.trash || []), trashItem];
-      
-      onUpdateBook({ ...book, ideas: updatedIdeas, trash: updatedTrash });
+      setIdeas(updatedIdeas);
       if (expandedIdeaId === id) setExpandedIdeaId(null);
+      
+      try {
+          await api.deleteBookIdea(id);
+      } catch (err) {
+          console.error(err);
+      }
     }
   };
 
@@ -199,7 +246,7 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
       ...ideaLegends,
       [colorHex]: text
     };
-    onUpdateBook({ ...book, ideaLegends: updatedLegends });
+    if (onUpdateBook && book) { onUpdateBook({ ...book, ideaLegends: updatedLegends }); }
   };
 
   return (
@@ -207,7 +254,7 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flexShrink: 0, padding: '1.5rem 1.5rem 0 1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '15pt', flex: 1 }}>
-            Painel de Ideias: {book.title}
+            Painel de Ideias: {book ? book.title : "Ideias Gerais"}
           </h2>
           {headerActions}
           {onOpenMenu && (
@@ -269,7 +316,9 @@ export default function BookIdeasBoard({ book, onUpdateBook, onOpenMenu, headerA
         padding: '0 1.5rem 2rem 1.5rem',
         overflowY: 'auto'
       }}>
-        {ideas.length === 0 ? (
+        {isLoading ? (
+          <div style={{ color: 'var(--text-muted)', padding: '2rem', textAlign: 'center' }}>Carregando ideias...</div>
+        ) : ideas.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', color: 'var(--text-muted)', background: 'var(--card-bg)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
             <Palette size={64} style={{ opacity: 0.15, marginBottom: '1.5rem' }} />
             <p style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>O painel de ideias deste livro está vazio.</p>
