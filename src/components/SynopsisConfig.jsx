@@ -1,7 +1,7 @@
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { Save, Upload, Trash2, AlertTriangle, Lock, Eye, EyeOff, X, UserPlus, UserCheck, Info, Menu, CheckCircle } from 'lucide-react';
-import { uploadImage } from '../lib/supabaseClient';
+import { supabase, uploadImage } from '../lib/supabaseClient';
 import { GENRES_LIST } from '../lib/genres';
 
 export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogChange, currentUser, db, onUpdateData, onLeave, onOpenMenu }) {
@@ -78,19 +78,39 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
   };
 
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!passwordInput) {
       setDeleteError("Por favor, digite sua senha.");
       return;
     }
-    if (passwordInput === currentUser?.password) {
+    try {
+      // Re-authenticate user temporarily with the password to verify it
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: currentUser.email,
+        password: passwordInput
+      });
+
+      if (error) {
+        setDeleteError("Senha incorreta.");
+        return;
+      }
+
+      // Password verified! Delete from relational table
       if (db && onUpdateData && onLeave) {
+        const { error: dbError } = await supabase.from('books').delete().eq('id', book.id);
+        if (dbError) {
+          console.error("Error deleting book from database:", dbError);
+          setDeleteError("Erro ao excluir do banco de dados: " + dbError.message);
+          return;
+        }
+
         const newDb = { ...db, books: db.books.filter(b => b.id !== book.id) };
         onUpdateData(newDb);
         onLeave();
       }
-    } else {
-      setDeleteError("Senha incorreta.");
+    } catch (err) {
+      console.error("Error in delete book process:", err);
+      setDeleteError("Erro interno ao validar senha.");
     }
   };
 

@@ -290,6 +290,14 @@ function AppContent() {
     e.preventDefault();
     if (!profileForm.name) { toast.error('Nome é obrigatório.'); return; }
     try {
+      if (profileForm.password && profileForm.password.trim() !== '') {
+        const { error: authError } = await supabase.auth.updateUser({ password: profileForm.password });
+        if (authError) {
+          toast.error('Erro ao atualizar senha: ' + authError.message);
+          return;
+        }
+      }
+
       const updatedUser = {
         name: profileForm.name,
         nickname: profileForm.nickname,
@@ -306,6 +314,7 @@ function AppContent() {
       setIsEditingProfile(false);
       toast.success('Configurações salvas!');
     } catch (err) {
+      console.error(err);
       toast.error('Erro ao salvar.');
     }
   };
@@ -1060,8 +1069,8 @@ function AppContent() {
                     value={profileForm.password || ''} 
                     onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
                     className="form-input" 
+                    placeholder="Deixe em branco para manter..."
                     style={{ paddingRight: '2.5rem', width: '100%' }}
-                    required 
                   />
                   <button 
                     type="button" 
