@@ -63,6 +63,7 @@ function AppContent() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [profileUploading, setProfileUploading] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
 
   const [initialUniverseTabState, setInitialUniverseTabState] = useState(() => {
@@ -275,7 +276,7 @@ function AppContent() {
       nickname: currentUser.nickname || '',
       displayMode: currentUser.displayMode || 'nickname',
       email: currentUser.email || '',
-      password: currentUser.password || '',
+      password: '',
       avatar: currentUser.avatar || '',
       bio: currentUser.bio || '',
       about: currentUser.about || '',
@@ -283,6 +284,7 @@ function AppContent() {
       writingStyle: currentUser.writingStyle || ''
     });
     setIsEditingProfile(false);
+    setChangePassword(false);
     setShowProfileModal(true);
   };
 
@@ -290,7 +292,7 @@ function AppContent() {
     e.preventDefault();
     if (!profileForm.name) { toast.error('Nome é obrigatório.'); return; }
     try {
-      if (profileForm.password && profileForm.password.trim() !== '') {
+      if (changePassword && profileForm.password && profileForm.password.trim() !== '') {
         const { error: authError } = await supabase.auth.updateUser({ password: profileForm.password });
         if (authError) {
           toast.error('Erro ao atualizar senha: ' + authError.message);
@@ -1060,27 +1062,44 @@ function AppContent() {
                 />
               </div>
 
-              {/* Senha */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Senha</label>
-                <div style={{ position: 'relative' }}>
+               {/* Opção para alterar senha */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--text-main)', fontSize: '0.9rem' }}>
                   <input 
-                    type={showProfilePassword ? 'text' : 'password'} 
-                    value={profileForm.password || ''} 
-                    onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
-                    className="form-input" 
-                    placeholder="Deixe em branco para manter..."
-                    style={{ paddingRight: '2.5rem', width: '100%' }}
+                    type="checkbox" 
+                    checked={changePassword} 
+                    onChange={e => {
+                      setChangePassword(e.target.checked);
+                      if (!e.target.checked) setProfileForm({ ...profileForm, password: '' });
+                    }} 
                   />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowProfilePassword(!showProfilePassword)} 
-                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                  >
-                    {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
+                  Alterar Senha do Autor
+                </label>
               </div>
+
+              {changePassword && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Nova Senha</label>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showProfilePassword ? 'text' : 'password'} 
+                      value={profileForm.password || ''} 
+                      onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
+                      className="form-input" 
+                      placeholder="Digite a nova senha..."
+                      style={{ paddingRight: '2.5rem', width: '100%' }}
+                      required
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowProfilePassword(!showProfilePassword)} 
+                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    >
+                      {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Cidade / Origem (Autores e Curadores) */}
               {['author', 'curator'].includes(currentUser.role) && (
