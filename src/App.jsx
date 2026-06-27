@@ -186,12 +186,25 @@ function AppContent() {
 
   // DB Sync Effect
   useEffect(() => {
+    const withTimeout = (promise, ms = 8000) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de conexão Supabase')), ms))
+      ]);
+    };
+
     const fetchData = async () => {
       try {
-        const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+        const { data: dbData, error: dbError } = await withTimeout(
+          supabase.from('sagaflix_db').select('data').eq('id', 1).single(),
+          8000
+        );
         if (dbData && dbData.data) {
            const finalData = { ...dbData.data };
-           const { data: allBooks } = await supabase.from('books').select('*');
+           const { data: allBooks } = await withTimeout(
+             supabase.from('books').select('*'),
+             8000
+           );
            if (allBooks) {
              finalData.books = allBooks.map(b => ({
                ...b,
@@ -203,7 +216,7 @@ function AppContent() {
            setDb(finalData);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Erro no carregamento inicial:", err);
       } finally {
         setLoading(false);
       }
