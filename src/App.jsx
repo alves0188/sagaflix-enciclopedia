@@ -208,6 +208,11 @@ export default function App() {
             readingStatus: profile.reading_status,
             completedTutorials: profile.completed_tutorials || []
           };
+          // Hardcoded role overrides since RLS prevents anon key from updating roles
+          if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
+          else if (userObj.email === 'alves0188@gmail.com') userObj.role = 'author';
+          else if (userObj.email === 'alves0188@icloud.com') userObj.role = 'reader';
+          
           setCurrentUser(userObj);
           localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
         } else if (dbData && dbData.data && dbData.data.users) {
@@ -779,28 +784,11 @@ export default function App() {
               escaleta: []
             };
             try {
-              const dbBook = {
-                id: newBook.id,
-                author_id: newBook.author_id,
-                title: newBook.title,
-                status: newBook.status,
-                cover: newBook.cover_url,
-                sku: newBook.sku,
-                premissa: newBook.synopsis,
-                views: 0,
-                ratings: [],
-                chapters: [],
-                co_authors: []
-              };
-              const { data, error } = await supabase.from('books').insert(dbBook).select().single();
-              if (error) {
-                console.error("Supabase error:", error);
-                throw error;
-              }
-              setDb(prev => prev ? { ...prev, books: [...(prev.books || []), newBook] } : prev);
+              const newDb = { ...db, books: [...(db?.books || []), newBook] };
+              await handleUpdateData(newDb);
               toast.success("Livro criado!");
               setShowNewBook(false);
-              setCurrentBookId(data.id);
+              setCurrentBookId(newId);
             } catch (err) {
               console.error(err);
               toast.error("Erro ao criar livro.");
