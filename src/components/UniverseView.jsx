@@ -8,6 +8,7 @@ import AdminPanel from './AdminPanel';
 import Reader from './Reader';
 import AuthorModal from './AuthorModal';
 import { useHashHistory } from '../hooks/useHashHistory';
+import { supabase } from '../lib/supabaseClient';
 
 const ExpandableText = ({ text, maxLength = 250 }) => {
   const [expanded, setExpanded] = useState(false);
