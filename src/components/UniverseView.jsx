@@ -99,6 +99,10 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     requestedFeatures: []
   });
 
+  if (!db || !db.books) {
+    return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Universo...</div>;
+  }
+
   const bookIndex = db.books.findIndex(b => b.id === bookId);
   const currentBook = db.books[bookIndex];
   const universe = currentBook?.universe || {};
