@@ -7,6 +7,7 @@ import BookEscaletaBoard from './BookEscaletaBoard';
 import BookPremissaBoard from './BookPremissaBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
 import HQModal from './HQModal';
+import { supabase } from '../lib/supabaseClient';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
