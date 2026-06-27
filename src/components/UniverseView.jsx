@@ -100,36 +100,32 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     requestedFeatures: []
   });
 
-  if (!db || !db.books) {
-    return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Universo...</div>;
-  }
-
-  const bookIndex = db.books.findIndex(b => b.id === bookId);
-  const currentBook = db.books[bookIndex];
+  const bookIndex = db && db.books ? db.books.findIndex(b => b.id === bookId) : -1;
+  const currentBook = db && db.books && bookIndex !== -1 ? db.books[bookIndex] : null;
   const universe = currentBook?.universe || {};
   const visibility = currentBook?.universeVisibility || {};
-
+ 
   const isAuthorOrCurator = currentUser?.role === 'curator' || currentBook?.authorId === currentUser?.id;
   const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
-
+ 
   // Determinar se existem itens publicados nas abas do Universo
   const hasPublishedCharacters = filterDrafts(universe.characters || []).length > 0;
   const hasPublishedLocations = filterDrafts(universe.locations || []).length > 0;
   const hasPublishedOrganizations = filterDrafts(universe.organizations || []).length > 0;
   const hasPublishedClues = filterDrafts(universe.clues || []).length > 0;
-
+ 
   // Uma aba é visível se o autor não a desativou explicitamente E (possui itens OU usuário é o autor/curador)
   const isTabVisible = (key, hasPublished) => {
     const authorEnabled = visibility[key] !== false; // Se undefined, padrão é true
     return authorEnabled && (hasPublished || isAuthorOrCurator);
   };
-
+ 
   const showHome = visibility.home !== false;
   const showCharacters = isTabVisible('characters', hasPublishedCharacters);
   const showLocations = isTabVisible('locations', hasPublishedLocations);
   const showOrganizations = isTabVisible('organizations', hasPublishedOrganizations);
   const showClues = isTabVisible('clues', hasPublishedClues);
-
+ 
   useEffect(() => {
     let defaultTab = 'home';
     if (!showHome) {
@@ -140,6 +136,10 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     }
     setActiveTab(initialTab || defaultTab);
   }, [bookId, initialTab, showHome, showCharacters, showLocations, showOrganizations, showClues]);
+
+  if (!db || !db.books || !currentBook) {
+    return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Universo...</div>;
+  }
 
   const handleUpdateUniverse = (newUniverse) => {
     const newDb = { ...db };
