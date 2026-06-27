@@ -41,13 +41,14 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
         ]);
         
         if (err1 || err2 || err3 || err4) console.error("Data load error:", err1, err2, err3, err4);
+        console.log("[AuthorDashboard] FETCHED BOOKS FROM SUPABASE:", books);
 
         setLocalData({
         users: (profiles || []).map(p => ({
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, avatar: p.avatar_url
         })),
         books: (books || []).map(b => ({
-          id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
+          id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
           bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
           coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
           genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
@@ -194,6 +195,7 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
     (b.coAuthorIds && b.coAuthorIds.includes(effectiveUserId)) ||
     (b.co_authors && b.co_authors.includes(effectiveUserId))
   );
+  console.log("[AuthorDashboard] FILTERED AUTHOR BOOKS:", authorBooks, "FOR USER:", effectiveUserId);
 
   // Carregar dados de Ideias e Legendas do perfil do usuário ativo
   const ideas = effectiveUser.ideas || [];

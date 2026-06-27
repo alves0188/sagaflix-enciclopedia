@@ -71,9 +71,12 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
       const mappedBooks = (books || []).map(b => ({
         id: b.id,
         authorId: b.author_id,
+        author_id: b.author_id,
         title: b.title,
         status: b.status,
         coverUrl: b.cover_url,
+        cover: b.cover_url,
+        cover_url: b.cover_url,
         bannerUrl: b.banner_url,
         synopsis: b.synopsis,
         loreAreas: b.lore_areas || [],
@@ -93,7 +96,6 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
         typesettingSettings: b.typesetting_settings || {},
         ratings: b.ratings || [],
         bookType: b.book_type,
-
       }));
 
       const mappedUsers = (profiles || []).map(p => ({

@@ -137,7 +137,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, status: 'approved'
         })),
         books: (books || []).map(b => ({
-          id: b.id, authorId: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url,
+          id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
           bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
           coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
           genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,

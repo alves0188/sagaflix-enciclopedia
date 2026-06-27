@@ -192,7 +192,12 @@ function AppContent() {
            const finalData = { ...dbData.data };
            const { data: allBooks } = await supabase.from('books').select('*');
            if (allBooks) {
-             finalData.books = allBooks;
+             finalData.books = allBooks.map(b => ({
+               ...b,
+               authorId: b.author_id,
+               coverUrl: b.cover_url,
+               cover: b.cover_url
+             }));
            }
            setDb(finalData);
         }
@@ -750,7 +755,10 @@ function AppContent() {
               title: bookData.title,
               synopsis: bookData.synopsis,
               cover_url: bookData.cover,
+              coverUrl: bookData.cover,
+              cover: bookData.cover,
               author_id: currentUser.id,
+              authorId: currentUser.id,
               status: 'draft',
               sku: bookData.sku,
               distribution_mode: bookData.distributionMode,
@@ -795,6 +803,7 @@ function AppContent() {
                 synopsis: newBook.synopsis || '',
                 book_type: newBook.book_type || 'complete',
                 distribution_mode: newBook.distribution_mode || 'free',
+                sku: newBook.sku || '',
                 genres: newBook.genres || [],
                 co_author_ids: newBook.co_author_ids || [],
                 universe: newBook.universe || {},
