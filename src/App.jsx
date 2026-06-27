@@ -728,7 +728,7 @@ function AppContent() {
               setCurrentBookId(newId);
             } catch (err) {
               console.error(err);
-              toast.error("Erro ao criar livro no Banco de Dados.");
+              toast.error("Erro DB: " + (err?.message || err?.details || "Falha ao inserir livro"));
             }
           }}
         />
