@@ -754,8 +754,13 @@ function AppContent() {
                       <User size={60} color="var(--accent-gold)" />
                     )}
                   </div>
-                  <h2 style={{ color: 'var(--text-main)', margin: '0.5rem 0 0 0', fontSize: '1.4rem' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</h2>
-                  <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>ID: {currentUser.id}</p>
+                  <h2 style={{ color: 'var(--text-main)', margin: '0.5rem 0 0 0', fontSize: '1.4rem', textAlign: 'center' }}>{(currentUser.displayMode === 'name' ? currentUser.name : (currentUser.nickname || currentUser.name))}</h2>
+                  <div style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', borderRadius: '12px', padding: '2px 10px', marginTop: '4px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      {currentUser.role === 'admin' ? 'Administrador' : currentUser.role === 'curator' ? 'Curador' : currentUser.role === 'author' ? 'Autor' : 'Leitor'}
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0 0', fontSize: '0.8rem' }}>ID: {currentUser.id.split('-')[0]}...</p>
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
@@ -856,6 +861,11 @@ function AppContent() {
                   ) : (
                     <User size={50} color="var(--accent-gold)" />
                   )}
+                </div>
+                <div style={{ backgroundColor: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', borderRadius: '12px', padding: '2px 10px' }}>
+                  <span style={{ color: 'var(--accent-gold)', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    {currentUser.role === 'admin' ? 'Administrador' : currentUser.role === 'curator' ? 'Curador' : currentUser.role === 'author' ? 'Autor' : 'Leitor'}
+                  </span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
