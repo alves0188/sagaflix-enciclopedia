@@ -616,7 +616,35 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Ação (Link ou ID do Livro)</label>
-                    <input type="text" value={bannerFormData.actionUrl} onChange={e => setBannerFormData({...bannerFormData, actionUrl: e.target.value})} className="form-input" placeholder="Ex: book_12345" style={{ width: '100%' }} />
+                    <input 
+                      type="text" 
+                      value={bannerFormData.actionUrl} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        let extra = {};
+                        const foundBook = db.books.find(b => 
+                          (b.sku && b.sku.toLowerCase() === val.trim().toLowerCase()) ||
+                          b.id === val.trim()
+                        );
+                        if (foundBook) {
+                          extra.title = foundBook.title || '';
+                          extra.description = foundBook.synopsis || '';
+                          if (foundBook.bannerUrl || foundBook.banner_url) {
+                            extra.imageUrl = foundBook.bannerUrl || foundBook.banner_url;
+                          } else if (foundBook.coverUrl || foundBook.cover_url) {
+                            extra.imageUrl = foundBook.coverUrl || foundBook.cover_url;
+                          }
+                        }
+                        setBannerFormData({
+                          ...bannerFormData,
+                          actionUrl: val,
+                          ...extra
+                        });
+                      }} 
+                      className="form-input" 
+                      placeholder="Ex: book_12345" 
+                      style={{ width: '100%' }} 
+                    />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do Botão</label>
