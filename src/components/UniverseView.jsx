@@ -133,10 +133,10 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
         const { error } = await supabase.from('books').update({
           title: b.title,
           status: b.status,
-          cover_url: b.coverUrl || b.cover_url || b.cover || '',
+          cover_url: b.cover || b.cover_url || b.coverUrl || '',
           banner_url: b.bannerUrl || b.banner_url || '',
           synopsis: b.synopsis,
-          book_type: b.bookType || b.book_type || 'complete',
+          book_type: b.book_type || b.bookType || 'complete',
           universe_requests: b.universeRequests || b.universe_requests || [],
           co_author_ids: b.coAuthorIds || b.co_author_ids || [],
           lore_areas: b.loreAreas || b.lore_areas || [],
@@ -226,6 +226,33 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
 
   const handleUpdateBook = (newBookProps) => {
     const newDb = { ...db };
+    
+    // Normalize cover fields
+    if (newBookProps.cover) {
+      newBookProps.coverUrl = newBookProps.cover;
+      newBookProps.cover_url = newBookProps.cover;
+    } else if (newBookProps.coverUrl) {
+      newBookProps.cover = newBookProps.coverUrl;
+      newBookProps.cover_url = newBookProps.coverUrl;
+    } else if (newBookProps.cover_url) {
+      newBookProps.cover = newBookProps.cover_url;
+      newBookProps.coverUrl = newBookProps.cover_url;
+    }
+
+    // Normalize author fields
+    if (newBookProps.authorId) {
+      newBookProps.author_id = newBookProps.authorId;
+    } else if (newBookProps.author_id) {
+      newBookProps.authorId = newBookProps.author_id;
+    }
+
+    // Normalize book type fields
+    if (newBookProps.bookType) {
+      newBookProps.book_type = newBookProps.bookType;
+    } else if (newBookProps.book_type) {
+      newBookProps.bookType = newBookProps.book_type;
+    }
+
     newDb.books[bookIndex] = { ...currentBook, ...newBookProps };
     onUpdateData(newDb);
   };

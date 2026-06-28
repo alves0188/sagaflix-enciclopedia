@@ -328,7 +328,7 @@ function AppContent() {
         }
       }
 
-      const updatedUser = {
+      const updatedUserForDB = {
         name: profileForm.name,
         nickname: profileForm.nickname,
         display_mode: profileForm.displayMode,
@@ -338,9 +338,23 @@ function AppContent() {
         location: profileForm.location,
         writing_style: profileForm.writingStyle
       };
-      const { error } = await supabase.from('profiles').update(updatedUser).eq('id', currentUser.id);
+      const { error } = await supabase.from('profiles').update(updatedUserForDB).eq('id', currentUser.id);
       if (error) throw error;
-      setCurrentUser({ ...currentUser, ...updatedUser, displayMode: updatedUser.display_mode });
+
+      const updatedUserForState = {
+        ...currentUser,
+        name: profileForm.name,
+        nickname: profileForm.nickname,
+        displayMode: profileForm.displayMode,
+        avatar: profileForm.avatar,
+        bio: profileForm.bio,
+        about: profileForm.about,
+        location: profileForm.location,
+        writingStyle: profileForm.writingStyle
+      };
+
+      setCurrentUser(updatedUserForState);
+      localStorage.setItem('sagaflix_user', JSON.stringify(updatedUserForState));
       setIsEditingProfile(false);
       toast.success('Configurações salvas!');
     } catch (err) {
