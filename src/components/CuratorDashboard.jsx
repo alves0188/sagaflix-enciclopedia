@@ -281,90 +281,136 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     setLocalData(newDb);
     
     // 1. Sync Books
-    for (const b of newDb.books) {
-      await supabase.from('books').update({ status: b.status }).eq('id', b.id);
+    try {
+      for (const b of newDb.books) {
+        const { error } = await supabase.from('books').update({ status: b.status }).eq('id', b.id);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar livros:", err);
+      toast.error("Erro ao sincronizar livros: " + err.message);
     }
     
     // 2. Sync Support Tickets
-    for (const t of newDb.supportTickets || []) {
-      await supabase.from('support_tickets').update({
-        status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
-      }).eq('id', t.id);
+    try {
+      for (const t of newDb.supportTickets || []) {
+        const { error } = await supabase.from('support_tickets').update({
+          status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
+        }).eq('id', t.id);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar tickets:", err);
+      toast.error("Erro ao sincronizar chamados: " + err.message);
     }
     
     // 3. Sync Users
-    for (const u of newDb.users) {
-      const updateObj = { role: u.role };
-      if (u.status) updateObj.status = u.status;
-      await supabase.from('profiles').update(updateObj).eq('id', u.id);
+    try {
+      for (const u of newDb.users) {
+        const updateObj = { role: u.role };
+        if (u.status) updateObj.status = u.status;
+        const { error } = await supabase.from('profiles').update(updateObj).eq('id', u.id);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar usuários:", err);
+      toast.error("Erro ao sincronizar usuários: " + err.message);
     }
     
     // 4. Sync Banners
-    if (newDb.banners) {
-      const bannerPayloads = newDb.banners.map((b, idx) => ({
-        id: b.id || `banner_${Date.now()}_${idx}`,
-        title: b.title || '',
-        description: b.description || '',
-        image_url: b.imageUrl || '',
-        action_url: b.actionUrl || '',
-        action_text: b.actionText || '',
-        order_index: idx,
-        active: b.active !== undefined ? b.active : true
-      }));
-      await supabase.from('banners').upsert(bannerPayloads);
-      
-      const activeIds = newDb.banners.map(b => b.id).filter(Boolean);
-      if (activeIds.length > 0) {
-        await supabase.from('banners').delete().not('id', 'in', `(${activeIds.join(',')})`);
+    try {
+      if (newDb.banners) {
+        const bannerPayloads = newDb.banners.map((b, idx) => ({
+          id: b.id || `banner_${Date.now()}_${idx}`,
+          title: b.title || '',
+          description: b.description || '',
+          image_url: b.imageUrl || '',
+          action_url: b.actionUrl || '',
+          action_text: b.actionText || '',
+          order_index: idx,
+          active: b.active !== undefined ? b.active : true
+        }));
+        const { error: upsertError } = await supabase.from('banners').upsert(bannerPayloads);
+        if (upsertError) throw upsertError;
+        
+        const activeIds = newDb.banners.map(b => b.id).filter(Boolean);
+        if (activeIds.length > 0) {
+          const { error: deleteError } = await supabase.from('banners').delete().not('id', 'in', activeIds);
+          if (deleteError) throw deleteError;
+        } else {
+          const { error: deleteAllError } = await supabase.from('banners').delete().neq('id', '');
+          if (deleteAllError) throw deleteAllError;
+        }
       }
+    } catch (err) {
+      console.error("Erro ao sincronizar banners:", err);
+      toast.error("Erro ao salvar banners: " + err.message);
     }
     
     // 5. Sync Author Requests
-    if (newDb.authorRequests) {
-      const reqPayloads = newDb.authorRequests.map((r, idx) => ({
-        id: r.id || `req_${Date.now()}_${idx}`,
-        user_id: r.userId || r.authorId || null,
-        email: r.email || 'suporte@sagaflix.com.br',
-        name: r.name || 'Autor Sem Nome',
-        nickname: r.nickname || '',
-        about: r.about || '',
-        book_title: r.bookTitle || '',
-        synopsis: r.synopsis || '',
-        sample_text: r.sampleText || '',
-        status: r.status || 'pending',
-        date: r.date || new Date().toLocaleDateString('pt-BR')
-      }));
-      await supabase.from('author_requests').upsert(reqPayloads);
+    try {
+      if (newDb.authorRequests) {
+        const reqPayloads = newDb.authorRequests.map((r, idx) => ({
+          id: r.id || `req_${Date.now()}_${idx}`,
+          user_id: r.userId || r.authorId || null,
+          email: r.email || 'suporte@sagaflix.com.br',
+          name: r.name || 'Autor Sem Nome',
+          nickname: r.nickname || '',
+          about: r.about || '',
+          book_title: r.bookTitle || '',
+          synopsis: r.synopsis || '',
+          sample_text: r.sampleText || '',
+          status: r.status || 'pending',
+          date: r.date || new Date().toLocaleDateString('pt-BR')
+        }));
+        const { error: upsertError } = await supabase.from('author_requests').upsert(reqPayloads);
+        if (upsertError) throw upsertError;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar pedidos:", err);
+      toast.error("Erro ao sincronizar pedidos: " + err.message);
     }
     
     // 6. Sync Badges
-    if (newDb.gamificationBadges) {
-      const badgePayloads = newDb.gamificationBadges.map(g => ({
-        id: g.id,
-        name: g.name,
-        description: g.desc || '',
-        tier: g.tier || 'bronze',
-        xp: g.xp || 0,
-        icon: g.icon || '',
-        bg_color: g.bg || '',
-        icon_color: g.ic || '',
-        prog_max: g.progMax || 1,
-        trigger_type: g.trigger || ''
-      }));
-      await supabase.from('gamification_badges').upsert(badgePayloads);
+    try {
+      if (newDb.gamificationBadges) {
+        const badgePayloads = newDb.gamificationBadges.map(g => ({
+          id: g.id,
+          name: g.name,
+          description: g.desc || '',
+          tier: g.tier || 'bronze',
+          xp: g.xp || 0,
+          icon: g.icon || '',
+          bg_color: g.bg || '',
+          icon_color: g.ic || '',
+          prog_max: g.progMax || 1,
+          trigger_type: g.trigger || ''
+        }));
+        const { error: upsertError } = await supabase.from('gamification_badges').upsert(badgePayloads);
+        if (upsertError) throw upsertError;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar conquistas:", err);
+      toast.error("Erro ao sincronizar conquistas: " + err.message);
     }
     
     // 7. Sync Audit Logs
-    if (newDb.auditLogs) {
-      const logPayloads = newDb.auditLogs.map((l, idx) => ({
-        id: l.id || `audit_${Date.now()}_${idx}`,
-        curator_id: l.curatorId || null,
-        curator_name: l.curatorName || 'Curador Anônimo',
-        action: l.action || 'Ação desconhecida',
-        details: l.details || '',
-        date: l.date || new Date().toLocaleString('pt-BR')
-      }));
-      await supabase.from('audit_logs').upsert(logPayloads);
+    try {
+      if (newDb.auditLogs) {
+        const logPayloads = newDb.auditLogs.map((l, idx) => ({
+          id: l.id || `audit_${Date.now()}_${idx}`,
+          curator_id: l.curatorId || null,
+          curator_name: l.curatorName || 'Curador Anônimo',
+          action: l.action || 'Ação desconhecida',
+          details: l.details || '',
+          date: l.date || new Date().toLocaleString('pt-BR')
+        }));
+        const { error: upsertError } = await supabase.from('audit_logs').upsert(logPayloads);
+        if (upsertError) throw upsertError;
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar logs:", err);
+      toast.error("Erro ao sincronizar logs: " + err.message);
     }
   };
 
