@@ -14,6 +14,7 @@ import AdminPanel from './AdminPanel';
 import AuthorDashboard from './AuthorDashboard';
 import ReaderDashboard from './ReaderDashboard';
 import HQModal from './HQModal';
+import { createClient } from '@supabase/supabase-js';
 import { supabase, uploadImage } from '../lib/supabaseClient';
 import { sendEmail } from '../lib/emailjs';
 import { BADGES_DB, BADGE_CATEGORIES, XP_LEVELS, TIER_INFO } from '../utils/gamificationConfig';
@@ -532,7 +533,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     }));
   };
 
-  const handleSaveCurator = (e) => {
+  const handleSaveCurator = async (e) => {
     e.preventDefault();
     if (!curatorForm.name || !curatorForm.email || !curatorForm.password) {
       toast('Preencha todos os campos!');
@@ -545,7 +546,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     if (editingCurator) {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase() && u.id !== editingCurator.id);
       if (emailExists) {
-        toast('Este e-mail jÃ¡ estÃ¡ em uso por outro usuÃ¡rio.');
+        toast('Este e-mail já está em uso por outro usuário.');
         return;
       }
       
@@ -576,28 +577,61 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     } else {
       const emailExists = newDb.users.some(u => u.email.toLowerCase() === curatorForm.email.toLowerCase());
       if (emailExists) {
-        toast('Este e-mail jÃ¡ estÃ¡ cadastrado.');
+        toast('Este e-mail já está cadastrado.');
         return;
       }
       
-      const newCuratorId = 'curator_' + Date.now();
-      const newCurator = {
-        id: newCuratorId,
-        role: 'curator',
-        curatorRole: selectedRole,
-        name: curatorForm.name,
-        email: curatorForm.email,
-        password: curatorForm.password,
-        permissions: curatorForm.permissions
-      };
-      
-      newDb.users.push(newCurator);
-      newDb = logCuratorAction(
-        'Criação de Curador',
-        `Adicionou o curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${selectedRole}`,
-        newDb
-      );
-      toast('Novo curador adicionado com sucesso!');
+      try {
+        const tempSupabase = createClient(
+          import.meta.env.VITE_SUPABASE_URL,
+          import.meta.env.VITE_SUPABASE_ANON_KEY,
+          { auth: { persistSession: false } }
+        );
+        
+        const { data: authData, error: authErr } = await tempSupabase.auth.signUp({
+          email: curatorForm.email,
+          password: curatorForm.password,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
+        });
+        
+        if (authErr) throw authErr;
+        
+        const userId = authData.user.id;
+        
+        const { error: profileErr } = await supabase
+          .from('profiles')
+          .upsert({
+            id: userId,
+            email: curatorForm.email,
+            role: selectedRole === 'admin' ? 'admin' : 'curator',
+            name: curatorForm.name,
+            nickname: curatorForm.name
+          });
+        if (profileErr) throw profileErr;
+
+        const newCurator = {
+          id: userId,
+          role: 'curator',
+          curatorRole: selectedRole,
+          name: curatorForm.name,
+          email: curatorForm.email,
+          password: curatorForm.password,
+          permissions: curatorForm.permissions
+        };
+        
+        newDb.users.push(newCurator);
+        newDb = logCuratorAction(
+          'Criação de Curador',
+          `Adicionou o curador "${curatorForm.name}" (${curatorForm.email}) - Perfil: ${selectedRole}`,
+          newDb
+        );
+        toast('Novo curador adicionado com sucesso!');
+      } catch (err) {
+        toast.error('Erro ao registrar no Supabase: ' + err.message);
+        return;
+      }
     }
 
     onUpdateData(newDb);

@@ -323,8 +323,12 @@ function AppContent() {
       if (changePassword && profileForm.password && profileForm.password.trim() !== '') {
         const { error: authError } = await supabase.auth.updateUser({ password: profileForm.password });
         if (authError) {
-          toast.error('Erro ao atualizar senha: ' + authError.message);
-          return;
+          if (authError.message && authError.message.toLowerCase().includes('should be different')) {
+            console.log("A senha informada já é a mesma que está cadastrada.");
+          } else {
+            toast.error('Erro ao atualizar senha: ' + authError.message);
+            return;
+          }
         }
       }
 
@@ -1115,7 +1119,7 @@ function AppContent() {
                       if (!e.target.checked) setProfileForm({ ...profileForm, password: '' });
                     }} 
                   />
-                  Alterar Senha do Autor
+                  Alterar Senha de Acesso
                 </label>
               </div>
 
