@@ -335,7 +335,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         
         const activeIds = newDb.banners.map(b => b.id).filter(Boolean);
         if (activeIds.length > 0) {
-          const { error: deleteError } = await supabase.from('banners').delete().not('id', 'in', activeIds);
+          const { error: deleteError } = await supabase.from('banners').delete().not('id', 'in', `(${activeIds.join(',')})`);
           if (deleteError) throw deleteError;
         } else {
           const { error: deleteAllError } = await supabase.from('banners').delete().neq('id', '');
@@ -2876,7 +2876,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
               <Download size={16} /> Exportar Backup (.txt)
             </button>
             <span style={{ color: 'var(--text-muted)' }}>Status: <strong>{(selectedBook.status || 'draft').toUpperCase()}</strong></span>
-            {permissions.approve_books && selectedBook.status === 'pending' && (
+            {permissions.approve_books && (selectedBook.status === 'pending' || selectedBook.status === 'draft') && (
               <button onClick={() => handleUpdateBookStatus(selectedBook.id, 'published')} className="btn-primary" style={{ background: 'rgba(76, 175, 80, 0.15)', color: '#4CAF50', border: '1px solid #4CAF50' }}>
                 <Check size={16} /> Aprovar Publicação
               </button>
