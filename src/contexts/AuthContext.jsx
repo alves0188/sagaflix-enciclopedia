@@ -42,8 +42,6 @@ export function AuthProvider({ children }) {
             
             // Hardcoded role overrides for specific users
             if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
-            else if (userObj.email === 'alves0188@gmail.com') userObj.role = 'author';
-            else if (userObj.email === 'alves0188@icloud.com') userObj.role = 'reader';
 
             setCurrentUser(userObj);
             localStorage.setItem('sagaflix_user', JSON.stringify(userObj));

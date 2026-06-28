@@ -26,7 +26,11 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
         email, password
       });
       if (authError) {
-        setError('E-mail ou senha incorretos.');
+        if (authError.message === 'Email not confirmed' || authError.message.toLowerCase().includes('confirm')) {
+          setError('E-mail não confirmado. Por favor, verifique sua caixa de entrada para confirmar seu cadastro.');
+        } else {
+          setError('E-mail ou senha incorretos.');
+        }
         return;
       }
       // Buscar perfil do usuario e chamar onLogin
