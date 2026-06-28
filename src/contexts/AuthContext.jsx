@@ -15,51 +15,108 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const withTimeout = (promise, ms = 8000) => {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de conexão Supabase')), ms))
-      ]);
-    };
-
-    const fetchUser = async () => {
-      const savedUser = localStorage.getItem('sagaflix_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        try {
-          const { data: profile } = await withTimeout(
-            supabase.from('profiles').select('*').eq('id', parsed.id).single(),
-            8000
-          );
-          if (profile) {
-            const userObj = {
-              id: profile.id, role: profile.role, name: profile.name, nickname: profile.nickname,
-              email: profile.email, avatar: profile.avatar_url,
-              favorites: profile.favorites,
-              readingStatus: profile.reading_status,
-              completedTutorials: profile.completed_tutorials || []
-            };
-            
-            // Hardcoded role overrides for specific users
-            if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
-
-            setCurrentUser(userObj);
-            localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
-          }
-        } catch (err) {
-          console.error("Error fetching profile", err);
-        }
+    const handleUserSession = async (session) => {
+      if (!session || !session.user) {
+        setCurrentUser(null);
+        localStorage.removeItem('sagaflix_user');
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      const user = session.user;
+      try {
+        let { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          // Perfil não encontrado -> criar perfil automático de Leitor (ex: Login com Google/Apple)
+          const newProfile = {
+            id: user.id,
+            email: user.email,
+            role: 'reader',
+            name: user.user_metadata?.full_name || user.email.split('@')[0],
+            nickname: 'leitor_' + Math.random().toString(36).substring(7),
+            bio: '',
+            writing_style: '',
+            avatar_url: user.user_metadata?.avatar_url || ''
+          };
+
+          const { error: insertError } = await supabase.from('profiles').insert(newProfile);
+          if (insertError) {
+            console.error('Erro ao criar perfil social:', insertError);
+          } else {
+            profile = { ...newProfile, completed_tutorials: [], favorites: [], reading_status: {} };
+            
+            // Sincronizar na tabela sagaflix_db JSON também
+            try {
+              const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+              if (dbData && dbData.data) {
+                const newDb = { ...dbData.data };
+                if (!newDb.users) newDb.users = [];
+                newDb.users.push({
+                  id: user.id,
+                  email: user.email,
+                  name: newProfile.name,
+                  nickname: newProfile.nickname,
+                  status: 'active',
+                  role: 'reader'
+                });
+                await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+              }
+            } catch (dbErr) {
+              console.error("Erro ao sincronizar login social no sagaflix_db:", dbErr);
+            }
+          }
+        }
+
+        if (profile) {
+          const userObj = {
+            id: profile.id,
+            role: profile.role || 'reader',
+            name: profile.name,
+            nickname: profile.nickname,
+            email: profile.email,
+            avatar: profile.avatar_url,
+            favorites: profile.favorites || [],
+            readingStatus: profile.reading_status || {},
+            completedTutorials: profile.completed_tutorials || []
+          };
+          
+          if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
+
+          setCurrentUser(userObj);
+          localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
+        }
+      } catch (err) {
+        console.error("Erro no carregamento do perfil:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchUser();
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await handleUserSession(session);
+      } catch (err) {
+        console.error("Erro ao pegar sessao:", err);
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === 'SIGNED_OUT') {
           setCurrentUser(null);
           localStorage.removeItem('sagaflix_user');
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          await handleUserSession(session);
         }
       }
     );
