@@ -5,20 +5,19 @@ const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
 
 if (!SUPABASE_SERVICE_ROLE) {
   console.error('\n[ERRO] Variável de ambiente SUPABASE_SERVICE_ROLE não configurada.');
-  console.error('Execute o script definindo a chave de serviço do Supabase:');
-  console.error('No Windows (PowerShell):');
-  console.error('  $env:SUPABASE_SERVICE_ROLE="sua_chave_service_role" ; node scripts/migrate_to_relational.js');
-  console.error('No Linux/Mac (Bash):');
-  console.error('  SUPABASE_SERVICE_ROLE="sua_chave_service_role" node scripts/migrate_to_relational.js\n');
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
 
+const isValidUUID = (str) => {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
 async function run() {
   console.log('--- MIGRATION SCRIPT START ---');
   
-  // 1. Fetch from sagaflix_db
   console.log('Loading sagaflix_db JSON data...');
   const { data: dbData, error: dbErr } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
   if (dbErr) {
@@ -28,13 +27,10 @@ async function run() {
   
   const db = dbData.data || {};
   
-  // Test if new tables exist
   console.log('Verifying if new relational tables exist in Supabase...');
   const { error: testErr } = await supabase.from('banners').select('id').limit(1);
   if (testErr) {
     console.error('\n[AVISO] As novas tabelas relacionais ainda não foram criadas no Supabase.');
-    console.error('Erro retornado:', testErr.message);
-    console.error('Por favor, execute o script SQL "database/schema_v4_relational.sql" no SQL Editor do seu Supabase primeiro!');
     return;
   }
   
@@ -64,9 +60,9 @@ async function run() {
       const userId = r.userId || r.authorId;
       requestPayloads.push({
         id: r.id || `req_${Date.now()}_${Math.floor(Math.random()*1000)}`,
-        user_id: userId,
-        email: r.email,
-        name: r.name,
+        user_id: isValidUUID(userId) ? userId : null,
+        email: r.email || 'suporte@sagaflix.com.br',
+        name: r.name || 'Autor Sem Nome',
         nickname: r.nickname || '',
         about: r.about || '',
         book_title: r.bookTitle || '',
@@ -86,9 +82,9 @@ async function run() {
     console.log(`Migrating ${db.auditLogs.length} audit logs...`);
     const logPayloads = db.auditLogs.map((l, idx) => ({
       id: l.id || `audit_${Date.now()}_${idx}`,
-      curator_id: l.curatorId || null,
-      curator_name: l.curatorName,
-      action: l.action,
+      curator_id: isValidUUID(l.curatorId) ? l.curatorId : null,
+      curator_name: l.curatorName || 'Curador Anônimo',
+      action: l.action || 'Ação desconhecida',
       details: l.details || '',
       date: l.date || new Date().toLocaleString('pt-BR')
     }));
