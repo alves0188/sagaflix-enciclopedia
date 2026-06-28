@@ -466,7 +466,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
   // ESTADOS DO GERENCIADOR DE BANNERS
   const [editingBanner, setEditingBanner] = useState(null);
-  const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '' });
+  const [bannerFormData, setBannerFormData] = useState({ id: '', title: '', description: '', imageUrl: '', actionUrl: '', actionText: '', actionType: 'info' });
   const [bannerUploading, setBannerUploading] = useState(false);
 
   // ESTADOS DA GAMIFICAÇÃO
@@ -547,7 +547,8 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       description: banner.description || '',
       imageUrl: banner.imageUrl || '',
       actionUrl: banner.actionUrl || '',
-      actionText: banner.actionText || 'Ler Agora'
+      actionText: banner.actionText || 'Ler Agora',
+      actionType: banner.actionType || 'info'
     });
   };
 
@@ -559,7 +560,8 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       description: '',
       imageUrl: '',
       actionUrl: '',
-      actionText: 'Ler Agora'
+      actionText: 'Começar a Ler',
+      actionType: 'info'
     });
   };
 
@@ -640,7 +642,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           </div>
           <button onClick={() => {
             setEditingBanner('new');
-            setBannerFormData({ id: 'banner_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler' });
+            setBannerFormData({ id: 'banner_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler', actionType: 'info' });
           }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={18} /> Novo Banner
           </button>
@@ -651,17 +653,9 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>{editingBanner === 'new' ? 'Novo Banner' : 'Editar Banner'}</h3>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Título</label>
-                  <input type="text" value={bannerFormData.title} onChange={e => setBannerFormData({...bannerFormData, title: e.target.value})} className="form-input" placeholder="Ex: Lançamento do Ano" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Descrição</label>
-                  <textarea value={bannerFormData.description} onChange={e => setBannerFormData({...bannerFormData, description: e.target.value})} className="form-input" placeholder="Breve texto sobre o banner" style={{ width: '100%', height: '80px', resize: 'none' }} />
-                </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Ação (Link ou ID do Livro)</label>
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Ação (Link, ID do Livro ou SKU do Autor)</label>
                     <input 
                       type="text" 
                       value={bannerFormData.actionUrl} 
@@ -680,6 +674,20 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                           } else if (foundBook.coverUrl || foundBook.cover_url) {
                             extra.imageUrl = foundBook.coverUrl || foundBook.cover_url;
                           }
+                          extra.actionType = bannerFormData.actionType || 'info';
+                        } else {
+                          const foundUser = db.users.find(u => 
+                            u.id === val.trim() || 
+                            (u.nickname && u.nickname.toLowerCase() === val.trim().toLowerCase())
+                          );
+                          if (foundUser) {
+                            extra.title = foundUser.name || foundUser.nickname || '';
+                            extra.description = foundUser.bio || foundUser.about || '';
+                            if (foundUser.avatar) {
+                              extra.imageUrl = foundUser.avatar;
+                            }
+                            extra.actionType = 'author';
+                          }
                         }
                         setBannerFormData({
                           ...bannerFormData,
@@ -688,14 +696,39 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                         });
                       }} 
                       className="form-input" 
-                      placeholder="Ex: book_12345" 
+                      placeholder="Ex: LIV-IXMCPKKH ou id_autor" 
                       style={{ width: '100%' }} 
                     />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do Botão</label>
-                    <input type="text" value={bannerFormData.actionText} onChange={e => setBannerFormData({...bannerFormData, actionText: e.target.value})} className="form-input" placeholder="Ex: Começar a Ler" style={{ width: '100%' }} />
+                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Destino ao Clicar (Tipo de Ação)</label>
+                    <select 
+                      value={bannerFormData.actionType || 'info'} 
+                      onChange={e => setBannerFormData({...bannerFormData, actionType: e.target.value})} 
+                      className="form-input" 
+                      style={{ width: '100%', height: '42px', background: 'var(--input-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                    >
+                      <option value="info">Ficha Detalhada do Livro (Avaliação)</option>
+                      <option value="read">Leitura Direta (Abrir Leitor)</option>
+                      <option value="universe">Explorar Universo (Lores)</option>
+                      <option value="author">Perfil do Autor</option>
+                    </select>
                   </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Título</label>
+                  <input type="text" value={bannerFormData.title} onChange={e => setBannerFormData({...bannerFormData, title: e.target.value})} className="form-input" placeholder="Ex: Lançamento do Ano" style={{ width: '100%' }} />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Descrição</label>
+                  <textarea value={bannerFormData.description} onChange={e => setBannerFormData({...bannerFormData, description: e.target.value})} className="form-input" placeholder="Breve texto sobre o banner" style={{ width: '100%', height: '80px', resize: 'none' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Texto do Botão</label>
+                  <input type="text" value={bannerFormData.actionText} onChange={e => setBannerFormData({...bannerFormData, actionText: e.target.value})} className="form-input" placeholder="Ex: Começar a Ler" style={{ width: '100%' }} />
                 </div>
               </div>
               
@@ -708,7 +741,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0}>
                         <label style={{ cursor: 'pointer', color: '#fff', background: 'var(--accent-gold)', padding: '0.5rem 1rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <Upload size={16} /> Trocar Imagem
-                          <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleUploadBannerImage(e.target.files[0])} disabled={bannerUploading} />
+                          <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleBannerImageUpload} disabled={bannerUploading} />
                         </label>
                       </div>
                     </>
@@ -716,7 +749,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                     <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
                       {bannerUploading ? <div className="loading-spinner" style={{ width: '24px', height: '24px', borderTopColor: 'var(--accent-gold)' }}></div> : <Image size={32} opacity={0.5} />}
                       <span style={{ fontSize: '0.9rem' }}>{bannerUploading ? 'Enviando...' : 'Fazer Upload'}</span>
-                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => handleUploadBannerImage(e.target.files[0])} disabled={bannerUploading} />
+                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={handleBannerImageUpload} disabled={bannerUploading} />
                     </label>
                   )}
                 </div>
@@ -745,7 +778,13 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                 <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)', fontSize: '1.2rem' }}>{banner.title}</h3>
                 <p style={{ margin: '0 0 1rem 0', color: 'var(--text-muted)', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{banner.description}</p>
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-                  <span style={{ color: 'var(--accent-gold)' }}>Ação: {banner.actionUrl}</span>
+                  <span style={{ color: 'var(--accent-gold)' }}>
+                    Ação: {banner.actionUrl} ({
+                      banner.actionType === 'read' ? 'Leitura Direta' :
+                      banner.actionType === 'universe' ? 'Explorar Universo' :
+                      banner.actionType === 'author' ? 'Perfil do Autor' : 'Ficha da Obra'
+                    })
+                  </span>
                   <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
                   <span style={{ color: 'var(--text-muted)' }}>Botão: {banner.actionText}</span>
                 </div>

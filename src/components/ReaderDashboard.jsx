@@ -434,12 +434,32 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
   const handleBannerAction = (banner) => {
     if (banner.actionUrl) {
       const book = db.books.find(b => b.id === banner.actionUrl || (b.sku && b.sku.toLowerCase() === banner.actionUrl.toLowerCase()));
+      
       if (book) {
-        setSelectedBook(book);
-      } else if (banner.actionUrl.startsWith('http')) {
-        window.open(banner.actionUrl, '_blank');
+        const action = banner.actionType || 'info';
+        if (action === 'read') {
+          onSelectBook(book.id);
+        } else if (action === 'universe') {
+          onSelectBookUniverse(book.id);
+        } else if (action === 'author') {
+          const author = db.users.find(u => u.id === book.authorId);
+          if (author) {
+            toast.info(`Perfil de ${author.name}: ${author.bio || author.about || 'Biografia e vitrine de obras em breve!'}`);
+          } else {
+            toast.info(`Perfil do Autor (Em desenvolvimento)`);
+          }
+        } else {
+          setSelectedBook(book);
+        }
       } else {
-        toast(`Destino do banner: ${banner.actionUrl}`);
+        const author = db.users.find(u => u.id === banner.actionUrl || (u.nickname && u.nickname.toLowerCase() === banner.actionUrl.toLowerCase()));
+        if (author) {
+          toast.info(`Perfil de ${author.name}: ${author.bio || author.about || 'Biografia e vitrine de obras em breve!'}`);
+        } else if (banner.actionUrl.startsWith('http')) {
+          window.open(banner.actionUrl, '_blank');
+        } else {
+          toast(`Destino do banner: ${banner.actionUrl}`);
+        }
       }
     }
   };
