@@ -784,7 +784,7 @@ function AppContent() {
             !currentUser ? <Login onLogin={(user, newDb) => {
               setCurrentUser(user);
               if (newDb) setDb(newDb);
-              navigate(user.role === 'curator' ? '/curador' : user.role === 'author' ? '/autor' : '/leitor');
+              navigate((user.role === 'curator' || user.role === 'admin') ? '/curador' : user.role === 'author' ? '/autor' : '/leitor');
             }} onNavigateRegister={() => navigate('/register')} portalRole={portalRole} /> : <Navigate to="/leitor" />
           } />
 

@@ -128,44 +128,78 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
   useEffect(() => {
     async function loadCuratorData() {
       try {
-        const [{ data: profiles }, { data: books }, { data: support_tickets }] = await Promise.all([
+        const [{ data: profiles }, { data: books }, { data: support_tickets }, { data: sagaflixDb }] = await Promise.all([
           supabase.from('profiles').select('*'),
           supabase.from('books').select('*'),
-          supabase.from('support_tickets').select('*')
+          supabase.from('support_tickets').select('*'),
+          supabase.from('sagaflix_db').select('data').eq('id', 1).single()
         ]);
+
+        const dbData = sagaflixDb?.data || {};
+        const dbUsers = dbData.users || [];
+        const profileMap = new Map();
+        (profiles || []).forEach(p => {
+          profileMap.set(p.id, p);
+        });
+
+        const combinedUsers = [];
+        (profiles || []).forEach(p => {
+          const dbUser = dbUsers.find(du => du.id === p.id);
+          combinedUsers.push({
+            id: p.id,
+            role: p.role,
+            name: p.name,
+            nickname: p.nickname,
+            email: p.email,
+            status: dbUser?.status || 'approved'
+          });
+        });
+
+        dbUsers.forEach(du => {
+          if (!profileMap.has(du.id)) {
+            combinedUsers.push({
+              id: du.id,
+              role: du.role || 'reader',
+              name: du.name || du.nickname || 'Usuário Sem Nome',
+              nickname: du.nickname || '',
+              email: du.email,
+              status: du.status || 'pending'
+            });
+          }
+        });
+
         setLocalData({
-        users: (profiles || []).map(p => ({
-          id: p.id, role: p.role, name: p.name, nickname: p.nickname, email: p.email, status: 'approved'
-        })),
-        books: (books || []).map(b => ({
-          id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
-          sku: b.sku,
-          bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
-          coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
-          genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
-          ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
-          ideaLegends: b.idea_legends || {}, escaletaMode: b.escaleta_mode,
-          escaletaGroups: b.escaleta_groups || [], trash: b.trash || [],
-          ratings: b.ratings || [], releaseMode: b.release_model,
-          typesettingSettings: b.typesetting_settings || {}
-        })),
-        supportTickets: (support_tickets || []).map(t => ({
-          id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
-          status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
-        })),
-        gamificationBadges: [], banners: []
-      });
+          users: combinedUsers,
+          books: (books || []).map(b => ({
+            id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
+            sku: b.sku,
+            bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+            coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
+            genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
+            ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
+            ideaLegends: b.idea_legends || {}, escaletaMode: b.escaleta_mode,
+            escaletaGroups: b.escaleta_groups || [], trash: b.trash || [],
+            ratings: b.ratings || [], releaseMode: b.release_model,
+            typesettingSettings: b.typesetting_settings || {}
+          })),
+          supportTickets: (support_tickets || []).map(t => ({
+            id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
+            status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
+          })),
+          authorRequests: dbData.authorRequests || [],
+          gamificationBadges: dbData.gamificationBadges || [],
+          banners: dbData.banners || [],
+          auditLogs: dbData.auditLogs || []
+        });
       } catch (err) {
         console.error(err);
-        setLocalData({ users: [], books: [], supportTickets: [], gamificationBadges: [], banners: [] });
+        setLocalData({ users: [], books: [], supportTickets: [], authorRequests: [], gamificationBadges: [], banners: [], auditLogs: [] });
       }
     }
     if (currentUser) loadCuratorData();
   }, [currentUser]);
 
-
-
-  const db = localData || { users: [], books: [], supportTickets: [] };
+  const db = localData || { users: [], books: [], supportTickets: [], authorRequests: [], gamificationBadges: [], banners: [], auditLogs: [] };
 
   const onUpdateData = async (newDb) => {
     setLocalData(newDb);
@@ -182,6 +216,12 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       if (u.role !== 'reader') {
         await supabase.from('profiles').update({ role: u.role }).eq('id', u.id);
       }
+    }
+    // Sincronizar o estado completo de volta no sagaflix_db para persistir banners, authorRequests, gamificationBadges e auditLogs
+    try {
+      await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+    } catch (err) {
+      console.error("Erro ao sincronizar sagaflix_db:", err);
     }
   };
 
