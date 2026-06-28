@@ -32,7 +32,7 @@ const getStatusOptions = (type) => {
       { value: 'Gangue/Facção', label: 'GANGUE / FACÇÃO' },
       { value: 'Órgão Público', label: 'ÓRGÃO PÚBLICO' },
       { value: 'Corporação/Empresa', label: 'CORPORAÇÃO / EMPRESA' },
-      { value: 'Clã/Sociedade Secreta', label: 'CLÃ / SOCIEDADE SECRETA' },
+      { value: 'Clã/Sociedade Secreta', label: 'CLÁ/ SOCIEDADE SECRETA' },
       { value: 'Clube/Grupo Social', label: 'CLUBE / GRUPO SOCIAL' },
       { value: 'Sindicato/Classe', label: 'SINDICATO / CLASSE' },
       { value: 'Outros', label: 'OUTROS' }

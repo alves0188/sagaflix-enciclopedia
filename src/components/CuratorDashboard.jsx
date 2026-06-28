@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 const REPORT_CATEGORY_LABELS = {
   sensivel: 'Conteúdo sensível',
   explicito: 'Conteúdo explícito (+18)',
-  plagio: 'PlÃ¡gio / Direitos Autorais',
+  plagio: 'Plágio / Direitos Autorais',
   outro: 'Outros'
 };
 
@@ -128,48 +128,82 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
   useEffect(() => {
     async function loadCuratorData() {
       try {
-        const [{ data: profiles }, { data: books }, { data: support_tickets }, { data: sagaflixDb }] = await Promise.all([
+        const [
+          { data: profiles },
+          { data: books },
+          { data: support_tickets },
+          { data: authorRequestsData },
+          { data: auditLogsData },
+          { data: bannersData },
+          { data: badgesData }
+        ] = await Promise.all([
           supabase.from('profiles').select('*'),
           supabase.from('books').select('*'),
           supabase.from('support_tickets').select('*'),
-          supabase.from('sagaflix_db').select('data').eq('id', 1).single()
+          supabase.from('author_requests').select('*'),
+          supabase.from('audit_logs').select('*'),
+          supabase.from('banners').select('*').order('order_index', { ascending: true }),
+          supabase.from('gamification_badges').select('*')
         ]);
 
-        const dbData = sagaflixDb?.data || {};
-        const dbUsers = dbData.users || [];
-        const profileMap = new Map();
-        (profiles || []).forEach(p => {
-          profileMap.set(p.id, p);
-        });
+        const mappedUsers = (profiles || []).map(p => ({
+          id: p.id,
+          role: p.role,
+          name: p.name,
+          nickname: p.nickname,
+          email: p.email,
+          status: p.status || (p.role === 'reader' ? 'active' : 'pending')
+        }));
 
-        const combinedUsers = [];
-        (profiles || []).forEach(p => {
-          const dbUser = dbUsers.find(du => du.id === p.id);
-          combinedUsers.push({
-            id: p.id,
-            role: p.role,
-            name: p.name,
-            nickname: p.nickname,
-            email: p.email,
-            status: dbUser?.status || (p.role === 'reader' ? 'active' : 'pending')
-          });
-        });
+        const mappedRequests = (authorRequestsData || []).map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          email: r.email,
+          name: r.name,
+          nickname: r.nickname || '',
+          about: r.about || '',
+          bookTitle: r.book_title || '',
+          synopsis: r.synopsis || '',
+          sampleText: r.sample_text || '',
+          status: r.status || 'pending',
+          date: r.date
+        }));
 
-        dbUsers.forEach(du => {
-          if (!profileMap.has(du.id)) {
-            combinedUsers.push({
-              id: du.id,
-              role: du.role || 'reader',
-              name: du.name || du.nickname || 'Usuário Sem Nome',
-              nickname: du.nickname || '',
-              email: du.email,
-              status: du.status || 'pending'
-            });
-          }
-        });
+        const mappedBanners = (bannersData || []).map(b => ({
+          id: b.id,
+          title: b.title,
+          description: b.description || '',
+          imageUrl: b.image_url,
+          actionUrl: b.action_url,
+          actionText: b.action_text || 'Ver Mais',
+          orderIndex: b.order_index,
+          active: b.active
+        }));
+
+        const mappedLogs = (auditLogsData || []).map(l => ({
+          id: l.id,
+          curatorId: l.curator_id,
+          curatorName: l.curator_name,
+          action: l.action,
+          details: l.details || '',
+          date: l.date
+        }));
+
+        const mappedBadges = (badgesData || []).map(g => ({
+          id: g.id,
+          name: g.name,
+          desc: g.description,
+          tier: g.tier,
+          xp: g.xp,
+          icon: g.icon,
+          bg: g.bg_color,
+          ic: g.icon_color,
+          progMax: g.prog_max,
+          trigger: g.trigger_type
+        }));
 
         setLocalData({
-          users: combinedUsers,
+          users: mappedUsers,
           books: (books || []).map(b => ({
             id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
             sku: b.sku,
@@ -186,42 +220,145 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             id: t.id, userId: t.user_id, category: t.category, subject: t.subject, message: t.message,
             status: t.status, hasUnreadCuratorMessage: t.has_unread_curator_message, messages: t.messages || []
           })),
-          authorRequests: dbData.authorRequests || [],
-          gamificationBadges: dbData.gamificationBadges || [],
-          banners: dbData.banners || [],
-          auditLogs: dbData.auditLogs || []
+          authorRequests: mappedRequests,
+          gamificationBadges: mappedBadges,
+          banners: mappedBanners,
+          auditLogs: mappedLogs
         });
       } catch (err) {
         console.error(err);
         setLocalData({ users: [], books: [], supportTickets: [], authorRequests: [], gamificationBadges: [], banners: [], auditLogs: [] });
       }
     }
-    if (currentUser) loadCuratorData();
+
+    if (currentUser) {
+      loadCuratorData();
+      
+      // Inscreve para atualizações em tempo real
+      const subscription = supabase
+        .channel('curator-realtime-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+          console.log('[CuratorDashboard] Profiles updated, reloading...');
+          loadCuratorData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => {
+          console.log('[CuratorDashboard] Books updated, reloading...');
+          loadCuratorData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'support_tickets' }, () => {
+          console.log('[CuratorDashboard] Tickets updated, reloading...');
+          loadCuratorData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'author_requests' }, () => {
+          console.log('[CuratorDashboard] Author requests updated, reloading...');
+          loadCuratorData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => {
+          console.log('[CuratorDashboard] Banners updated, reloading...');
+          loadCuratorData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => {
+          console.log('[CuratorDashboard] Audit logs updated, reloading...');
+          loadCuratorData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    }
   }, [currentUser]);
 
   const db = localData || { users: [], books: [], supportTickets: [], authorRequests: [], gamificationBadges: [], banners: [], auditLogs: [] };
 
   const onUpdateData = async (newDb) => {
     setLocalData(newDb);
-    // Generic sync back
+    
+    // 1. Sync Books
     for (const b of newDb.books) {
       await supabase.from('books').update({ status: b.status }).eq('id', b.id);
     }
+    
+    // 2. Sync Support Tickets
     for (const t of newDb.supportTickets || []) {
       await supabase.from('support_tickets').update({
         status: t.status, messages: t.messages, has_unread_curator_message: t.hasUnreadCuratorMessage
       }).eq('id', t.id);
     }
+    
+    // 3. Sync Users
     for (const u of newDb.users) {
-      if (u.role !== 'reader') {
-        await supabase.from('profiles').update({ role: u.role }).eq('id', u.id);
+      const updateObj = { role: u.role };
+      if (u.status) updateObj.status = u.status;
+      await supabase.from('profiles').update(updateObj).eq('id', u.id);
+    }
+    
+    // 4. Sync Banners
+    if (newDb.banners) {
+      const bannerPayloads = newDb.banners.map((b, idx) => ({
+        id: b.id || `banner_${Date.now()}_${idx}`,
+        title: b.title || '',
+        description: b.description || '',
+        image_url: b.imageUrl || '',
+        action_url: b.actionUrl || '',
+        action_text: b.actionText || '',
+        order_index: idx,
+        active: b.active !== undefined ? b.active : true
+      }));
+      await supabase.from('banners').upsert(bannerPayloads);
+      
+      const activeIds = newDb.banners.map(b => b.id).filter(Boolean);
+      if (activeIds.length > 0) {
+        await supabase.from('banners').delete().not('id', 'in', `(${activeIds.join(',')})`);
       }
     }
-    // Sincronizar o estado completo de volta no sagaflix_db para persistir banners, authorRequests, gamificationBadges e auditLogs
-    try {
-      await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-    } catch (err) {
-      console.error("Erro ao sincronizar sagaflix_db:", err);
+    
+    // 5. Sync Author Requests
+    if (newDb.authorRequests) {
+      const reqPayloads = newDb.authorRequests.map((r, idx) => ({
+        id: r.id || `req_${Date.now()}_${idx}`,
+        user_id: r.userId || r.authorId || null,
+        email: r.email || 'suporte@sagaflix.com.br',
+        name: r.name || 'Autor Sem Nome',
+        nickname: r.nickname || '',
+        about: r.about || '',
+        book_title: r.bookTitle || '',
+        synopsis: r.synopsis || '',
+        sample_text: r.sampleText || '',
+        status: r.status || 'pending',
+        date: r.date || new Date().toLocaleDateString('pt-BR')
+      }));
+      await supabase.from('author_requests').upsert(reqPayloads);
+    }
+    
+    // 6. Sync Badges
+    if (newDb.gamificationBadges) {
+      const badgePayloads = newDb.gamificationBadges.map(g => ({
+        id: g.id,
+        name: g.name,
+        description: g.desc || '',
+        tier: g.tier || 'bronze',
+        xp: g.xp || 0,
+        icon: g.icon || '',
+        bg_color: g.bg || '',
+        icon_color: g.ic || '',
+        prog_max: g.progMax || 1,
+        trigger_type: g.trigger || ''
+      }));
+      await supabase.from('gamification_badges').upsert(badgePayloads);
+    }
+    
+    // 7. Sync Audit Logs
+    if (newDb.auditLogs) {
+      const logPayloads = newDb.auditLogs.map((l, idx) => ({
+        id: l.id || `audit_${Date.now()}_${idx}`,
+        curator_id: l.curatorId || null,
+        curator_name: l.curatorName || 'Curador Anônimo',
+        action: l.action || 'Ação desconhecida',
+        details: l.details || '',
+        date: l.date || new Date().toLocaleString('pt-BR')
+      }));
+      await supabase.from('audit_logs').upsert(logPayloads);
     }
   };
 
@@ -335,7 +472,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
   const readers = db.users.filter(u => u.role === 'reader');
   const notifications = db.notifications || [];
 
-  // FUNÃ‡ÃƒO AUXILIAR DE LOG DE CURADORIA
+  // FUNÇÃO AUXILIAR DE LOG DE CURADORIA
   const logCuratorAction = (action, details, targetDb = db) => {
     const newDb = { ...targetDb };
     if (!newDb.auditLogs) newDb.auditLogs = [];
@@ -693,7 +830,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     const curator = db.users.find(u => u.id === curatorId);
     if (!curator) return;
     
-    if (window.confirm(`Tem certeza de que deseja remover o curador "${curator.name}"? Ele perderÃ¡ acesso ao painel.`)) {
+    if (window.confirm(`Tem certeza de que deseja remover o curador "${curator.name}"? Ele perderá acesso ao painel.`)) {
       let newDb = { ...db };
       newDb.users = newDb.users.filter(u => u.id !== curatorId);
       
@@ -1182,7 +1319,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                             onChange={() => togglePermission('support_other_access')}
                             style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>Ã¢Ââ€œ Outros Assuntos</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>âÂ“ Outros Assuntos</span>
                         </label>
                       </div>
                     </div>
@@ -1409,7 +1546,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       newDb
     );
     onUpdateData(loggedDb);
-    toast(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editÃ¡-lo.`);
+    toast(`Pedido aceito! O livro '${notif.bookTitle}' voltou para Rascunho para que o autor possa editá-lo.`);
   };
 
   const handleRejectRequest = (notif) => {
@@ -1443,7 +1580,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
     newDb.notifications = [...(newDb.notifications || []), newNotif];
 
-    let targetName = 'Todos os UsuÃ¡rios';
+    let targetName = 'Todos os Usuários';
     if (msgTarget === 'all_authors') targetName = 'Todos os Autores';
     else if (msgTarget === 'all_readers') targetName = 'Todos os Leitores';
     else if (msgTarget !== 'all') {
@@ -1675,7 +1812,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     }
 
     newDb = logCuratorAction(
-      'AnÃ¡lise de Denúncia',
+      'Análise de Denúncia',
       `Analisou denúncia do livro "${book?.title}". Resultado: ${reportValidation}. Ação: ${reportAction}.`,
       newDb
     );
@@ -1693,7 +1830,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     const REPORT_CATEGORY_LABELS = {
       sensivel: 'Conteúdo sensível',
       explicito: 'Conteúdo explícito (+18)',
-      plagio: 'PlÃ¡gio / Direitos Autorais',
+      plagio: 'Plágio / Direitos Autorais',
       outro: 'Outros'
     };
 
@@ -1701,7 +1838,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '700px', border: '1px solid var(--accent-gold)', maxHeight: '90vh', overflowY: 'auto' }}>
           <h3 style={{ margin: '0 0 1rem 0', fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShieldAlert size={24} /> AnÃ¡lise de Denúncia
+            <ShieldAlert size={24} /> Análise de Denúncia
           </h3>
           
           {/* Dados da Denúncia */}
@@ -1807,7 +1944,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                     );
                   })
                 ) : (
-                  <p style={{ color: 'var(--text-muted)', margin: 0, textAlign: 'center', fontStyle: 'italic' }}>Nenhum comentÃ¡rio registrado ainda.</p>
+                  <p style={{ color: 'var(--text-muted)', margin: 0, textAlign: 'center', fontStyle: 'italic' }}>Nenhum comentário registrado ainda.</p>
                 )}
 
                 {report.status !== 'resolved' && (
@@ -1815,7 +1952,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <input 
                         type="text" 
-                        placeholder={reportSendToAuthor ? "Digite a mensagem para o autor..." : "Adicionar comentÃ¡rio interno..."}
+                        placeholder={reportSendToAuthor ? "Digite a mensagem para o autor..." : "Adicionar comentário interno..."}
                         value={reportInternalComment}
                         onChange={(e) => setReportInternalComment(e.target.value)}
                         style={{ flex: 1, padding: '0.8rem', background: 'var(--bg-main)', border: reportSendToAuthor ? '1px solid #ff9800' : '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px' }}
@@ -1883,7 +2020,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                     placeholder="Escreva uma mensagem oficial para o autor exigindo correções..."
                     style={{ width: '100%', height: '80px', padding: '0.8rem', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: '6px', resize: 'vertical' }}
                   />
-                  <small style={{ color: 'var(--text-muted)' }}>Esta mensagem aparecerÃ¡ nas notificações do autor no estúdio.</small>
+                  <small style={{ color: 'var(--text-muted)' }}>Esta mensagem aparecerá nas notificações do autor no estúdio.</small>
                 </div>
               </div>
             </>
@@ -2007,7 +2144,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     }
   };
 
-  // ========== RENDERIZAÃ‡ÃƒO DAS ABAS ==========
+  // ========== RENDERIZAÇÃO DAS ABAS ==========
   
   const renderDenuncias = () => {
     let allReports = db.reports || [];
@@ -2023,7 +2160,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     const REPORT_CATEGORY_LABELS = {
       sensivel: 'Conteúdo sensível',
       explicito: 'Conteúdo explícito (+18)',
-      plagio: 'PlÃ¡gio / Direitos Autorais',
+      plagio: 'Plágio / Direitos Autorais',
       outro: 'Outros'
     };
 
@@ -2110,7 +2247,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             <option value="all">Todas as Categorias</option>
             <option value="sensivel">Conteúdo sensível</option>
             <option value="explicito">Conteúdo explícito (+18)</option>
-            <option value="plagio">PlÃ¡gio / Direitos Autorais</option>
+            <option value="plagio">Plágio / Direitos Autorais</option>
             <option value="outro">Outros</option>
           </select>
         </div>
@@ -2196,7 +2333,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Users size={18} /> <strong>Total de UsuÃ¡rios</strong></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)' }}><Users size={18} /> <strong>Total de Usuários</strong></div>
                 <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{authors.length + readers.length}</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{authors.length} Autores | {readers.length} Leitores</span>
               </div>
@@ -2208,7 +2345,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
               <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Clock size={18} /> <strong>Retenção Média</strong></div>
                 <h3 style={{ margin: '0.5rem 0 0 0', fontSize: '2rem' }}>{ANALYTICS.overview.avgSessionTime}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessão diÃ¡ria</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Por sessão diária</span>
               </div>
             </div>
             
@@ -2275,7 +2412,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.1rem' }}>
                             <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                              Ã¢Â­Â {book.avgRating.toFixed(1)}
+                              âÂ­Â {book.avgRating.toFixed(1)}
                             </span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                               {book.ratingCount === 1 ? '1 avaliação' : `${book.ratingCount} avaliações`}
@@ -2321,7 +2458,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.ltv}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita Média por UsuÃ¡rio)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>ARPU (Receita Média por Usuário)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.monetization.arpu}</div>
                 </div>
                 <div>
@@ -2340,9 +2477,9 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
               <h3 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#2196F3' }}><Activity size={20} /> Saúde da Base</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (UsuÃ¡rios Ativos)</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>DAU / MAU (Usuários Ativos)</div>
                   <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{ANALYTICS.retention.dau_mau}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formação de hÃ¡bito diÃ¡rio</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Indica formação de hábito diário</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>Churn Rate (Evasão Mensal)</div>
@@ -2536,7 +2673,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                 {!author.isPermanent && (
                   <button className="btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: '#f44336', borderColor: 'rgba(244, 67, 54, 0.3)' }} onClick={(e) => {
                     e.stopPropagation();
-                    if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele serÃ¡ movido para Reprovados, mas manterÃ¡ seus livros e acesso como leitor.')) {
+                    if(window.confirm('Tem certeza que deseja revogar o acesso deste autor? Ele será movido para Reprovados, mas manterá seus livros e acesso como leitor.')) {
                       let newDb = { ...db };
                       const userIndex = newDb.users.findIndex(u => u.id === author.id);
                       if (userIndex !== -1) {
@@ -2609,7 +2746,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
     const handleDownloadBackup = () => {
       if (!selectedBook.universe || !selectedBook.universe.chapters || selectedBook.universe.chapters.length === 0) {
-        toast("Não hÃ¡ capítulos salvos para fazer backup.");
+        toast("Não há capítulos salvos para fazer backup.");
         return;
       }
       let content = `=========================================\n`;
@@ -2756,7 +2893,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                 <Edit3 size={18} color="var(--accent-gold)" style={{ marginTop: '2px' }} />
                 <div>
                   <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Estilo de Escrita</strong>
-                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.writingStyle || 'Fantasia Ã‰pica & Ficção Histórica'}</span>
+                  <span style={{ fontSize: '0.9rem' }}>{selectedAuthor.writingStyle || 'Fantasia Épica & Ficção Histórica'}</span>
                 </div>
               </div>
 
@@ -3058,7 +3195,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         technical: { label: 'Ã°Å¸â€ºÂ Ã¯Â¸Â Suporte Técnico', color: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)' },
         curator: { label: 'ðŸ“– Curadoria / Obras', color: 'var(--accent-gold)', bg: 'rgba(212, 175, 55, 0.1)' },
         financial: { label: 'ðŸ’° Financeiro', color: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)' },
-        other: { label: 'Ã¢Ââ€œ Outros Assuntos', color: '#9e9e9e', bg: 'rgba(158, 158, 158, 0.1)' }
+        other: { label: 'âÂ“ Outros Assuntos', color: '#9e9e9e', bg: 'rgba(158, 158, 158, 0.1)' }
       };
       return cats[cat] || cats.other;
     };
@@ -3175,7 +3312,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0 }}>Central de Chamados e Suporte</h2>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gerencie e responda Ã s dúvidas dos autores conforme sua Ã¡rea de atuação.</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gerencie e responda às dúvidas dos autores conforme sua área de atuação.</span>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.02)', padding: '0.3rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -3292,7 +3429,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                   <option value="technical">Ã°Å¸â€ºÂ Ã¯Â¸Â Suporte Técnico</option>
                   <option value="curator">ðŸ“– Curadoria / Obras</option>
                   <option value="financial">ðŸ’° Financeiro</option>
-                  <option value="other">Ã¢Ââ€œ Outros Assuntos</option>
+                  <option value="other">âÂ“ Outros Assuntos</option>
                 </select>
               </div>
             </div>
@@ -3428,7 +3565,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                     </div>
                   ) : (
                     <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic', padding: '0.5rem' }}>
-                      Este chamado foi resolvido e encerrado. Se necessÃ¡rio, reabra o chamado para continuar conversando.
+                      Este chamado foi resolvido e encerrado. Se necessário, reabra o chamado para continuar conversando.
                     </div>
                   )}
                 </div>
@@ -3566,12 +3703,12 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
       });
 
       if (newStatus === 'active' && userEmail) {
-        const subject = 'Parabéns! Você agora é um Autor Oficial da Sagaflix! ðŸŽ‰';
-        const message = `OlÃ¡ ${userName},\n\nÃ‰ com imensa alegria que anunciamos que o seu perfil e a sua obra foram APROVADOS pela nossa Curadoria! A partir de agora, você pode acessar o Sagaflix Estúdio e começar a publicar seus capítulos para milhares de leitores. Acesse: https://sagaflix-enciclopedia.vercel.app/autor\n\nâš ï¸ AVISO IMPORTANTE: REGRAS DE CONVÃVIO\nA Sagaflix é um instrumento de divulgação de cultura, imaginação e conhecimento. Nossa comunidade é composta por indivíduos com desejos, crenças, instintos e gostos literÃ¡rios muito distintos.\n\nPara garantirmos a harmonia da nossa plataforma, lembramos que NÃƒO TOLERAMOS qualquer tipo de insulto, discurso de ódio ou assédio entre usuÃ¡rios (seja nas avaliações, mensagens ou comentÃ¡rios). Todo autor deve estar preparado para receber opiniões e críticas construtivas sobre sua obra com maturidade.\n\nQualquer violação Ã s regras de respeito descritas em nossos Termos de Uso resultarÃ¡ em punições severas, podendo chegar ao banimento definitivo e o encaminhamento dos dados do infrator para medidas judiciais cabíveis por parte da pessoa ofendida. A Sagaflix atua como provedora de hospedagem e não se responsabiliza pelas opiniões individuais emitidas por seus usuÃ¡rios, mas serÃ¡ implacÃ¡vel na remoção de contas tóxicas.\n\nBem-vindo Ã  sua nova casa literÃ¡ria. Escreva com o coração, e respeite a jornada dos seus colegas de pÃ¡gina.\n\nAbraços,\nEquipe de Curadoria Sagaflix`;
+        const subject = 'Parabéns! Você agora é um Autor Oficial da Sagaflix! 🎉';
+        const message = `Olá ${userName},\n\nÉ com imensa alegria que anunciamos que o seu perfil e a sua obra foram APROVADOS pela nossa Curadoria! A partir de agora, você pode acessar o Sagaflix Estúdio e começar a publicar seus capítulos para milhares de leitores. Acesse: https://sagaflix-enciclopedia.vercel.app/autor\n\nâš ï¸ AVISO IMPORTANTE: REGRAS DE CONVÍVIO\nA Sagaflix é um instrumento de divulgação de cultura, imaginação e conhecimento. Nossa comunidade é composta por indivíduos com desejos, crenças, instintos e gostos literários muito distintos.\n\nPara garantirmos a harmonia da nossa plataforma, lembramos que NÃO TOLERAMOS qualquer tipo de insulto, discurso de ódio ou assédio entre usuários (seja nas avaliações, mensagens ou comentários). Todo autor deve estar preparado para receber opiniões e críticas construtivas sobre sua obra com maturidade.\n\nQualquer violação às regras de respeito descritas em nossos Termos de Uso resultará em punições severas, podendo chegar ao banimento definitivo e o encaminhamento dos dados do infrator para medidas judiciais cabíveis por parte da pessoa ofendida. A Sagaflix atua como provedora de hospedagem e não se responsabiliza pelas opiniões individuais emitidas por seus usuários, mas será implacável na remoção de contas tóxicas.\n\nBem-vindo à sua nova casa literária. Escreva com o coração, e respeite a jornada dos seus colegas de página.\n\nAbraços,\nEquipe de Curadoria Sagaflix`;
         await sendEmail(userEmail, subject, message);
       } else if (newStatus === 'rejected' && userEmail) {
         const subject = 'Atualização do seu cadastro na Sagaflix';
-        const message = `OlÃ¡ ${userName},\n\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.\n\nSe você tiver alguma dúvida em relação a esta decisão ou desejar uma réplica da nossa avaliação, por favor, entre em contato com nosso suporte através do e-mail suporte@sagaflix.com.br\n\nEquipe Sagaflix`;
+        const message = `Olá ${userName},\n\nInfelizmente seu perfil não foi aprovado pela nossa curadoria neste momento.\n\nSe você tiver alguma dúvida em relação a esta decisão ou desejar uma réplica da nossa avaliação, por favor, entre em contato com nosso suporte através do e-mail suporte@sagaflix.com.br\n\nEquipe Sagaflix`;
         await sendEmail(userEmail, subject, message);
       }
 
@@ -3614,7 +3751,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
         <div style={{ background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Crie roteiros guiados para ensinar novos usuÃ¡rios a usar a plataforma. Você pode apontar para IDs específicos na tela (ex: <code>#tour-btn-new-book</code>).
+            Crie roteiros guiados para ensinar novos usuários a usar a plataforma. Você pode apontar para IDs específicos na tela (ex: <code>#tour-btn-new-book</code>).
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -3645,7 +3782,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                   >
                     <option value="author">Apenas Autores</option>
                     <option value="reader">Apenas Leitores</option>
-                    <option value="all">Todos os UsuÃ¡rios</option>
+                    <option value="all">Todos os Usuários</option>
                   </select>
                   <button 
                     onClick={() => {
@@ -3917,7 +4054,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
         {gamificacaoSubTab === 'ranking' && (
           <div>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Os 100 leitores mais engajados da plataforma com base em pÃ¡ginas lidas.</p>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>Os 100 leitores mais engajados da plataforma com base em páginas lidas.</p>
             
             <div style={{ background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
@@ -3925,7 +4062,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)' }}>
                     <th style={{ padding: '1rem', width: '60px', textAlign: 'center' }}>Pos</th>
                     <th style={{ padding: '1rem' }}>Leitor (Nickname)</th>
-                    <th style={{ padding: '1rem' }}>PÃ¡ginas Lidas</th>
+                    <th style={{ padding: '1rem' }}>Páginas Lidas</th>
                     <th style={{ padding: '1rem' }}>Livros Lidos</th>
                     <th style={{ padding: '1rem' }}>Títulos Desbloqueados</th>
                     <th style={{ padding: '1rem', textAlign: 'right' }}>Ações</th>
@@ -3957,7 +4094,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                           <button className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }} onClick={() => {
-                            const newPages = window.prompt("PÃ¡ginas lidas:", leitor.pagesRead || 0);
+                            const newPages = window.prompt("Páginas lidas:", leitor.pagesRead || 0);
                             if (newPages === null) return;
                             const newBooks = window.prompt("Obras lidas:", (leitor.finishedBooks || []).length);
                             if (newBooks === null) return;
@@ -4001,7 +4138,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
   const renderRequestDetails = (isReprovado = false) => {
     const user = db.users.find(u => u.id === selectedRequest.userId);
-    if (!user) return <div style={{color:'red'}}>Erro: UsuÃ¡rio não encontrado.</div>;
+    if (!user) return <div style={{color:'red'}}>Erro: Usuário não encontrado.</div>;
     
     return (
       <div style={{ height: '100%', overflowY: 'auto', paddingRight: '1rem' }}>
@@ -4010,7 +4147,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             <ArrowLeft size={16} /> Voltar
           </button>
           <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: isReprovado ? '#f44336' : 'var(--accent-gold)' }}>
-            {isReprovado ? 'AnÃ¡lise de Candidato Reprovado' : 'Detalhes do Pedido'}
+            {isReprovado ? 'Análise de Candidato Reprovado' : 'Detalhes do Pedido'}
           </h2>
         </div>
 
@@ -4144,7 +4281,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           <h2 style={{ fontFamily: "'Playfair Display', serif", color: '#f44336', margin: 0 }}>Candidatos Reprovados</h2>
         </div>
         {reprovados.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>A lixeira estÃ¡ vazia. Nenhum candidato reprovado no momento.</p>
+          <p style={{ color: 'var(--text-muted)' }}>A lixeira está vazia. Nenhum candidato reprovado no momento.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {reprovados.map(req => {
@@ -4248,7 +4385,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         <div className="admin-modal-overlay">
           <div className="admin-modal-content" style={{ width: '90%', maxWidth: '500px', padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>{editingUser ? 'Editar UsuÃ¡rio' : 'Adicionar UsuÃ¡rio'}</h2>
+              <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif" }}>{editingUser ? 'Editar Usuário' : 'Adicionar Usuário'}</h2>
               <button onClick={() => setShowUserForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)' }}><X size={20}/></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -4278,7 +4415,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input type="checkbox" id="incomplete" checked={userFormData.incompleteProfile} onChange={e => setUserFormData({...userFormData, incompleteProfile: e.target.checked})} />
-                <label htmlFor="incomplete" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Marcar perfil como incompleto (Para o usuÃ¡rio preencher depois)</label>
+                <label htmlFor="incomplete" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Marcar perfil como incompleto (Para o usuário preencher depois)</label>
               </div>
               <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => {
                 if (!userFormData.name || !userFormData.email) {
@@ -4303,7 +4440,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
                 onUpdateData({ ...db, users: updatedUsers });
                 setShowUserForm(false);
               }}>
-                {editingUser ? 'Salvar Alterações' : 'Criar UsuÃ¡rio'}
+                {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}
               </button>
             </div>
           </div>
