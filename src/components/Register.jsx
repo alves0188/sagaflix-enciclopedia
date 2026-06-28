@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 export default function Register({ onNavigateLogin, onRegisterSuccess, portalRole }) {
   const [role, setRole] = useState(portalRole === 'author' ? 'author' : 'reader');
+  const [isRegistered, setIsRegistered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -116,12 +117,40 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
       }
       
       toast.success('Conta criada com sucesso!', { id: toastId });
+      setIsRegistered(true);
     } catch (err) {
       toast.error('Erro ao conectar com o servidor.', { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isRegistered) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100vw', background: 'var(--bg-main)', padding: '2rem' }}>
+        <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '12px', border: '1px solid var(--accent-gold)', width: '100%', maxWidth: '500px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.1)', border: '2px solid var(--accent-gold)' }}>
+            <CheckCircle size={40} color="var(--accent-gold)" />
+          </div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', margin: 0, fontSize: '2rem' }}>
+            {role === 'author' ? 'Solicitação Enviada!' : 'Cadastro Concluído!'}
+          </h2>
+          <p style={{ color: 'var(--text-main)', lineHeight: '1.6', margin: 0 }}>
+            {role === 'author' 
+              ? 'Sua solicitação de autor foi enviada. Enviamos um e-mail de confirmação para o endereço cadastrado. Por favor, verifique sua caixa de entrada e clique no link de ativação antes de realizar o login.'
+              : 'Enviamos um e-mail de confirmação para você. Por favor, verifique seu e-mail e ative sua conta para liberar seu acesso.'}
+          </p>
+          <button 
+            onClick={onNavigateLogin} 
+            className="btn-primary" 
+            style={{ width: '100%', padding: '1rem', marginTop: '1rem' }}
+          >
+            IR PARA O LOGIN
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: '100vh', width: '100vw', background: 'var(--bg-main)', padding: '2rem' }}>
