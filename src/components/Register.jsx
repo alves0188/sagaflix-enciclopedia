@@ -90,7 +90,10 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
     try {
       const { data, error: authError } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
       });
       
       if (authError) {
