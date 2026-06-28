@@ -259,6 +259,33 @@ export default function SynopsisConfig({ book, onUpdateBook, isReadOnly, onLogCh
           </div>
 
           <div style={formFieldStyle}>
+            <label style={{ color: 'var(--text-muted)' }}>SKU da Obra (Identificador Único para Vitrine & Conquistas)</label>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                value={book.sku || ''} 
+                disabled 
+                className="form-input" 
+                style={{ fontSize: '1rem', padding: '0.8rem', opacity: 0.7, fontFamily: 'monospace', flex: 1 }} 
+              />
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigator.clipboard.writeText(book.sku || '');
+                  toast.success('SKU copiado para a área de transferência!');
+                }}
+                className="btn-secondary"
+                style={{ padding: '0 1rem', fontSize: '0.9rem' }}
+              >
+                Copiar
+              </button>
+            </div>
+            <small style={{ color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              Utilize este SKU nos links dos banners da vitrine e nas configurações de gamificação para criar vínculos diretos à obra.
+            </small>
+          </div>
+
+          <div style={formFieldStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
               <label style={{ color: 'var(--text-muted)', margin: 0 }}>Premissa / Argumento (Logline)</label>
               <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontStyle: 'italic' }}>

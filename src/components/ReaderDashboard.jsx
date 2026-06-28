@@ -433,7 +433,7 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
 
   const handleBannerAction = (banner) => {
     if (banner.actionUrl) {
-      const book = db.books.find(b => b.id === banner.actionUrl);
+      const book = db.books.find(b => b.id === banner.actionUrl || (b.sku && b.sku.toLowerCase() === banner.actionUrl.toLowerCase()));
       if (book) {
         setSelectedBook(book);
       } else if (banner.actionUrl.startsWith('http')) {
@@ -468,7 +468,7 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
     if (activeBanners.length === 0) return null;
     const currentBanner = activeBanners[currentSlide] || activeBanners[0];
 
-    const book = db.books.find(b => b.id === currentBanner.actionUrl);
+    const book = db.books.find(b => b.id === currentBanner.actionUrl || (b.sku && b.sku.toLowerCase() === currentBanner.actionUrl.toLowerCase()));
     const authorName = book ? (db.users.find(u => u.id === book.authorId)?.name || 'Wagner Rocha') : 'Wagner Rocha';
 
     return (
