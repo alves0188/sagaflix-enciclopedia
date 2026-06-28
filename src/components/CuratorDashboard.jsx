@@ -607,7 +607,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     let newDb = { ...db };
     if (!newDb.banners) newDb.banners = [];
 
-    const isNew = editingBanner === 'new';
+    const isNew = editingBanner === 'new' || editingBanner === true || !newDb.banners.some(b => b.id === bannerFormData.id);
     
     if (isNew) {
       newDb.banners.push({ ...bannerFormData });
@@ -639,8 +639,8 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             <p style={{ color: 'var(--text-muted)', margin: 0 }}>Gerencie os destaques no topo do painel do leitor.</p>
           </div>
           <button onClick={() => {
-            setEditingBanner(true);
-            setBannerFormData({ id: 'bn_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler' });
+            setEditingBanner('new');
+            setBannerFormData({ id: 'banner_' + Date.now(), title: '', description: '', imageUrl: '', actionUrl: '', actionText: 'Começar a Ler' });
           }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={18} /> Novo Banner
           </button>
@@ -648,7 +648,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
         {editingBanner && (
           <div style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '2rem', animation: 'fadeIn 0.3s ease' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>{bannerFormData.id.startsWith('bn_') ? 'Novo Banner' : 'Editar Banner'}</h3>
+            <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>{editingBanner === 'new' ? 'Novo Banner' : 'Editar Banner'}</h3>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
