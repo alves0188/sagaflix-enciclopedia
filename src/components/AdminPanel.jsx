@@ -30,7 +30,11 @@ const editorConfig = {
 };
 
 export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly: originalIsReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
-  const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished' || currentBook?.status === 'published';
+  const isCurator = currentUser?.role === 'curator';
+  const isPublishedBook = currentBook?.status === 'published';
+  // Curador sempre pode editar. Livros publicados ficam somente-leitura para autores
+  // (exceto em publicação serial onde o autor pode gerenciar capítulos individuais).
+  const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished' || (isPublishedBook && !isCurator && currentBook?.publicationStatus !== 'ongoing');
   
   const [universeItems, setUniverseItems] = useState(null);
   const [loadingUniverse, setLoadingUniverse] = useState(true);

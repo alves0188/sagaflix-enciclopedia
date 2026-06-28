@@ -1622,12 +1622,28 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
               chDate = new Date(today);
             }
             
+            // Publicar automaticamente os capítulos cuja data é hoje ou anterior
+            const shouldPublishNow = chDate <= today;
+            
             return {
               ...ch,
-              publishDate: formatDate(chDate)
+              publishDate: formatDate(chDate),
+              status: shouldPublishNow ? 'published' : (ch.status || 'draft'),
+              publishedAt: shouldPublishNow ? new Date().toISOString() : ch.publishedAt
             };
           });
         }
+        
+        // Também publicar itens do universo (personagens, locais, organizações, eventos, pistas)
+        const universeKeys = ['characters', 'locations', 'organizations', 'events', 'clues'];
+        universeKeys.forEach(key => {
+          if (book.universe && book.universe[key]) {
+            book.universe[key] = book.universe[key].map(item => ({
+              ...item,
+              status: 'published'
+            }));
+          }
+        });
       }
       
       const actionText = newStatus === 'published' ? 'Aprovação de Livro' : 'Alteração de Status';
