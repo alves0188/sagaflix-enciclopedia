@@ -186,24 +186,39 @@ function AppContent() {
 
   // DB Sync Effect
   useEffect(() => {
-    const withTimeout = (promise, ms = 8000) => {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout de conexão Supabase')), ms))
-      ]);
+    const fetchWithRetry = async (queryPromiseFn, timeoutMs = 12000, retries = 2) => {
+      const withTimeout = (promise, ms) => {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+        ]);
+      };
+
+      for (let i = 0; i < retries; i++) {
+        try {
+          console.log(`[App] Fetch attempt ${i + 1}...`);
+          return await withTimeout(queryPromiseFn(), timeoutMs);
+        } catch (err) {
+          console.warn(`[App] Attempt ${i + 1} failed:`, err);
+          if (i === retries - 1) throw err;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     };
 
     const fetchData = async () => {
       try {
-        const { data: dbData, error: dbError } = await withTimeout(
-          supabase.from('sagaflix_db').select('data').eq('id', 1).single(),
-          8000
+        const { data: dbData, error: dbError } = await fetchWithRetry(
+          () => supabase.from('sagaflix_db').select('data').eq('id', 1).single(),
+          12000,
+          2
         );
         if (dbData && dbData.data) {
            const finalData = { ...dbData.data };
-           const { data: allBooks } = await withTimeout(
-             supabase.from('books').select('*'),
-             8000
+           const { data: allBooks } = await fetchWithRetry(
+             () => supabase.from('books').select('*'),
+             12000,
+             2
            );
            if (allBooks) {
              finalData.books = allBooks.map(b => ({

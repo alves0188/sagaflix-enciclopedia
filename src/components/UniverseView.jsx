@@ -37,11 +37,35 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
 
   useEffect(() => {
     async function loadUniverseData() {
+      const fetchWithRetry = async (queryPromiseFn, timeoutMs = 12000, retries = 2) => {
+        const withTimeout = (promise, ms) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+          ]);
+        };
+
+        for (let i = 0; i < retries; i++) {
+          try {
+            console.log(`[UniverseView] Fetch attempt ${i + 1}...`);
+            return await withTimeout(queryPromiseFn(), timeoutMs);
+          } catch (err) {
+            console.warn(`[UniverseView] Attempt ${i + 1} failed:`, err);
+            if (i === retries - 1) throw err;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      };
+
       let profiles = [];
       let bookResult = null;
 
       try {
-        const { data, error } = await supabase.from('profiles').select('*');
+        const { data, error } = await fetchWithRetry(
+          () => supabase.from('profiles').select('*'),
+          12000,
+          2
+        );
         if (error) console.error("[UniverseView] Error profiles:", error);
         if (data) profiles = data;
       } catch (e) {
@@ -49,7 +73,11 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
       }
 
       try {
-        const { data, error } = await supabase.from('books').select('*').eq('id', bookId).single();
+        const { data, error } = await fetchWithRetry(
+          () => supabase.from('books').select('*').eq('id', bookId).single(),
+          12000,
+          2
+        );
         if (error) console.error("[UniverseView] Error book:", error);
         if (data) bookResult = data;
       } catch (e) {
