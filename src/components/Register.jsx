@@ -115,6 +115,55 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         setIsLoading(false);
         return;
       }
+
+      // Sincronizar registro na tabela JSON sagaflix_db para compatibilidade com Curadoria
+      try {
+        const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+        if (dbData && dbData.data) {
+          const newDb = { ...dbData.data };
+          if (!newDb.users) newDb.users = [];
+          
+          if (role === 'author') {
+            if (!newDb.authorRequests) newDb.authorRequests = [];
+            
+            newDb.users.push({
+              id: data.user.id,
+              email: formData.email,
+              name: formData.name,
+              nickname: formData.nickname,
+              status: 'pending',
+              role: 'reader'
+            });
+
+            newDb.authorRequests.push({
+              id: `req_${Date.now()}`,
+              userId: data.user.id,
+              authorId: data.user.id,
+              email: formData.email,
+              name: formData.name,
+              nickname: formData.nickname,
+              about: formData.about || '',
+              bookTitle: formData.bookTitle || '',
+              synopsis: formData.synopsis || '',
+              sampleText: formData.sampleText || '',
+              status: 'pending',
+              date: new Date().toLocaleDateString('pt-BR')
+            });
+          } else {
+            newDb.users.push({
+              id: data.user.id,
+              email: formData.email,
+              name: formData.name,
+              nickname: formData.nickname,
+              status: 'active',
+              role: 'reader'
+            });
+          }
+          await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+        }
+      } catch (dbErr) {
+        console.error("Erro ao sincronizar registro no sagaflix_db:", dbErr);
+      }
       
       toast.success('Conta criada com sucesso!', { id: toastId });
       setIsRegistered(true);

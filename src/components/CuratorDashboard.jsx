@@ -3466,6 +3466,14 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
       await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
 
+      if (newStatus === 'active') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: 'author' })
+          .eq('id', userId);
+        if (profileError) throw profileError;
+      }
+
       if (newStatus === 'active' && userEmail) {
         const subject = 'Parabéns! Você agora é um Autor Oficial da Sagaflix! ðŸŽ‰';
         const message = `OlÃ¡ ${userName},\n\nÃ‰ com imensa alegria que anunciamos que o seu perfil e a sua obra foram APROVADOS pela nossa Curadoria! A partir de agora, você pode acessar o Sagaflix Estúdio e começar a publicar seus capítulos para milhares de leitores. Acesse: https://sagaflix-enciclopedia.vercel.app/autor\n\nâš ï¸ AVISO IMPORTANTE: REGRAS DE CONVÃVIO\nA Sagaflix é um instrumento de divulgação de cultura, imaginação e conhecimento. Nossa comunidade é composta por indivíduos com desejos, crenças, instintos e gostos literÃ¡rios muito distintos.\n\nPara garantirmos a harmonia da nossa plataforma, lembramos que NÃƒO TOLERAMOS qualquer tipo de insulto, discurso de ódio ou assédio entre usuÃ¡rios (seja nas avaliações, mensagens ou comentÃ¡rios). Todo autor deve estar preparado para receber opiniões e críticas construtivas sobre sua obra com maturidade.\n\nQualquer violação Ã s regras de respeito descritas em nossos Termos de Uso resultarÃ¡ em punições severas, podendo chegar ao banimento definitivo e o encaminhamento dos dados do infrator para medidas judiciais cabíveis por parte da pessoa ofendida. A Sagaflix atua como provedora de hospedagem e não se responsabiliza pelas opiniões individuais emitidas por seus usuÃ¡rios, mas serÃ¡ implacÃ¡vel na remoção de contas tóxicas.\n\nBem-vindo Ã  sua nova casa literÃ¡ria. Escreva com o coração, e respeite a jornada dos seus colegas de pÃ¡gina.\n\nAbraços,\nEquipe de Curadoria Sagaflix`;
