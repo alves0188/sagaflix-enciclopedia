@@ -151,7 +151,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
             name: p.name,
             nickname: p.nickname,
             email: p.email,
-            status: dbUser?.status || 'approved'
+            status: dbUser?.status || (p.role === 'reader' ? 'active' : 'pending')
           });
         });
 

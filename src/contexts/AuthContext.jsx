@@ -89,6 +89,34 @@ export function AuthProvider({ children }) {
 
           setCurrentUser(userObj);
           localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
+
+          // AUTO-ATIVAR NO SAGAFLIX_DB: Garante que qualquer usuário logado com sucesso esteja 'active'
+          try {
+            const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
+            if (dbData && dbData.data) {
+              const newDb = { ...dbData.data };
+              if (!newDb.users) newDb.users = [];
+              const uIdx = newDb.users.findIndex(du => du.id === user.id);
+              if (uIdx !== -1) {
+                if (newDb.users[uIdx].status !== 'active') {
+                  newDb.users[uIdx].status = 'active';
+                  await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+                }
+              } else {
+                newDb.users.push({
+                  id: user.id,
+                  email: user.email,
+                  name: profile.name,
+                  nickname: profile.nickname,
+                  status: 'active',
+                  role: profile.role || 'reader'
+                });
+                await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
+              }
+            }
+          } catch (dbErr) {
+            console.error("Erro ao auto-ativar usuário logado:", dbErr);
+          }
         }
       } catch (err) {
         console.error("Erro no carregamento do perfil:", err);
