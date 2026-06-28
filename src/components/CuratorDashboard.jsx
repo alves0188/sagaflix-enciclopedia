@@ -152,6 +152,12 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           name: p.name,
           nickname: p.nickname,
           email: p.email,
+          avatar: p.avatar_url,
+          bio: p.bio,
+          writingStyle: p.writing_style,
+          displayMode: p.display_mode,
+          about: p.about,
+          location: p.location,
           status: p.status || (p.role === 'reader' ? 'active' : 'pending')
         }));
 
