@@ -613,7 +613,7 @@ function AppContent() {
 
 
   // Se um livro estiver aberto, mostra o Universo
-  if (currentBookId && viewRole !== 'curator') {
+  if (currentUser && currentBookId && viewRole !== 'curator') {
     return (
       <UniverseView 
          

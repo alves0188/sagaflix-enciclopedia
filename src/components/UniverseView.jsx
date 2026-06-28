@@ -214,8 +214,22 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
     setActiveTab(initialTab || defaultTab);
   }, [bookId, initialTab, showHome, showCharacters, showLocations, showOrganizations, showClues]);
 
+  if (localData && (!currentBook || !db.books || db.books.length === 0)) {
+    return (
+      <div style={{ color: 'white', padding: '3rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-main)', gap: '1.5rem' }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)' }}>Universo Não Encontrado</h2>
+        <p style={{ color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto' }}>Não foi possível carregar as informações deste livro. Ele pode ter sido excluído ou estar indisponível.</p>
+        <button onClick={onLeave} className="btn-primary" style={{ padding: '0.8rem 2rem', marginTop: '1rem' }}>Voltar ao Painel</button>
+      </div>
+    );
+  }
+
   if (!db || !db.books || !currentBook) {
-    return <div style={{ color: 'white', padding: '3rem', textAlign: 'center' }}>Carregando Universo...</div>;
+    return (
+      <div style={{ color: 'white', padding: '3rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-main)' }}>
+        <p style={{ color: 'var(--accent-gold)', fontSize: '1.2rem' }}>Carregando universo...</p>
+      </div>
+    );
   }
 
   const handleUpdateUniverse = (newUniverse) => {
