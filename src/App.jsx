@@ -218,28 +218,21 @@ function AppContent() {
 
     const fetchData = async () => {
       try {
-        const { data: dbData, error: dbError } = await fetchWithRetry(
-          () => supabase.from('sagaflix_db').select('data').eq('id', 1).single(),
+        const { data: allBooks } = await fetchWithRetry(
+          () => supabase.from('books').select('*'),
           12000,
           2
         );
-        if (dbData && dbData.data) {
-           const finalData = { ...dbData.data };
-           const { data: allBooks } = await fetchWithRetry(
-             () => supabase.from('books').select('*'),
-             12000,
-             2
-           );
-           if (allBooks) {
-             finalData.books = allBooks.map(b => ({
-               ...b,
-               authorId: b.author_id,
-               coverUrl: b.cover_url,
-               cover: b.cover_url
-             }));
-           }
-           setDb(finalData);
+        const finalData = { books: [] };
+        if (allBooks) {
+          finalData.books = allBooks.map(b => ({
+            ...b,
+            authorId: b.author_id,
+            coverUrl: b.cover_url,
+            cover: b.cover_url
+          }));
         }
+        setDb(finalData);
       } catch (err) {
         console.error("Erro no carregamento inicial:", err);
       } finally {
@@ -247,39 +240,16 @@ function AppContent() {
       }
     };
     fetchData();
-
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'sagaflix_db', filter: 'id=eq.1' },
-        (payload) => {
-          if (payload.new && payload.new.data) {
-            setDb(payload.new.data);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const handleUpdateData = async (newData) => {
     setDb(newData);
-    if (currentUser) {
+    if (currentUser && newData.users) {
       const latestUser = newData.users.find(u => u.id === currentUser.id);
       if (latestUser) {
         setCurrentUser(latestUser);
         localStorage.setItem('sagaflix_user', JSON.stringify(latestUser));
       }
-    }
-    try {
-      const { error } = await supabase.from('sagaflix_db').update({ data: newData }).eq('id', 1);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Erro ao salvar.', err);
     }
   };
 

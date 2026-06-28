@@ -3515,38 +3515,55 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
 
   const handleUpdateAuthorStatus = async (userId, newStatus) => {
     try {
-      const { data: dbData, error } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (error || !dbData) throw error;
-      const newDb = dbData.data;
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('email, name')
+        .eq('id', userId)
+        .single();
+      if (fetchError) throw fetchError;
       
-      let userEmail = '';
-      let userName = '';
-      const userIndex = newDb.users.findIndex(u => u.id === userId);
-      if (userIndex !== -1) {
-        newDb.users[userIndex].status = newStatus;
-        if (newStatus === 'active') {
-          newDb.users[userIndex].role = 'author';
-        }
-        userEmail = newDb.users[userIndex].email;
-        userName = newDb.users[userIndex].name;
-      }
+      const userEmail = profile?.email || '';
+      const userName = profile?.name || 'Autor';
       
-      if (newDb.authorRequests) {
-        const reqIndex = newDb.authorRequests.findIndex(r => r.userId === userId);
-        if (reqIndex !== -1) {
-          newDb.authorRequests[reqIndex].status = newStatus;
-        }
-      }
-
-      await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-
+      const profileUpdates = { status: newStatus };
       if (newStatus === 'active') {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ role: 'author' })
-          .eq('id', userId);
-        if (profileError) throw profileError;
+        profileUpdates.role = 'author';
       }
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(profileUpdates)
+        .eq('id', userId);
+      if (profileError) throw profileError;
+      
+      const { error: reqError } = await supabase
+        .from('author_requests')
+        .update({ status: newStatus })
+        .eq('user_id', userId);
+      if (reqError) throw reqError;
+      
+      setLocalData(prev => {
+        const updatedUsers = prev.users.map(u => {
+          if (u.id === userId) {
+            return {
+              ...u,
+              status: newStatus,
+              role: newStatus === 'active' ? 'author' : u.role
+            };
+          }
+          return u;
+        });
+        const updatedReqs = prev.authorRequests.map(r => {
+          if (r.userId === userId) {
+            return { ...r, status: newStatus };
+          }
+          return r;
+        });
+        return {
+          ...prev,
+          users: updatedUsers,
+          authorRequests: updatedReqs
+        };
+      });
 
       if (newStatus === 'active' && userEmail) {
         const subject = 'Parabéns! Você agora é um Autor Oficial da Sagaflix! ðŸŽ‰';

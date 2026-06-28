@@ -15,17 +15,17 @@ export default function EmailConfirmationView({ token, onConfirm }) {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const { data: result, error: fetchError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-        if (fetchError) throw fetchError;
-        const data = result.data;
-        setDb(data);
-
-        // Verifica se existe algum usuário pendente com esse token
-        const user = data.users.find(u => u.verificationToken === token && u.status === 'pending_email');
-        if (user) {
-          setIsTokenValid(true);
-        } else {
+        const { data: profile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('verification_token', token)
+          .eq('status', 'pending_email')
+          .single();
+          
+        if (fetchError || !profile) {
           setIsTokenValid(false);
+        } else {
+          setIsTokenValid(true);
         }
       } catch (err) {
         console.error("Erro ao validar token:", err);
@@ -42,18 +42,47 @@ export default function EmailConfirmationView({ token, onConfirm }) {
     setError('');
 
     try {
-      const userIndex = db.users.findIndex(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password && u.verificationToken === token && u.status === 'pending_email');
-      
-      if (userIndex !== -1) {
-        const user = db.users[userIndex];
-        // Atualiza status
-        db.users[userIndex].status = 'active';
-        db.users[userIndex].verificationToken = null; // Limpa o token
-
-        await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .eq('verification_token', token)
+        .eq('status', 'pending_email')
+        .single();
+        
+      if (profile) {
+        // Valida senha via Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (authError) {
+          setError('E-mail ou senha incorretos.');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Atualiza status relacionalmente
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            status: 'active',
+            verification_token: null
+          })
+          .eq('id', profile.id);
+          
+        if (updateError) throw updateError;
 
         toast('E-mail confirmado com sucesso! Seja bem-vindo(a) à Sagaflix.');
-        onConfirm(user, db); // Faz login automático
+        
+        const userObj = {
+          id: profile.id, role: profile.role || 'reader', name: profile.name, nickname: profile.nickname,
+          email: profile.email, avatar: profile.avatar_url,
+          favorites: profile.favorites || [], readingStatus: profile.reading_status || {},
+          completedTutorials: profile.completed_tutorials || []
+        };
+        onConfirm(userObj, {}); // Faz login automático
       } else {
         setError('E-mail ou senha incorretos.');
       }

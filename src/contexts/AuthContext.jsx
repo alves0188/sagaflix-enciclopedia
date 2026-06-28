@@ -50,25 +50,7 @@ export function AuthProvider({ children }) {
           } else {
             profile = { ...newProfile, completed_tutorials: [], favorites: [], reading_status: {} };
             
-            // Sincronizar na tabela sagaflix_db JSON também
-            try {
-              const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-              if (dbData && dbData.data) {
-                const newDb = { ...dbData.data };
-                if (!newDb.users) newDb.users = [];
-                newDb.users.push({
-                  id: user.id,
-                  email: user.email,
-                  name: newProfile.name,
-                  nickname: newProfile.nickname,
-                  status: 'active',
-                  role: 'reader'
-                });
-                await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-              }
-            } catch (dbErr) {
-              console.error("Erro ao sincronizar login social no sagaflix_db:", dbErr);
-            }
+            profile = { ...newProfile, completed_tutorials: [], favorites: [], reading_status: {}, status: 'active' };
           }
         }
 
@@ -90,29 +72,11 @@ export function AuthProvider({ children }) {
           setCurrentUser(userObj);
           localStorage.setItem('sagaflix_user', JSON.stringify(userObj));
 
-          // AUTO-ATIVAR NO SAGAFLIX_DB: Garante que qualquer usuário logado com sucesso esteja 'active'
+          // AUTO-ATIVAR: Garante que qualquer usuário logado com sucesso esteja 'active' na tabela profiles
           try {
-            const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-            if (dbData && dbData.data) {
-              const newDb = { ...dbData.data };
-              if (!newDb.users) newDb.users = [];
-              const uIdx = newDb.users.findIndex(du => du.id === user.id);
-              if (uIdx !== -1) {
-                if (newDb.users[uIdx].status !== 'active') {
-                  newDb.users[uIdx].status = 'active';
-                  await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-                }
-              } else {
-                newDb.users.push({
-                  id: user.id,
-                  email: user.email,
-                  name: profile.name,
-                  nickname: profile.nickname,
-                  status: 'active',
-                  role: profile.role || 'reader'
-                });
-                await supabase.from('sagaflix_db').update({ data: newDb }).eq('id', 1);
-              }
+            if (profile.status !== 'active') {
+              await supabase.from('profiles').update({ status: 'active' }).eq('id', user.id);
+              profile.status = 'active';
             }
           } catch (dbErr) {
             console.error("Erro ao auto-ativar usuário logado:", dbErr);

@@ -61,11 +61,12 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
 
   useEffect(() => {
     async function loadReaderData() {
-      // Fetch books, authors, banners
-      const [{ data: books }, { data: profiles }, { data: reviews }] = await Promise.all([
+      // Fetch books, authors, banners, and badges relationally
+      const [{ data: books }, { data: profiles }, { data: bannersData }, { data: badgesData }] = await Promise.all([
         supabase.from('books').select('*').eq('status', 'published'),
         supabase.from('profiles').select('*'),
-        supabase.from('reviews').select('*')
+        supabase.from('banners').select('*').eq('active', true).order('order_index', { ascending: true }),
+        supabase.from('gamification_badges').select('*')
       ]);
 
       const mappedBooks = (books || []).map(b => ({
@@ -109,11 +110,37 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
         badges: p.gamification_badges || []
       }));
 
+      const mappedBanners = (bannersData && bannersData.length > 0)
+        ? bannersData.map(b => ({
+            id: b.id,
+            title: b.title,
+            description: b.description,
+            imageUrl: b.image_url,
+            actionUrl: b.action_url,
+            actionText: b.action_text
+          }))
+        : DEFAULT_BANNERS;
+
+      const mappedBadges = (badgesData && badgesData.length > 0)
+        ? badgesData.map(g => ({
+            id: g.id,
+            name: g.name,
+            desc: g.description,
+            tier: g.tier,
+            xp: g.xp,
+            icon: g.icon,
+            bg: g.bg_color,
+            ic: g.icon_color,
+            progMax: g.prog_max,
+            trigger: g.trigger_type
+          }))
+        : (BADGES_DB || []);
+
       setLocalData({
         books: mappedBooks,
         users: mappedUsers,
-        banners: DEFAULT_BANNERS,
-        gamificationBadges: BADGES_DB || []
+        banners: mappedBanners,
+        gamificationBadges: mappedBadges
       });
     }
     if (currentUser) {

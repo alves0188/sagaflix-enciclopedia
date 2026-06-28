@@ -73,15 +73,6 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
         };
         onLogin(userObj);
       } else {
-        // Fallback: usar dados do sagaflix_db
-        const { data: dbData } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-        if (dbData && dbData.data && dbData.data.users) {
-          const fallbackUser = dbData.data.users.find(u => u.email === email);
-          if (fallbackUser) {
-            onLogin(fallbackUser);
-            return;
-          }
-        }
         // Ultimo recurso: criar usuario basico com dados do auth
         onLogin({ id: userId, email: data.user.email, name: data.user.user_metadata?.name || email.split('@')[0], role: 'author' });
       }
@@ -97,23 +88,26 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
     setForgotMessage('');
     setForgotError('');
     try {
-      const { data: dbData, error: dbError } = await supabase.from('sagaflix_db').select('data').eq('id', 1).single();
-      if (dbError) throw dbError;
-      
-      let db = dbData.data;
-      let user = db.users?.find(u => u.email === forgotEmail);
-      
+      const { data: user, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', forgotEmail)
+        .single();
+        
       if (user) {
         const token = Math.random().toString(36).substring(2, 15);
-        user.resetToken = token;
         
-        const { error: updateError } = await supabase.from('sagaflix_db').update({ data: db }).eq('id', 1);
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ reset_token: token })
+          .eq('id', user.id);
+          
         if (updateError) throw updateError;
 
         const resetLink = `${window.location.origin}/recuperar-senha?token=${token}`;
         
         const subject = 'Recuperação de Senha - Sagaflix';
-        const message = `Olá ${user.name},\n\nVocê solicitou a recuperação da sua senha na Sagaflix. Clique no link abaixo para criar uma nova senha:\n\n${resetLink}\n\nSe você não solicitou isso, pode ignorar este e-mail.\n\nEquipe Sagaflix`;
+        const message = `Olá ${user.name || user.nickname || 'Leitor'},\n\nVocê solicitou a recuperação da sua senha na Sagaflix. Clique no link abaixo para criar uma nova senha:\n\n${resetLink}\n\nSe você não solicitou isso, pode ignorar este e-mail.\n\nEquipe Sagaflix`;
         
         await sendEmail(user.email, subject, message);
       }
@@ -121,6 +115,7 @@ export default function Login({ onLogin, onNavigateRegister, portalRole }) {
       setForgotMessage('Se o e-mail fornecido estiver em nossos registros, enviaremos um link de recuperação de senha.');
       setForgotEmail('');
     } catch (err) {
+      console.error(err);
       setForgotError('Erro ao se conectar com o servidor.');
     } finally {
       setForgotLoading(false);
