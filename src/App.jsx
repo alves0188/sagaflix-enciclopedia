@@ -57,7 +57,13 @@ function AppContent() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [focusAuthorId, setFocusAuthorId] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const handleCloseProfileModal = () => setShowProfileModal(false);
+  const handleCloseProfileModal = () => {
+    setShowProfileModal(false);
+    setCurrentPassword('');
+    setConfirmPassword('');
+    setShowCurrentPassword(false);
+    setShowConfirmPassword(false);
+  };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -79,6 +85,10 @@ function AppContent() {
   const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte'], 'sagaflix_authorTab');
 
   const [showProfilePassword, setShowProfilePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userNotifications, setUserNotifications] = useState([]);
 
   // Email and password recovery states
@@ -313,6 +323,10 @@ function AppContent() {
     });
     setIsEditingProfile(false);
     setChangePassword(false);
+    setCurrentPassword('');
+    setConfirmPassword('');
+    setShowCurrentPassword(false);
+    setShowConfirmPassword(false);
     setShowProfileModal(true);
   };
 
@@ -320,11 +334,36 @@ function AppContent() {
     e.preventDefault();
     if (!profileForm.name) { toast.error('Nome é obrigatório.'); return; }
     try {
-      if (changePassword && profileForm.password && profileForm.password.trim() !== '') {
+      // 1. Alteração de Senha (com verificação da senha atual e dupla confirmação)
+      if (changePassword) {
+        if (!currentPassword || currentPassword.trim() === '') {
+          toast.error('Por favor, informe a senha atual.');
+          return;
+        }
+        if (!profileForm.password || profileForm.password.trim() === '') {
+          toast.error('Por favor, informe a nova senha.');
+          return;
+        }
+        if (profileForm.password !== confirmPassword) {
+          toast.error('A nova senha e a confirmação não conferem.');
+          return;
+        }
+
+        // Verificar se a senha atual está correta tentando autenticar temporariamente
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+          email: currentUser.email,
+          password: currentPassword
+        });
+        if (verifyError) {
+          toast.error('A senha atual informada está incorreta.');
+          return;
+        }
+
+        // Se a senha atual estiver correta, atualiza para a nova senha
         const { error: authError } = await supabase.auth.updateUser({ password: profileForm.password });
         if (authError) {
           if (authError.message && authError.message.toLowerCase().includes('should be different')) {
-            console.log("A senha informada já é a mesma que está cadastrada.");
+            console.log("A nova senha informada já é a mesma cadastrada.");
           } else {
             toast.error('Erro ao atualizar senha: ' + authError.message);
             return;
@@ -332,6 +371,18 @@ function AppContent() {
         }
       }
 
+      // 2. Alteração de E-mail de Login
+      let emailChanged = false;
+      if (profileForm.email && profileForm.email.toLowerCase() !== currentUser.email.toLowerCase()) {
+        const { error: emailError } = await supabase.auth.updateUser({ email: profileForm.email });
+        if (emailError) {
+          toast.error('Erro ao atualizar e-mail no Auth: ' + emailError.message);
+          return;
+        }
+        emailChanged = true;
+      }
+
+      // 3. Atualizar dados cadastrais na tabela profiles
       const updatedUserForDB = {
         name: profileForm.name,
         nickname: profileForm.nickname,
@@ -340,7 +391,8 @@ function AppContent() {
         bio: profileForm.bio,
         about: profileForm.about,
         location: profileForm.location,
-        writing_style: profileForm.writingStyle
+        writing_style: profileForm.writingStyle,
+        email: profileForm.email // Atualiza o email na tabela profiles também!
       };
       const { error } = await supabase.from('profiles').update(updatedUserForDB).eq('id', currentUser.id);
       if (error) throw error;
@@ -354,16 +406,28 @@ function AppContent() {
         bio: profileForm.bio,
         about: profileForm.about,
         location: profileForm.location,
-        writingStyle: profileForm.writingStyle
+        writingStyle: profileForm.writingStyle,
+        email: profileForm.email
       };
 
       setCurrentUser(updatedUserForState);
       localStorage.setItem('sagaflix_user', JSON.stringify(updatedUserForState));
+      
       setIsEditingProfile(false);
-      toast.success('Configurações salvas!');
+      setChangePassword(false);
+      setCurrentPassword('');
+      setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowConfirmPassword(false);
+
+      if (emailChanged) {
+        toast.success('Configurações salvas! Verifique seu novo e-mail para confirmar a alteração de login.');
+      } else {
+        toast.success('Configurações salvas com sucesso!');
+      }
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao salvar.');
+      toast.error('Erro ao salvar dados.');
     }
   };
 
@@ -1124,26 +1188,77 @@ function AppContent() {
               </div>
 
               {changePassword && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Nova Senha</label>
-                  <div style={{ position: 'relative' }}>
-                    <input 
-                      type={showProfilePassword ? 'text' : 'password'} 
-                      value={profileForm.password || ''} 
-                      onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
-                      className="form-input" 
-                      placeholder="Digite a nova senha..."
-                      style={{ paddingRight: '2.5rem', width: '100%' }}
-                      required
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => setShowProfilePassword(!showProfilePassword)} 
-                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                    >
-                      {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.15)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                  
+                  {/* Senha Atual */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Senha Atual</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showCurrentPassword ? 'text' : 'password'} 
+                        value={currentPassword} 
+                        onChange={e => setCurrentPassword(e.target.value)} 
+                        className="form-input" 
+                        placeholder="Digite a senha atual..."
+                        style={{ paddingRight: '2.5rem', width: '100%' }}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Nova Senha */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Nova Senha</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showProfilePassword ? 'text' : 'password'} 
+                        value={profileForm.password || ''} 
+                        onChange={e => setProfileForm({ ...profileForm, password: e.target.value })} 
+                        className="form-input" 
+                        placeholder="Digite a nova senha..."
+                        style={{ paddingRight: '2.5rem', width: '100%' }}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowProfilePassword(!showProfilePassword)} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirmar Nova Senha */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Confirmar Nova Senha</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type={showConfirmPassword ? 'text' : 'password'} 
+                        value={confirmPassword} 
+                        onChange={e => setConfirmPassword(e.target.value)} 
+                        className="form-input" 
+                        placeholder="Confirme a nova senha..."
+                        style={{ paddingRight: '2.5rem', width: '100%' }}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               )}
 
