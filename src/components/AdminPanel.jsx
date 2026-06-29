@@ -1548,7 +1548,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
               {!effectiveReadOnly && (
                 <>
-                  {currentBook?.distributionMode !== 'complete' && (
+                  {(isCurator || currentBook?.distributionMode !== 'complete') && (
                     <button 
                       onClick={handleTogglePublishStatus} 
                       title={formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
