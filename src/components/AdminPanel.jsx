@@ -719,6 +719,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     onUpdate({ ...data, notes: updatedNotes });
   };
 
+  const handleDeleteNote = (noteId) => {
+    if (window.confirm('Tem certeza que deseja excluir este comentário definitivamente?')) {
+      const updatedNotes = (data.notes || []).filter(n => n.id !== noteId);
+      onUpdate({ ...data, notes: updatedNotes });
+      toast('Comentário excluído com sucesso!');
+    }
+  };
+
   const renderNotesTab = () => {
     const notes = data.notes || [];
     const pendingNotes = notes.filter(n => n.status === 'pending');
@@ -769,12 +777,23 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             <h2 style={{ fontSize: '1.3rem', fontFamily: "'Playfair Display', serif", borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Notas Aprovadas</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {acceptedNotes.map(n => (
-                <div key={n.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '4px solid #4caf50' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 'bold' }}>{n.userName}</div>
-                    <div style={{ opacity: 0.7, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Heart size={14} /> {n.likes?.length || 0} curtidas</div>
+                <div key={n.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', borderLeft: '4px solid #4caf50', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginRight: '1rem' }}>
+                      <div style={{ fontWeight: 'bold' }}>{n.userName}</div>
+                      <div style={{ opacity: 0.7, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Heart size={14} /> {n.likes?.length || 0} curtidas</div>
+                    </div>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>{n.text}</div>
                   </div>
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>{n.text}</div>
+                  {isCurator && (
+                    <button 
+                      onClick={() => handleDeleteNote(n.id)}
+                      style={{ background: 'rgba(255, 68, 68, 0.1)', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: '1rem' }}
+                      title="Excluir Comentário"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

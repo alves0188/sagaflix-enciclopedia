@@ -1771,33 +1771,47 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
                       Nenhuma avaliação ainda. Seja o primeiro a avaliar!
                     </p>
                   ) : (
-                    (activeBook.ratings || []).map((rating, idx) => (
-                      <div 
-                        key={idx} 
-                        style={{ 
-                          background: 'rgba(255,255,255,0.01)', 
-                          border: '1px solid rgba(255,255,255,0.03)', 
-                          borderRadius: '8px', 
-                          padding: '1rem',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{rating.userName}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{rating.date}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                          <span style={{ display: 'flex', color: 'var(--accent-gold)' }}>
-                            {Array.from({ length: rating.stars }).map((_, i) => (
-                              <Star key={i} size={14} fill="var(--accent-gold)" color="var(--accent-gold)" style={{ marginRight: '1px' }} />
-                            ))}
-                            {Array.from({ length: 5 - rating.stars }).map((_, i) => (
-                              <Star key={i} size={14} fill="none" color="var(--accent-gold)" style={{ marginRight: '1px' }} />
-                            ))}
-                          </span>
-                          {rating.comment && (
+                    (activeBook.ratings || []).map((rating, idx) => {
+                      const reviewUser = db?.users?.find(u => u.id === rating.userId);
+                      const displayAvatar = reviewUser?.avatar || rating.userAvatar;
+                      const displayName = reviewUser ? (reviewUser.displayMode === 'name' ? reviewUser.name : (reviewUser.nickname || reviewUser.name)) : rating.userName;
+                      
+                      return (
+                        <div 
+                          key={idx} 
+                          style={{ 
+                            background: 'rgba(255,255,255,0.01)', 
+                            border: '1px solid rgba(255,255,255,0.03)', 
+                            borderRadius: '8px', 
+                            padding: '1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {displayAvatar ? (
+                                <img src={displayAvatar} alt="avatar" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent-gold)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.7rem' }}>
+                                  {displayName?.charAt(0).toUpperCase() || '?'}
+                                </div>
+                              )}
+                              <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{displayName}</span>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{rating.date}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                            <span style={{ display: 'flex', color: 'var(--accent-gold)' }}>
+                              {Array.from({ length: rating.stars }).map((_, i) => (
+                                <Star key={i} size={14} fill="var(--accent-gold)" color="var(--accent-gold)" style={{ marginRight: '1px' }} />
+                              ))}
+                              {Array.from({ length: 5 - rating.stars }).map((_, i) => (
+                                <Star key={i} size={14} fill="none" color="var(--accent-gold)" style={{ marginRight: '1px' }} />
+                              ))}
+                            </span>
+                            {rating.comment && (
                             <span style={{ 
                               background: 'rgba(212,175,55,0.08)', 
                               border: '1px solid rgba(212,175,55,0.2)', 
@@ -1812,8 +1826,9 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
                           )}
                         </div>
                       </div>
-                    ))
-                  )}
+                    );
+                  })
+                )}
                 </div>
               </div>
 

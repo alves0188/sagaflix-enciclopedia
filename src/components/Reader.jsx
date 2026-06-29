@@ -242,7 +242,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       subthemeStr: subthemeObj?.subtheme || '',
       paragraphIdx: activeParagraphIdx,
       text: newCommentText,
-      status: 'pending',
+      status: 'accepted',
       likes: [],
       createdAt: new Date().toISOString()
     };
@@ -1082,54 +1082,60 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                   );
                 }
                 
-                return activeNotes.map(n => (
-                  <div key={n.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                      {n.userAvatar ? (
-                        <img src={n.userAvatar} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: themeColors.gold, color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem' }}>
-                          {n.userName?.charAt(0).toUpperCase() || '?'}
+                return activeNotes.map(n => {
+                  const commentUser = db?.users?.find(u => u.id === n.userId);
+                  const displayAvatar = commentUser?.avatar || n.userAvatar;
+                  const displayName = commentUser ? (commentUser.displayMode === 'name' ? commentUser.name : (commentUser.nickname || commentUser.name)) : n.userName;
+                  
+                  return (
+                    <div key={n.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                        {displayAvatar ? (
+                          <img src={displayAvatar} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: themeColors.gold, color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                            {displayName?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: '600', color: themeColors.gold }}>{displayName}</div>
+                          <div style={{ fontSize: '0.7rem', color: themeColors.text, opacity: 0.5 }}>
+                            {new Date(n.createdAt).toLocaleDateString()} {n.status === 'pending' ? '(Em aprovação)' : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ 
+                        fontSize: '0.9rem', 
+                        color: themeColors.text, 
+                        lineHeight: '1.5',
+                        padding: '0.8rem',
+                        background: 'rgba(0,0,0,0.1)',
+                        borderRadius: '8px',
+                        borderLeft: `2px solid ${themeColors.gold}`
+                      }}>
+                        {n.text}
+                      </div>
+
+                      {n.status === 'accepted' && (
+                        <div style={{ display: 'flex', gap: '1rem', paddingLeft: '0.5rem' }}>
+                          <button 
+                            onClick={() => handleLikeComment(n.id)}
+                            style={{ 
+                              background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                              color: n.likes?.includes(currentUser?.id) ? '#ff4b4b' : themeColors.text,
+                              opacity: n.likes?.includes(currentUser?.id) ? 1 : 0.6,
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            <Heart size={14} fill={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'none'} color={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'currentColor'} /> 
+                            {n.likes?.length || 0}
+                          </button>
                         </div>
                       )}
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: '600', color: themeColors.gold }}>{n.userName}</div>
-                        <div style={{ fontSize: '0.7rem', color: themeColors.text, opacity: 0.5 }}>
-                          {new Date(n.createdAt).toLocaleDateString()} {n.status === 'pending' ? '(Em aprovação)' : ''}
-                        </div>
-                      </div>
                     </div>
-                    
-                    <div style={{ 
-                      fontSize: '0.9rem', 
-                      color: themeColors.text, 
-                      lineHeight: '1.5',
-                      padding: '0.8rem',
-                      background: 'rgba(0,0,0,0.1)',
-                      borderRadius: '8px',
-                      borderLeft: `2px solid ${themeColors.gold}`
-                    }}>
-                      {n.text}
-                    </div>
-                    
-                    {n.status === 'accepted' && (
-                      <div style={{ display: 'flex', gap: '1rem', paddingLeft: '0.5rem' }}>
-                        <button 
-                          onClick={() => handleLikeComment(n.id)}
-                          style={{ 
-                            background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
-                            color: n.likes?.includes(currentUser?.id) ? '#ff4b4b' : themeColors.text,
-                            opacity: n.likes?.includes(currentUser?.id) ? 1 : 0.6,
-                            fontSize: '0.8rem'
-                          }}
-                        >
-                          <Heart size={14} fill={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'none'} color={n.likes?.includes(currentUser?.id) ? '#ff4b4b' : 'currentColor'} /> 
-                          {n.likes?.length || 0}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ));
+                  );
+                });
               })()}
             </div>
             
