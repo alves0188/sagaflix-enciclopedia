@@ -105,7 +105,7 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
         books: processedBooks.map(b => ({
           id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
           sku: b.sku,
-          bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+          bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, distributionMode: b.distribution_mode || 'complete', universeRequests: b.universe_requests || [],
           coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
           genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
           ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
@@ -139,6 +139,7 @@ export default function AuthorDashboard({ currentUser, onSelectBook, onOpenNewBo
         await supabase.from('books').update({ 
            title: b.title, synopsis: b.synopsis, status: b.status, cover_url: b.coverUrl,
            banner_url: b.bannerUrl, release_model: b.releaseMode, book_type: b.bookType,
+           distribution_mode: b.distributionMode || b.distribution_mode || 'complete',
            genres: b.genres, premise: b.premise, age_rating: b.ageRating,
            lore_areas: b.loreAreas, universe_requests: b.universeRequests, co_author_ids: b.coAuthorIds,
            ideas: b.ideas, escaleta: b.escaleta, universe: b.universe, idea_legends: b.ideaLegends,

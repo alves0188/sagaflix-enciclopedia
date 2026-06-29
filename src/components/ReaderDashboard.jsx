@@ -98,6 +98,7 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
         typesettingSettings: b.typesetting_settings || {},
         ratings: b.ratings || [],
         bookType: b.book_type,
+        distributionMode: b.distribution_mode || 'complete',
       }));
 
       const mappedUsers = (profiles || []).map(p => ({

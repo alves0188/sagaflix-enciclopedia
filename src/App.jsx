@@ -229,7 +229,9 @@ function AppContent() {
             ...b,
             authorId: b.author_id,
             coverUrl: b.cover_url,
-            cover: b.cover_url
+            cover: b.cover_url,
+            bookType: b.book_type || 'Literatura',
+            distributionMode: b.distribution_mode || 'complete'
           }));
         }
         setDb(finalData);
@@ -853,7 +855,9 @@ function AppContent() {
               status: 'draft',
               sku: bookData.sku,
               distribution_mode: bookData.distributionMode,
-              book_type: bookData.bookType || 'complete',
+              distributionMode: bookData.distributionMode,
+              book_type: bookData.workType || 'Literatura',
+              bookType: bookData.workType || 'Literatura',
               universe_requests: [],
               co_author_ids: [],
               lore_areas: [],
@@ -892,8 +896,8 @@ function AppContent() {
                 status: 'draft',
                 cover_url: newBook.cover_url || '',
                 synopsis: newBook.synopsis || '',
-                book_type: newBook.book_type || 'complete',
-                distribution_mode: newBook.distribution_mode || 'free',
+                book_type: newBook.book_type || 'Literatura',
+                distribution_mode: newBook.distribution_mode || 'complete',
                 sku: newBook.sku || '',
                 genres: newBook.genres || [],
                 co_author_ids: newBook.co_author_ids || [],

@@ -213,7 +213,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
           books: (books || []).map(b => ({
             id: b.id, authorId: b.author_id, author_id: b.author_id, title: b.title, status: b.status, coverUrl: b.cover_url, cover: b.cover_url, cover_url: b.cover_url,
             sku: b.sku,
-            bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, universeRequests: b.universe_requests || [],
+            bannerUrl: b.banner_url, synopsis: b.synopsis, bookType: b.book_type, distributionMode: b.distribution_mode || 'complete', universeRequests: b.universe_requests || [],
             coAuthorIds: b.co_author_ids || [], loreAreas: b.lore_areas || [],
             genres: b.genres || [], premise: b.premise, ageRating: b.age_rating,
             ideas: b.ideas || [], escaleta: b.escaleta || [], universe: b.universe || {},
@@ -283,11 +283,22 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     // 1. Sync Books (status + universe que contém capítulos com seus status)
     try {
       for (const b of newDb.books) {
-        const updatePayload = { status: b.status };
-        // Sincronizar o universe completo (contém capítulos, notas e seus status)
-        if (b.universe !== undefined) {
-          updatePayload.universe = b.universe;
-        }
+        const updatePayload = { 
+          status: b.status,
+          title: b.title,
+          cover_url: b.cover || b.cover_url || b.coverUrl || '',
+          banner_url: b.bannerUrl || b.banner_url || '',
+          synopsis: b.synopsis || '',
+          book_type: b.bookType || b.book_type || 'Literatura',
+          distribution_mode: b.distributionMode || b.distribution_mode || 'complete',
+          sku: b.sku || '',
+          genres: b.genres || [],
+          co_author_ids: b.coAuthorIds || b.co_author_ids || [],
+          universe: b.universe || {},
+          release_model: b.releaseMode || b.release_model || 'all',
+          ratings: b.ratings || [],
+          typesetting_settings: b.typesettingSettings || b.typesetting_settings || {}
+        };
         const { error } = await supabase.from('books').update(updatePayload).eq('id', b.id);
         if (error) throw error;
       }
