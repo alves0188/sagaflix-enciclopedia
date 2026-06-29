@@ -280,10 +280,15 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
   const onUpdateData = async (newDb) => {
     setLocalData(newDb);
     
-    // 1. Sync Books
+    // 1. Sync Books (status + universe que contém capítulos com seus status)
     try {
       for (const b of newDb.books) {
-        const { error } = await supabase.from('books').update({ status: b.status }).eq('id', b.id);
+        const updatePayload = { status: b.status };
+        // Sincronizar o universe completo (contém capítulos, notas e seus status)
+        if (b.universe !== undefined) {
+          updatePayload.universe = b.universe;
+        }
+        const { error } = await supabase.from('books').update(updatePayload).eq('id', b.id);
         if (error) throw error;
       }
     } catch (err) {
