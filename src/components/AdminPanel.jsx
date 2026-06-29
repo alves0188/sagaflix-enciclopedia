@@ -31,10 +31,11 @@ const editorConfig = {
 
 export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpdateBook, currentUser, onLogChange, isReadOnly: originalIsReadOnly = false, restrictedTabs = null, db, onUpdateData, onLeave }) {
   const isCurator = currentUser?.role === 'curator';
-  const isPublishedBook = currentBook?.status === 'published';
-  // Curador sempre pode editar. Livros publicados ficam somente-leitura para autores
-  // (exceto em publicação serial onde o autor pode gerenciar capítulos individuais).
-  const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished' || (isPublishedBook && !isCurator && currentBook?.publicationStatus !== 'ongoing');
+  const isAuthor = currentUser?.role === 'author';
+  // Somente livros com status 'finished' ficam em modo somente-leitura.
+  // Autores e curadores podem editar livremente livros publicados (capítulos, universo, etc.)
+  // A curadoria só precisa aprovar o cadastro do autor com a primeira obra.
+  const isReadOnly = originalIsReadOnly || currentBook?.status === 'finished';
   
   const [universeItems, setUniverseItems] = useState(null);
   const [loadingUniverse, setLoadingUniverse] = useState(true);
@@ -184,24 +185,25 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   }, [formData, editingItem, isReadOnly, data, onUpdate]);
 
   const isSerialPublishing = currentBook?.publicationStatus === 'ongoing' && currentBook?.status === 'published';
-  const canCreateNew = !isReadOnly && (currentBook?.status === 'draft' || isSerialPublishing || currentUser?.role === 'curator');
+  // Autor tem autonomia total: pode criar e editar capítulos em qualquer status (exceto finished)
+  const canCreateNew = !isReadOnly;
   
   let isLockedBy24h = false;
-  // O capítulo só bloqueia se não for rascunho e já tiver passado 24h desde a publicação.
+  // O capítulo só bloqueia se não for rascunho e já tiver passado 24h desde a publicação (apenas serial).
   // Rascunhos nunca travam.
   if (isSerialPublishing && currentUser?.role !== 'curator' && editingItem && editingItem !== 'new' && formData?.status !== 'draft') {
-    // Usar publishedAt se existir, senão fallback para createdAt para arquivos antigos.
     const dateToCheck = formData?.publishedAt || formData?.createdAt;
     if (dateToCheck) {
       const lockDate = new Date(dateToCheck);
       const diffHours = (new Date() - lockDate) / (1000 * 60 * 60);
       if (diffHours > 24) isLockedBy24h = true;
     } else {
-      isLockedBy24h = true; // Arquivos antigos sem data
+      isLockedBy24h = true;
     }
   }
 
-  const canEditChapter = !isReadOnly && (currentBook?.status === 'draft' || (isSerialPublishing && !isLockedBy24h) || currentUser?.role === 'curator');
+  // Autor pode editar capítulos livremente (exceto capítulos travados por 24h em serial)
+  const canEditChapter = !isReadOnly && (!isLockedBy24h || currentUser?.role === 'curator');
   const canViewChapter = isReadOnly || canEditChapter || (isSerialPublishing && isLockedBy24h);
   const effectiveReadOnly = !canEditChapter;
   const isChapterLike = ['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(formData.type || 'chapter');
@@ -1258,10 +1260,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           />
         ) : (
           <div className="admin-content-card" style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '12px', minHeight: '100%', border: '1px solid var(--border-color)' }}>
-            {!canCreateNew && currentUser?.role === 'author' && (
-              <div style={{ background: 'rgba(255, 152, 0, 0.1)', border: '1px solid #ff9800', color: '#ff9800', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldAlert size={20} />
-                <span><strong>Atenção:</strong> Como o livro foi enviado, a criação de novos itens e edição de Capítulos estão bloqueados. As demais edições serão logadas para a Curadoria.</span>
+            {currentBook?.status === 'published' && currentUser?.role === 'author' && (
+              <div style={{ background: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4CAF50', color: '#4CAF50', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Info size={20} />
+                <span>Este livro está <strong>publicado</strong> e visível para os leitores. Você pode editar capítulos e publicar novos conteúdos livremente.</span>
               </div>
             )}
             <div className="admin-list-header">
@@ -1548,15 +1550,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
               {!effectiveReadOnly && (
                 <>
-                  {(isCurator || currentBook?.distributionMode !== 'complete') && (
-                    <button 
-                      onClick={handleTogglePublishStatus} 
-                      title={formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
-                      style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      {formData.status === 'draft' ? <Upload size={16} /> : <RotateCcw size={16} />}
-                    </button>
-                  )}
+                  <button 
+                    onClick={handleTogglePublishStatus} 
+                    title={formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
+                    style={{ background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {formData.status === 'draft' ? <Upload size={16} /> : <RotateCcw size={16} />}
+                  </button>
                   <button className="btn-primary" onClick={handleSave} style={{ padding: '0.5rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Salvar">
                     <Save size={16} />
                   </button>
@@ -1789,8 +1789,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       {showRequestModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
           <div style={{ background: 'var(--card-bg)', padding: '3rem', borderRadius: '12px', width: '500px', border: '1px solid var(--border-color)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0 }}>Pedido de Alteração</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>O livro já foi publicado ou enviado. A criação de novos capítulos e personagens passará por avaliação.</p>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', marginTop: 0 }}>Solicitação para a Curadoria</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Descreva abaixo sua solicitação. A curadoria receberá a mensagem e poderá auxiliá-lo.</p>
             
             <div style={formFieldStyle}>
               <label>O que você quer editar/adicionar?</label>

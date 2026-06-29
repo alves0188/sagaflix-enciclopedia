@@ -267,6 +267,68 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
       newBookProps.bookType = newBookProps.book_type;
     }
 
+    // Auto-publish logic when book is published by the author
+    if (newBookProps.status === 'published' && currentBook.status !== 'published') {
+      const book = newDb.books[bookIndex];
+      const releaseMode = book.releaseMode || book.release_model || 'all';
+      const intervalDays = parseInt(book.releaseIntervalDays) || 2;
+      const targetWeekday = book.releaseWeekday !== undefined ? parseInt(book.releaseWeekday) : 1;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const formatDate = (date) => {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      };
+
+      if (book.universe && book.universe.chapters) {
+        book.universe.chapters = book.universe.chapters.map((ch, i) => {
+          let chDate = new Date(today);
+          if (releaseMode === 'daily') {
+            chDate.setDate(today.getDate() + i);
+          } else if (releaseMode === 'interval') {
+            chDate.setDate(today.getDate() + i * intervalDays);
+          } else if (releaseMode === 'weekly') {
+            const currentWeekday = today.getDay();
+            let daysToAdd = targetWeekday - currentWeekday;
+            if (daysToAdd < 0) {
+              daysToAdd += 7;
+            }
+            const firstRelease = new Date(today);
+            firstRelease.setDate(today.getDate() + daysToAdd);
+            chDate = new Date(firstRelease);
+            chDate.setDate(firstRelease.getDate() + i * 7);
+          } else if (releaseMode === 'monthly') {
+            chDate.setMonth(today.getMonth() + i);
+          } else {
+            chDate = new Date(today);
+          }
+          const shouldPublishNow = chDate <= today;
+          return {
+            ...ch,
+            publishDate: formatDate(chDate),
+            status: shouldPublishNow ? 'published' : (ch.status || 'draft'),
+            publishedAt: shouldPublishNow ? new Date().toISOString() : ch.publishedAt
+          };
+        });
+      }
+
+      const universeKeys = ['characters', 'locations', 'organizations', 'events', 'clues'];
+      universeKeys.forEach(key => {
+        if (book.universe && book.universe[key]) {
+          book.universe[key] = book.universe[key].map(item => ({
+            ...item,
+            status: 'published'
+          }));
+        }
+      });
+      
+      newBookProps.universe = book.universe;
+    }
+
     newDb.books[bookIndex] = { ...currentBook, ...newBookProps };
     onUpdateData(newDb);
   };
