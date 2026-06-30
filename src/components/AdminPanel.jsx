@@ -1875,22 +1875,50 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             <button
                               onClick={async (e) => {
                                 e.stopPropagation();
-                                if (!isActive) {
+                                if (isReadOnly) return;
+
+                                if (isActive) {
+                                  // Modifying the active chapter
+                                  const newPages = [...(formData.pages || [])];
+                                  if (newPages.length === 0) {
+                                    newPages.push({ text: '', image: '' });
+                                  }
+                                  const targetPageIdx = activePageIdx;
+                                  const targetPage = { ...newPages[targetPageIdx] };
+                                  const currentHeadings = getChapterHeadings(formData);
+                                  const newSubName = `Novo Subtema ${currentHeadings.filter(h => h.level === 1).length + 1}`;
+                                  
+                                  targetPage.text = (targetPage.text || '') + `<p>&nbsp;</p><h1>${newSubName}</h1><p>&nbsp;</p>`;
+                                  newPages[targetPageIdx] = targetPage;
+                                  
+                                  const updatedCh = { ...formData, pages: newPages };
+                                  const updatedChapters = (data.chapters || []).map(c => c.id === formData.id ? updatedCh : c);
+                                  onUpdate({ ...data, chapters: updatedChapters });
+                                  setFormData(updatedCh);
+                                } else {
+                                  // Modifying a different chapter
                                   await handleAutoSaveCurrent();
-                                  handleEdit(ch, ch.type || 'chapter');
+                                  
+                                  const newPages = [...(ch.pages || [])];
+                                  if (newPages.length === 0) {
+                                    newPages.push({ text: '', image: '' });
+                                  }
+                                  const targetPageIdx = 0; // Default to first page
+                                  const targetPage = { ...newPages[targetPageIdx] };
+                                  const chHeadings = getChapterHeadings(ch);
+                                  const newSubName = `Novo Subtema ${chHeadings.filter(h => h.level === 1).length + 1}`;
+                                  
+                                  targetPage.text = (targetPage.text || '') + `<p>&nbsp;</p><h1>${newSubName}</h1><p>&nbsp;</p>`;
+                                  newPages[targetPageIdx] = targetPage;
+                                  
+                                  const updatedCh = { ...ch, pages: newPages };
+                                  const updatedChapters = (data.chapters || []).map(c => c.id === ch.id ? updatedCh : c);
+                                  onUpdate({ ...data, chapters: updatedChapters });
+                                  
+                                  setFormData(updatedCh);
+                                  setActivePageIdx(targetPageIdx);
+                                  setCollapsedChapters({ ...collapsedChapters, [ch.id]: false });
                                 }
-                                
-                                const newPages = [...(ch.pages || [])];
-                                const newSubName = `Novo Subtema ${headings.filter(h => h.level === 1).length + 1}`;
-                                newPages.push({ subtheme: newSubName, text: `<h1>${newSubName}</h1>`, image: '' });
-                                
-                                const updatedCh = { ...ch, pages: newPages };
-                                const updatedChapters = (data.chapters || []).map(c => c.id === ch.id ? updatedCh : c);
-                                onUpdate({ ...data, chapters: updatedChapters });
-                                
-                                setFormData(updatedCh);
-                                setActivePageIdx(newPages.length - 1);
-                                setCollapsedChapters({ ...collapsedChapters, [ch.id]: false });
                               }}
                               style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
                               title="Adicionar Subtema"
