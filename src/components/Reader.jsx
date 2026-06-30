@@ -9,6 +9,30 @@ const cleanChapterTitle = (title) => {
   return title.replace(/^(capítulo|cap\.|cap)\s*\d+\s*[-:]\s*/i, '').trim();
 };
 
+const parseHeadings = (htmlContent, pageIdx) => {
+  if (!htmlContent) return [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, 'text/html');
+  const headingTags = doc.querySelectorAll('h1, h2, h3');
+  return Array.from(headingTags).map((tag, idx) => ({
+    tagName: tag.tagName.toLowerCase(),
+    level: parseInt(tag.tagName.substring(1)),
+    text: tag.textContent.trim(),
+    id: `${pageIdx}-${tag.tagName.toLowerCase()}-${idx}`,
+    pageIdx: pageIdx
+  }));
+};
+
+const getChapterHeadings = (ch) => {
+  if (!ch || !ch.pages) return [];
+  let allHeadings = [];
+  ch.pages.forEach((page, pageIdx) => {
+    const pageHeadings = parseHeadings(page.text || '', pageIdx);
+    allHeadings = allHeadings.concat(pageHeadings);
+  });
+  return allHeadings.filter(h => h.text.toLowerCase() !== (ch.title || '').toLowerCase().trim());
+};
+
 export default function Reader({ db, bookId, currentUser, onUpdateData, onClose }) {
   const [theme, setTheme] = useState('dark');
   const colors = {
@@ -538,29 +562,9 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     }
   };
 
-  const parseHeadings = (htmlContent, pageIdx) => {
-    if (!htmlContent) return [];
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
-    const headingTags = doc.querySelectorAll('h1, h2, h3');
-    return Array.from(headingTags).map((tag, idx) => ({
-      tagName: tag.tagName.toLowerCase(),
-      level: parseInt(tag.tagName.substring(1)),
-      text: tag.textContent.trim(),
-      id: `${pageIdx}-${tag.tagName.toLowerCase()}-${idx}`,
-      pageIdx: pageIdx
-    }));
-  };
 
-  const getChapterHeadings = (ch) => {
-    if (!ch || !ch.pages) return [];
-    let allHeadings = [];
-    ch.pages.forEach((page, pageIdx) => {
-      const pageHeadings = parseHeadings(page.text || '', pageIdx);
-      allHeadings = allHeadings.concat(pageHeadings);
-    });
-    return allHeadings.filter(h => h.text.toLowerCase() !== (ch.title || '').toLowerCase().trim());
-  };
+
+
 
   const handleHeadingClick = (chIdx, pageIdx, text) => {
     setActiveChapterIdx(chIdx);
