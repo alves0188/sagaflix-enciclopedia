@@ -522,17 +522,49 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
     }
   };
 
-  const getGroupedSubthemes = (pages) => {
-    if (!pages) return [];
-    const groups = [];
-    pages.forEach((p, pIdx) => {
-      if (p.isChapterHeader) return;
-      const name = p.subtheme ? p.subtheme.trim() : `Trecho ${pIdx + 1}`;
-      if (groups.length === 0 || groups[groups.length - 1].name !== name) {
-        groups.push({ name, startIdx: pIdx });
-      }
+  const parseHeadings = (htmlContent, pageIdx) => {
+    if (!htmlContent) return [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const headingTags = doc.querySelectorAll('h1, h2, h3');
+    return Array.from(headingTags).map((tag, idx) => ({
+      tagName: tag.tagName.toLowerCase(),
+      level: parseInt(tag.tagName.substring(1)),
+      text: tag.textContent.trim(),
+      id: `${pageIdx}-${tag.tagName.toLowerCase()}-${idx}`,
+      pageIdx: pageIdx
+    }));
+  };
+
+  const getChapterHeadings = (ch) => {
+    if (!ch || !ch.pages) return [];
+    let allHeadings = [];
+    ch.pages.forEach((page, pageIdx) => {
+      const pageHeadings = parseHeadings(page.text || '', pageIdx);
+      allHeadings = allHeadings.concat(pageHeadings);
     });
-    return groups;
+    return allHeadings;
+  };
+
+  const handleHeadingClick = (chIdx, pageIdx, text) => {
+    setActiveChapterIdx(chIdx);
+    setActiveSubthemeIdx(pageIdx);
+    setActiveColumnIdx(0);
+    setIsSidebarOpen(false);
+    
+    setTimeout(() => {
+      if (textContainerRef.current) {
+        const container = textContainerRef.current;
+        const headings = Array.from(container.querySelectorAll('h1, h2, h3'));
+        const target = headings.find(el => el.textContent.trim() === text);
+        if (target) {
+          const containerWidth = container.clientWidth;
+          const gap = 32; // 2rem
+          const colIdx = Math.floor(target.offsetLeft / (containerWidth + gap));
+          setActiveColumnIdx(colIdx);
+        }
+      }
+    }, 150);
   };
 
   const getBubbleSvg = (count, goldColor, isHover = false) => {
@@ -735,7 +767,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
             <p style={{ opacity: 0.5, fontSize: '0.9rem', padding: '0 1.5rem' }}>Nenhum capítulo disponível.</p>
           ) : (
             chapters.map((ch, idx) => {
-              const groupedSubthemes = getGroupedSubthemes(ch.pages);
+              const headings = getChapterHeadings(ch);
               const isExpanded = expandedChapters.includes(idx);
               const isActiveChapter = idx === activeChapterIdx;
               const locked = isChapterLocked(ch);
@@ -787,23 +819,32 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                   </div>
                   
                   {/* Subthemes Accordion */}
-                  {!locked && isExpanded && groupedSubthemes.length > 0 && (
-                    <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.5rem 0' }}>
-                      {groupedSubthemes.map((sub, sIdx) => {
-                        const nextSub = groupedSubthemes[sIdx + 1];
-                        const isActiveSub = isActiveChapter && activeSubthemeIdx >= sub.startIdx && (!nextSub || activeSubthemeIdx < nextSub.startIdx);
+                  {!locked && isExpanded && headings.length > 0 && (
+                    <div style={{ background: 'rgba(0,0,0,0.15)', padding: '0.4rem 0', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {headings.map((h, hIdx) => {
+                        const indent = h.level === 1 ? '3rem' : h.level === 2 ? '3.8rem' : '4.6rem';
+                        const isHeadingActive = isActiveChapter && activeSubthemeIdx === h.pageIdx;
+                        
                         return (
                           <div 
-                            key={sIdx}
-                            onClick={() => { setActiveChapterIdx(idx); setActiveSubthemeIdx(sub.startIdx); setActiveColumnIdx(0); setIsSidebarOpen(false); }}
+                            key={h.id || hIdx}
+                            onClick={() => handleHeadingClick(idx, h.pageIdx, h.text)}
+                            className={`unified-subtheme-link ${isHeadingActive ? 'active' : ''}`}
                             style={{
-                              padding: '0.5rem 1.5rem 0.5rem 3rem', cursor: 'pointer',
-                              fontSize: '0.95rem', opacity: isActiveSub ? 1 : 0.6,
-                              color: isActiveSub ? themeColors.gold : themeColors.text,
-                              fontWeight: isActiveSub ? '500' : '400'
+                              paddingLeft: indent,
+                              fontSize: h.level === 1 ? '0.88rem' : '0.82rem',
+                              opacity: isHeadingActive ? 1 : 0.6,
+                              color: isHeadingActive ? themeColors.gold : themeColors.text,
+                              fontWeight: isHeadingActive ? 'bold' : 'normal',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              transition: 'all 0.2s'
                             }}
                           >
-                            {sub.name}
+                            <span style={{ color: h.level === 1 ? themeColors.gold : 'inherit' }}>•</span>
+                            <span>{h.text}</span>
                           </div>
                         );
                       })}
