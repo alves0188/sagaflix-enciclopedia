@@ -77,6 +77,65 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const [uploading, setUploading] = useState(false);
   const [activeSubthemeStr, setActiveSubthemeStr] = useState('');
   const [activePageIdxWithinSubtheme, setActivePageIdxWithinSubtheme] = useState(0);
+  const [activePageIdx, setActivePageIdx] = useState(0);
+  const [showAddEnvMenu, setShowAddEnvMenu] = useState(false);
+  const [collapsedChapters, setCollapsedChapters] = useState({});
+
+  const parseHeadings = (text) => {
+    if (!text) return [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const headings = doc.querySelectorAll('h1, h2, h3');
+    return Array.from(headings).map((h, idx) => ({
+      text: h.textContent.trim(),
+      tagName: h.tagName.toLowerCase(),
+      level: parseInt(h.tagName.toLowerCase().substring(1)),
+      id: idx
+    })).filter(h => h.text !== '');
+  };
+
+  const getChapterHeadings = (chapter) => {
+    const allHeadings = [];
+    (chapter.pages || []).forEach((p, pageIdx) => {
+      const parsed = parseHeadings(p.text);
+      parsed.forEach(h => {
+        allHeadings.push({
+          ...h,
+          pageIdx
+        });
+      });
+    });
+    return allHeadings;
+  };
+
+  const handleAutoSaveCurrent = async () => {
+    if (isReadOnly || !formData || !formData.id) return;
+    const type = formData.type || 'chapter';
+    const isChLike = ['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(type);
+    if (!isChLike) return;
+    
+    const chapters = data.chapters || [];
+    const currentItem = chapters.find(i => i.id === formData.id);
+    if (currentItem && JSON.stringify(currentItem) === JSON.stringify(formData)) {
+      return; // No changes
+    }
+    
+    const updatedList = chapters.map(item => item.id === formData.id ? formData : item);
+    onUpdate({ ...data, chapters: updatedList });
+    
+    if (onLogChange) {
+      onLogChange('Salvo automaticamente', formData.title || 'Sem título');
+    }
+  };
+
+  const handleAddPage = () => {
+    if (isReadOnly) return;
+    const newPages = [...(formData.pages || [])];
+    newPages.push({ text: '<h1>Nova Sessão</h1>', image: '' });
+    setFormData({ ...formData, pages: newPages });
+    setActivePageIdx(newPages.length - 1);
+  };
+
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({ what: '', why: '', impact: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -238,7 +297,9 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   const handleEdit = (item, type) => {
     setEditingItem(item.id);
     setFormData({ ...item, type });
-    if (type === 'chapter') {
+    const isChLike = ['chapter', 'prologue', 'preface', 'index', 'dedication', 'acknowledgements', 'epilogue'].includes(type);
+    if (isChLike) {
+      setActivePageIdx(0);
       const firstSubtheme = item.pages && item.pages.length > 0 ? (item.pages[0].subtheme || '') : '';
       setActiveSubthemeStr(firstSubtheme);
       setActivePageIdxWithinSubtheme(0);
@@ -262,9 +323,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     } else if (type === 'post') {
       setFormData({ ...baseInitialData, title: '', content: '', image: '', date: new Date().toLocaleDateString('pt-BR') });
     } else if (type === 'chapter') {
-      setFormData({ ...baseInitialData, title: '', pages: [{ subtheme: 'Novo Subtema', text: '', image: '' }] });
+      setFormData({ ...baseInitialData, title: '', pages: [{ subtheme: 'Novo Subtema', text: '<h1>Novo Subtema</h1>', image: '' }] });
       setActiveSubthemeStr('Novo Subtema');
       setActivePageIdxWithinSubtheme(0);
+      setActivePageIdx(0);
     } else if (type === 'evento') {
       setFormData({ ...baseInitialData, name: '', content: '', tags: '' });
     } else {
@@ -532,11 +594,6 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     setShowRequestModal(false);
     setRequestData({ what: '', why: '', impact: '' });
     toast("Pedido enviado para a curadoria com sucesso!");
-  };
-
-  const handleAddPage = () => {
-    if (isReadOnly) return;
-    setFormData({ ...formData, pages: [...(formData.pages || []), { subtheme: '', text: '', image: '' }] });
   };
 
   const handleRemovePage = (index) => {
@@ -1133,6 +1190,112 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     );
   };
 
+  const renderChaptersSummary = () => {
+    const chapters = data.chapters || [];
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: 'var(--accent-gold)', margin: 0 }}>
+            {currentBook?.title || 'Nome do Livro'}
+          </h2>
+        </div>
+        
+        {chapters.length === 0 ? (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Nenhum conteúdo criado para este livro. Clique em "Editar História" para começar.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: '#1c1e22', padding: '2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            {chapters.map((ch, idx) => {
+              const headings = getChapterHeadings(ch);
+              
+              // Build type label
+              const typeLabels = {
+                chapter: 'Capítulo', prologue: 'Prólogo', preface: 'Prefácio', index: 'Índice',
+                epilogue: 'Epílogo', acknowledgments: 'Agradecimentos', glossary: 'Glossário', extra: 'Conteúdo Extra',
+                dedication: 'Dedicatória'
+              };
+              let label = typeLabels[ch.type] || 'Capítulo';
+              if (ch.type === 'chapter' || !ch.type) {
+                const chapNum = chapters.slice(0, idx).filter(c => (!c.type || c.type === 'chapter')).length + 1;
+                label = `Capítulo ${String(chapNum).padStart(2, '0')}`;
+              }
+              
+              return (
+                <div key={ch.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.8rem' }}>
+                  <div 
+                    onClick={() => handleEdit(ch, ch.type || 'chapter')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontSize: '1.1rem', cursor: 'pointer', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-main)'}
+                  >
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>{label.toUpperCase()}</span>
+                    {ch.title && <span>- {ch.title}</span>}
+                    {ch.status === 'draft' && (
+                      <span style={{ color: '#f44336', fontSize: '0.7rem', fontWeight: 'bold', background: 'rgba(244,67,54,0.1)', padding: '1px 5px', borderRadius: '4px', marginLeft: '0.5rem' }}>
+                        RASCUNHO
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* List headings */}
+                  {headings.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.2rem' }}>
+                      {headings.map((h, hIdx) => {
+                        const indent = h.level === 1 ? '1.5rem' : h.level === 2 ? '2.5rem' : '3.5rem';
+                        const bulletColor = h.level === 1 ? 'var(--accent-gold)' : 'var(--text-muted)';
+                        
+                        return (
+                          <div 
+                            key={h.id || hIdx} 
+                            onClick={() => {
+                              handleEdit(ch, ch.type || 'chapter');
+                              // After loading, scroll to heading
+                              setTimeout(() => {
+                                setActivePageIdx(h.pageIdx);
+                                setTimeout(() => {
+                                  const editorEl = document.querySelector('.custom-editor-content');
+                                  if (editorEl) {
+                                    const target = Array.from(editorEl.querySelectorAll(h.tagName)).find(el => el.textContent.trim() === h.text);
+                                    if (target) {
+                                      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                      target.style.transition = 'background-color 0.5s';
+                                      target.style.backgroundColor = 'rgba(212, 175, 55, 0.2)';
+                                      setTimeout(() => { target.style.backgroundColor = 'transparent'; }, 1500);
+                                    }
+                                  }
+                                }, 100);
+                              }, 100);
+                            }}
+                            style={{
+                              paddingLeft: indent,
+                              fontSize: h.level === 1 ? '0.9rem' : '0.82rem',
+                              color: h.level === 1 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
+                            onMouseLeave={e => e.currentTarget.style.color = h.level === 1 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'}
+                          >
+                            <span style={{ color: bulletColor }}>•</span>
+                            <span>{h.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-container" style={{ display: 'flex', height: '100%', width: '100%', color: 'var(--text-main)', background: 'var(--bg-color)', position: 'relative' }}>
 
@@ -1316,9 +1479,25 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   </label>
                 )}
                 {canCreateNew && !isReadOnly && (
-                  <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', justifyContent: 'center' }}>
-                    <Plus size={16} /> <span>Novo Registro</span>
-                  </button>
+                  activeList === 'chapters' ? (
+                    <button className="btn-primary" onClick={() => {
+                      const chapters = data.chapters || [];
+                      if (chapters.length > 0) {
+                        handleEdit(chapters[0], chapters[0].type || 'chapter');
+                      } else {
+                        const baseInitialData = { id: Date.now().toString(), type: 'chapter', createdAt: new Date().toISOString(), status: 'draft' };
+                        const defaultCh = { ...baseInitialData, title: 'Capítulo 01', pages: [{ subtheme: 'Novo Subtema', text: '<h1>Novo Subtema</h1>', image: '' }] };
+                        onUpdate({ ...data, chapters: [defaultCh] });
+                        handleEdit(defaultCh, 'chapter');
+                      }
+                    }} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', justifyContent: 'center' }}>
+                      <FileText size={16} /> <span>Editar História</span>
+                    </button>
+                  ) : (
+                    <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.6rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', justifyContent: 'center' }}>
+                      <Plus size={16} /> <span>Novo Registro</span>
+                    </button>
+                  )
                 )}
               </div>
             </div>
@@ -1336,83 +1515,56 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             )}
 
             {/* Unified Cards Grid for both Mobile and Desktop */}
-            <div className={`admin-cards-grid ${activeList === 'chapters' ? 'chapters-grid' : ''}`}>
-              {(data[activeList] || []).length === 0 ? (
-                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
-              ) : (
-                (data[activeList] || []).map((item, idx) => {
-                  let chapterLabel = '';
-                  if (activeList === 'chapters') {
-                    const typeStr = item.type || 'chapter';
-                    const typeLabels = {
-                      chapter: 'Capítulo', prologue: 'Prólogo', preface: 'Prefácio', index: 'Índice',
-                      epilogue: 'Epílogo', acknowledgments: 'Agradecimentos', glossary: 'Glossário', extra: 'Conteúdo Extra'
-                    };
-                    if (typeStr === 'chapter') {
-                      const chapNum = (data[activeList] || []).slice(0, idx).filter(c => (!c.type || c.type === 'chapter')).length + 1;
-                      chapterLabel = `Capítulo ${chapNum}`;
-                    } else {
-                      chapterLabel = typeLabels[typeStr] || 'Capítulo';
-                    }
-                  }
-
-                  return (
-                  <div 
-                    key={item.id} 
-                    className="admin-list-card" 
-                    draggable={activeList === 'chapters' && !isReadOnly}
-                    onDragStart={() => activeList === 'chapters' && handleChapterDragStart(idx)}
-                    onDragOver={activeList === 'chapters' ? handleChapterDragOver : undefined}
-                    onDrop={() => activeList === 'chapters' && handleChapterDrop(idx)}
-                    style={{ opacity: draggedChapterIdx === idx ? 0.5 : 1, cursor: activeList === 'chapters' && !isReadOnly ? 'grab' : 'pointer' }}
-                    onClick={() => {
-                      if (!canViewChapter && activeList === 'chapters') return;
-                      handleEdit(item, item.type || (activeList === 'chapters' ? 'chapter' : ''));
-                    }}
-                  >
-                    {activeList === 'chapters' && !isReadOnly && (
-                      <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)', cursor: 'grab', padding: '0 0.5rem 0 0', flexShrink: 0 }}>
-                        <GripVertical size={16} />
+            {activeList === 'chapters' ? (
+              renderChaptersSummary()
+            ) : (
+              <div className="admin-cards-grid">
+                {(data[activeList] || []).length === 0 ? (
+                  <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
+                ) : (
+                  (data[activeList] || []).map((item, idx) => (
+                    <div 
+                      key={item.id} 
+                      className="admin-list-card" 
+                      onClick={() => handleEdit(item, item.type || '')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {item.image && (
+                        <img src={item.image} alt={item.title || item.name} />
+                      )}
+                      <div className="admin-list-card-content">
+                        <div className="admin-list-card-title">
+                          {item.status === 'draft' && <span style={{ color: '#f44336', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '0.5rem', background: 'rgba(244,67,54,0.1)', padding: '2px 6px', borderRadius: '4px' }}>[RASCUNHO]</span>}
+                          {item.title || item.name}
+                        </div>
+                        <div className="admin-list-card-desc">
+                          {item.type === 'post' ? item.date : 
+                           item.type === 'pista' ? 'Complemento' : item.territory}
+                        </div>
                       </div>
-                    )}
-                    {activeList !== 'chapters' && item.image && (
-                      <img src={item.image} alt={item.title || item.name} />
-                    )}
-                    <div className="admin-list-card-content">
-                      <div className="admin-list-card-title">
-                        {item.status === 'draft' && <span style={{ color: '#f44336', fontSize: '0.75rem', fontWeight: 'bold', marginRight: '0.5rem', background: 'rgba(244,67,54,0.1)', padding: '2px 6px', borderRadius: '4px' }}>[RASCUNHO]</span>}
-                        {activeList === 'chapters' && <span style={{ color: 'var(--accent-gold)', marginRight: '0.5rem' }}>{chapterLabel} -</span>}
-                        {item.title || item.name}
-                      </div>
-                      <div className="admin-list-card-desc">
-                        {item.type === 'post' ? item.date : 
-                         activeList === 'chapters' ? `${item.pages?.length || 0} sessões` :
-                         item.type === 'pista' ? 'Complemento' : item.territory}
-                      </div>
+                      {!isReadOnly && (
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Tem certeza que deseja excluir?')) {
+                                handleDelete(item.id, item.type || '');
+                              }
+                            }}
+                            style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', border: 'none', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.2s' }}
+                            title="Excluir"
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,0,0,0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    {/* Botões de ação rápida para desktop */}
-                    {!isReadOnly && !(activeList === 'chapters' && !canEditChapter) && (
-                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm('Tem certeza que deseja excluir?')) {
-                              handleDelete(item.id, item.type || (activeList === 'chapters' ? 'chapter' : ''));
-                            }
-                          }}
-                          style={{ background: 'rgba(255,0,0,0.1)', color: '#ff4d4d', border: 'none', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.2s' }}
-                          title="Excluir"
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,0,0,0.2)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,0,0,0.1)'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )})
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1587,77 +1739,234 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           {/* 3-Column Body */}
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             
-            {/* COLUMN 1: Left (Navegação de Subtemas) */}
-            <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`}>
+            {/* COLUMN 1: Left (Navegação Geral e Subtemas) */}
+            <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`} style={{ width: '280px', borderRight: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflowY: 'auto' }}>
               
               {/* Overlay for mobile sidebar */}
               {showMobileSidebar && (
                 <div 
                   className="mobile-only"
                   onClick={() => setShowMobileSidebar(false)}
-                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: -1 }}
+                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999 }}
                 />
               )}
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ ...formFieldStyle }}>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Título</label>
-                  <input type="text" name="title" value={formData.title || ''} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" placeholder="Ex: Um dia comum" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem', opacity: effectiveReadOnly ? 0.7 : 1 }} />
-                </div>
-                <div style={{ ...formFieldStyle }}>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Tipo</label>
-                  <select name="type" value={formData.type || 'chapter'} onChange={handleChange} disabled={effectiveReadOnly} className="form-input" style={{ fontSize: '0.9rem', padding: '0.4rem 0.6rem', opacity: effectiveReadOnly ? 0.7 : 1, backgroundColor: 'var(--panel-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
-                    <option value="chapter">Capítulo</option>
-                    <option value="prologue">Prólogo</option>
-                    <option value="preface">Prefácio</option>
-                    <option value="index">Índice</option>
-                    <option value="dedication">Dedicatória</option>
-                    <option value="acknowledgements">Agradecimentos</option>
-                    <option value="epilogue">Epílogo</option>
-                  </select>
-                </div>
-                
-                <div className="mobile-only" style={{ ...formFieldStyle, marginTop: '1rem' }}>
-                  {!effectiveReadOnly && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <button className="btn-primary" onClick={() => { handleSave(); setShowMobileSidebar(false); }} style={{ padding: '0.8rem', fontSize: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                        <Save size={16} /> Salvar Alterações
-                      </button>
+
+              {/* Header com Nome do Livro e Botão + */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: `1px solid ${ec.border}`, paddingBottom: '1rem', position: 'relative' }}>
+                <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', color: 'var(--accent-gold)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }} title={currentBook?.title}>
+                  {currentBook?.title || 'Nome do Livro'}
+                </h3>
+                <div style={{ position: 'relative' }}>
+                  <button 
+                    onClick={() => setShowAddEnvMenu(!showAddEnvMenu)}
+                    style={{ background: 'var(--accent-gold)', border: 'none', color: '#000', borderRadius: '4px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    title="Adicionar Novo Ambiente"
+                  >
+                    <Plus size={18} />
+                  </button>
+                  
+                  {showAddEnvMenu && (
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '5px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '6px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 1000, width: '180px', display: 'flex', flexDirection: 'column', padding: '0.4rem 0' }}>
+                      {[
+                        { label: 'Capítulo', type: 'chapter' },
+                        { label: 'Prólogo', type: 'prologue' },
+                        { label: 'Prefácio', type: 'preface' },
+                        { label: 'Índice', type: 'index' },
+                        { label: 'Dedicatória', type: 'dedication' },
+                        { label: 'Agradecimentos', type: 'acknowledgements' },
+                        { label: 'Epílogo', type: 'epilogue' }
+                      ].map(env => (
+                        <button
+                          key={env.type}
+                          onClick={async () => {
+                            setShowAddEnvMenu(false);
+                            if (isReadOnly) return;
+                            
+                            await handleAutoSaveCurrent();
+
+                            const chapters = data.chapters || [];
+                            const typeLabels = {
+                              chapter: 'Capítulo', prologue: 'Prólogo', preface: 'Prefácio', index: 'Índice',
+                              dedication: 'Dedicatória', acknowledgements: 'Agradecimentos', epilogue: 'Epílogo'
+                            };
+                            let title = typeLabels[env.type] || 'Capítulo';
+                            if (env.type === 'chapter') {
+                              const chapNum = chapters.filter(c => c.type === 'chapter').length + 1;
+                              title = `Capítulo ${String(chapNum).padStart(2, '0')}`;
+                            }
+                            
+                            const newCh = {
+                              id: Date.now().toString(),
+                              type: env.type,
+                              title: title,
+                              createdAt: new Date().toISOString(),
+                              status: 'draft',
+                              pages: [{ subtheme: 'Novo Subtema', text: '<h1>Novo Subtema</h1>', image: '' }]
+                            };
+                            
+                            const updated = [...chapters, newCh];
+                            onUpdate({ ...data, chapters: updated });
+                            handleEdit(newCh, env.type);
+                          }}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem 1rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.9rem', width: '100%' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                        >
+                          {env.label}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 'bold' }}>Subtemas</h3>
-                  {!effectiveReadOnly && <button onClick={handleAddSubtheme} style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Novo Subtema"><Plus size={20} /></button>}
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {uniqueSubthemes.map((subName, idx) => {
-                    const isActive = subName === activeSubthemeStr;
-                    return (
-                      <button 
-                        key={idx}
-                        onClick={() => { setActiveSubthemeStr(subName); setActivePageIdxWithinSubtheme(0); }}
-                        style={{
-                          background: 'transparent',
-                          color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-                          border: 'none',
-                          borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent',
-                          padding: '0.6rem 1rem', textAlign: 'left', cursor: 'pointer',
-                          fontWeight: isActive ? 'bold' : 'normal',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'all 0.2s',
-                          borderRadius: '0 8px 8px 0'
+              {/* Lista Geral de Capítulos/Ambientes */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
+                {(data.chapters || []).map((ch, chIdx) => {
+                  const isActive = ch.id === formData.id;
+                  const isCollapsed = collapsedChapters[ch.id] ?? false;
+                  
+                  const typeLabels = {
+                    chapter: 'Capítulo', prologue: 'Prólogo', preface: 'Prefácio', index: 'Índice',
+                    epilogue: 'Epílogo', acknowledgments: 'Agradecimentos', glossary: 'Glossário', extra: 'Conteúdo Extra',
+                    dedication: 'Dedicatória'
+                  };
+                  let label = typeLabels[ch.type] || 'Capítulo';
+                  if (ch.type === 'chapter' || !ch.type) {
+                    const chapNum = (data.chapters || []).slice(0, chIdx).filter(c => (!c.type || c.type === 'chapter')).length + 1;
+                    label = `Capítulo ${String(chapNum).padStart(2, '0')}`;
+                  }
+                  
+                  const headings = getChapterHeadings(ch);
+                  
+                  return (
+                    <div key={ch.id} className="unified-env-item" style={{ borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent' }}>
+                      <div 
+                        className={`unified-env-item-header ${isActive ? 'active' : ''}`}
+                        onClick={async () => {
+                          if (isActive) {
+                            setCollapsedChapters({ ...collapsedChapters, [ch.id]: !isCollapsed });
+                          } else {
+                            if (isReadOnly) return;
+                            await handleAutoSaveCurrent();
+                            handleEdit(ch, ch.type || 'chapter');
+                          }
                         }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
                       >
-                        {subName || 'Sem Título'}
-                      </button>
-                    )
-                  })}
-                </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '80%' }}>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCollapsedChapters({ ...collapsedChapters, [ch.id]: !isCollapsed });
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                          >
+                            {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                          </button>
+                          
+                          <span style={{ fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {label} {ch.title ? `- ${ch.title}` : ''}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.2rem' }}>
+                          {!isReadOnly && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!isActive) {
+                                  await handleAutoSaveCurrent();
+                                  handleEdit(ch, ch.type || 'chapter');
+                                }
+                                
+                                const newPages = [...(ch.pages || [])];
+                                const newSubName = `Novo Subtema ${headings.filter(h => h.level === 1).length + 1}`;
+                                newPages.push({ subtheme: newSubName, text: `<h1>${newSubName}</h1>`, image: '' });
+                                
+                                const updatedCh = { ...ch, pages: newPages };
+                                const updatedChapters = (data.chapters || []).map(c => c.id === ch.id ? updatedCh : c);
+                                onUpdate({ ...data, chapters: updatedChapters });
+                                
+                                setFormData(updatedCh);
+                                setActivePageIdx(newPages.length - 1);
+                                setCollapsedChapters({ ...collapsedChapters, [ch.id]: false });
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                              title="Adicionar Subtema"
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          )}
+                          
+                          {!isReadOnly && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Tem certeza que deseja excluir ${label}?`)) {
+                                  if (isActive) {
+                                    setEditingItem(null);
+                                  }
+                                  const updatedChapters = (data.chapters || []).filter(c => c.id !== ch.id);
+                                  onUpdate({ ...data, chapters: updatedChapters });
+                                }
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                              title="Excluir"
+                              onMouseEnter={e => e.currentTarget.style.color = '#ff4444'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {!isCollapsed && headings.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', padding: '0.2rem 0' }}>
+                          {headings.map((h, hIdx) => {
+                            const indent = h.level === 1 ? '1.5rem' : h.level === 2 ? '2.2rem' : '2.9rem';
+                            const isHeadingActive = isActive && activePageIdx === h.pageIdx;
+                            
+                            return (
+                              <div
+                                key={h.id || hIdx}
+                                className={`unified-subtheme-link ${isHeadingActive ? 'active' : ''}`}
+                                onClick={async () => {
+                                  if (!isActive) {
+                                    await handleAutoSaveCurrent();
+                                    handleEdit(ch, ch.type || 'chapter');
+                                  }
+                                  setActivePageIdx(h.pageIdx);
+                                  
+                                  setTimeout(() => {
+                                    const editorEl = document.querySelector('.custom-editor-content');
+                                    if (editorEl) {
+                                      const target = Array.from(editorEl.querySelectorAll(h.tagName)).find(el => el.textContent.trim() === h.text);
+                                      if (target) {
+                                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        target.style.transition = 'background-color 0.5s';
+                                        target.style.backgroundColor = 'rgba(212, 175, 55, 0.2)';
+                                        setTimeout(() => { target.style.backgroundColor = 'transparent'; }, 1500);
+                                      }
+                                    }
+                                  }, 100);
+                                }}
+                                style={{ paddingLeft: indent }}
+                              >
+                                • {h.text}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
             </div>
 
             {/* COLUMN 2: Center (Editor de Texto) */}
@@ -1667,12 +1976,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               onScroll={(e) => setEditorScrolled(e.target.scrollTop > 30)}
             >
               
-              {uniqueSubthemes.length === 0 ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhum subtema configurado.</div>
-              ) : activeSubthemePages.length === 0 ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhuma página encontrada.</div>
+              {(formData.pages || []).length === 0 ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Nenhuma página configurada.</div>
               ) : (() => {
-                const activePage = activeSubthemePages[activePageIdxWithinSubtheme];
+                const activePage = (formData.pages || [])[activePageIdx];
                 if (!activePage) return null;
 
                 return (
@@ -1681,38 +1988,57 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
-                          if (!effectiveReadOnly) handlePageChange(activePage.globalIdx, 'text', newContent);
+                          if (!effectiveReadOnly) handlePageChange(activePageIdx, 'text', newContent);
                         }}
                         disabled={effectiveReadOnly}
                         placeholder="Escreva a sessão do capítulo aqui..."
                         themeColors={ec}
                         editorTheme={editorTheme}
                         headerContent={
-                          <div className="editor-title-container" style={{ flexShrink: 0, paddingBottom: editorScrolled ? '0.5rem' : '1.5rem', transition: 'padding 0.3s ease' }}>
+                          <div className="editor-title-container" style={{ flexShrink: 0, paddingBottom: editorScrolled ? '0.5rem' : '1rem', transition: 'padding 0.3s ease' }}>
                             <input 
                               type="text" 
-                              className={`editor-subtheme-title ${editorScrolled ? 'scrolled' : ''}`}
-                              value={activePage.subtheme || ''} 
-                              onChange={(e) => handleSubthemeNameChange(e.target.value)} 
+                              value={formData.title || ''} 
+                              onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
                               disabled={effectiveReadOnly}
-                              placeholder="Nome do Subtema..." 
-                              style={{ padding: '0', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
+                              placeholder="Sem Título..." 
+                              style={{ padding: '0', fontSize: '2.2rem', fontFamily: "'Playfair Display', serif", backgroundColor: 'transparent', border: 'none', borderRadius: 0, color: 'var(--text-main)', opacity: effectiveReadOnly ? 0.8 : 1, width: '100%', fontWeight: 'bold', outline: 'none' }} 
                             />
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo:</span>
+                              <select 
+                                name="type" 
+                                value={formData.type || 'chapter'} 
+                                onChange={handleChange} 
+                                disabled={effectiveReadOnly} 
+                                style={{ fontSize: '0.75rem', padding: '0.1rem 0.3rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer' }}
+                              >
+                                <option value="chapter">Capítulo</option>
+                                <option value="prologue">Prólogo</option>
+                                <option value="preface">Prefácio</option>
+                                <option value="index">Índice</option>
+                                <option value="dedication">Dedicatória</option>
+                                <option value="acknowledgements">Agradecimentos</option>
+                                <option value="epilogue">Epílogo</option>
+                              </select>
+                            </div>
 
-                            <div className="sessions-tabs-container" style={{ display: 'flex', gap: '1.5rem', marginTop: editorScrolled ? '0.5rem' : '2rem', overflowX: 'auto', paddingBottom: '0.5rem', transition: 'margin 0.3s ease' }}>
-                              {activeSubthemePages.map((p, idx) => (
+                            <div className="sessions-tabs-container" style={{ display: 'flex', gap: '1.5rem', marginTop: editorScrolled ? '0.5rem' : '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem', transition: 'margin 0.3s ease' }}>
+                              {(formData.pages || []).map((p, idx) => (
                                 <button 
                                   key={idx}
-                                  onClick={() => setActivePageIdxWithinSubtheme(idx)}
+                                  onClick={() => setActivePageIdx(idx)}
                                   style={{
                                     background: 'transparent',
-                                    color: idx === activePageIdxWithinSubtheme ? 'var(--accent-gold)' : 'var(--text-muted)',
+                                    color: idx === activePageIdx ? 'var(--accent-gold)' : 'var(--text-muted)',
                                     border: 'none',
-                                    borderBottom: idx === activePageIdxWithinSubtheme ? '2px solid var(--accent-gold)' : '2px solid transparent',
+                                    borderBottom: idx === activePageIdx ? '2px solid var(--accent-gold)' : '2px solid transparent',
                                     padding: '0.4rem 0', cursor: 'pointer',
-                                    fontWeight: idx === activePageIdxWithinSubtheme ? 'bold' : 'normal',
+                                    fontWeight: idx === activePageIdx ? 'bold' : 'normal',
                                     transition: 'all 0.2s',
-                                    fontSize: editorScrolled ? '0.85rem' : '1rem'
+                                    fontSize: editorScrolled ? '0.85rem' : '1rem',
+                                    whiteSpace: 'nowrap'
                                   }}
                                 >
                                   Sessão {idx + 1}
@@ -1720,8 +2046,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                               ))}
                               {!effectiveReadOnly && (
                                 <button 
-                                  onClick={handleAddPageToSubtheme} 
-                                  style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '0.4rem 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.2s', fontSize: editorScrolled ? '0.85rem' : '1rem' }}
+                                  onClick={handleAddPage} 
+                                  style={{ background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '0.4rem 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', transition: 'color 0.2s', fontSize: editorScrolled ? '0.85rem' : '1rem', whiteSpace: 'nowrap' }}
                                   onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-gold)'}
                                   onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
                                 >
@@ -1736,7 +2062,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                     <div className="editor-footer-container" style={{ marginTop: '2rem', display: 'flex', gap: '2rem', flexWrap: 'wrap', flexShrink: 0 }}>
                       <div style={{ flex: 1, minWidth: '300px' }}>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontWeight: 'normal' }}>Mídia da Sessão {activePageIdxWithinSubtheme + 1}</h3>
+                        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontWeight: 'normal' }}>Mídia da Sessão {activePageIdx + 1}</h3>
                         <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Ilustração (Aparece na direita do Leitor)</label>
                         {activePage.image && <img src={activePage.image} style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginTop: '0.5rem' }} />}
                         
@@ -1744,10 +2070,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
                             <label className="btn-secondary" style={{ cursor: 'pointer', margin: 0, padding: '0.8rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {uploading ? 'Enviando...' : <><Upload size={16} /> Fazer Upload da Imagem</>}
-                              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePageImageUpload(e, activePage.globalIdx)} />
+                              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePageImageUpload(e, activePageIdx)} />
                             </label>
                             <div style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>OU COLE UMA URL</div>
-                            <input type="text" value={activePage.image || ''} onChange={(e) => handlePageChange(activePage.globalIdx, 'image', e.target.value)} className="form-input" placeholder="https://..." style={{ padding: '0.8rem', fontSize: '0.85rem' }} />
+                            <input type="text" value={activePage.image || ''} onChange={(e) => handlePageChange(activePageIdx, 'image', e.target.value)} className="form-input" placeholder="https://..." style={{ padding: '0.8rem', fontSize: '0.85rem' }} />
                           </div>
                         ) : (
                           activePage.image && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.5rem' }}>Link: {activePage.image}</div>
@@ -1756,20 +2082,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
                       {!effectiveReadOnly && (
                         <div style={{ flex: 1, minWidth: '200px', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                          {/* Botão de Publicar apenas no mobile aqui no final */}
-                          {currentBook?.distributionMode !== 'complete' && (
-                            <div className="mobile-only" style={{ flex: 1, minWidth: '150px' }}>
-                              <button 
-                                onClick={() => { handleTogglePublishStatus(); setShowMobileSidebar(false); }} 
-                                style={{ width: '100%', background: formData.status === 'draft' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 67, 54, 0.15)', color: formData.status === 'draft' ? '#4CAF50' : '#f44336', border: `1px solid ${formData.status === 'draft' ? '#4CAF50' : '#f44336'}`, padding: '1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                              >
-                                {formData.status === 'draft' ? 'Publicar Capítulo' : 'Reverter para Rascunho'}
-                              </button>
-                            </div>
-                          )}
-                          
                           <button onClick={() => {
-                            handleRemoveGlobalPage(activePage.globalIdx);
+                            handleRemoveGlobalPage(activePageIdx);
                           }} style={{ flex: 1, minWidth: '150px', background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', border: '1px solid rgba(255, 68, 68, 0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
                             <Trash2 size={18} /> Excluir Sessão Atual
                           </button>

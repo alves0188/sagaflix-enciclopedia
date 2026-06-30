@@ -136,6 +136,13 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
           <button type="button" onClick={() => execCommand('underline')} style={btnStyle} title="Sublinhado"><Underline size={16} /></button>
           
           <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+
+          <button type="button" onClick={() => execCommand('formatBlock', '<h1>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H1">H1</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<h2>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H2">H2</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<h3>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H3">H3</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<p>')} style={{ ...btnStyle, fontSize: '13px' }} title="Texto Normal">P</button>
+
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
           
           <button type="button" onClick={() => execCommand('justifyLeft')} style={btnStyle} title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
           <button type="button" onClick={() => execCommand('justifyCenter')} style={btnStyle} title="Centralizar"><AlignCenter size={16} /></button>
