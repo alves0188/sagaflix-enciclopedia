@@ -446,6 +446,22 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
 
   const chapter = chapters[activeChapterIdx];
   const subthemeObj = chapter?.pages?.[activeSubthemeIdx];
+  const currentSubthemeName = (() => {
+    if (!subthemeObj) return '';
+    const headings = parseHeadings(subthemeObj.text || '', activeSubthemeIdx);
+    const filtered = headings.filter(h => h.text.toLowerCase() !== (chapter?.title || '').toLowerCase().trim());
+    if (filtered.length > 0) {
+      return filtered[0].text;
+    }
+    return subthemeObj.subtheme || '';
+  })();
+
+  const pageHasHeadings = (() => {
+    if (!subthemeObj) return false;
+    const headings = parseHeadings(subthemeObj.text || '', activeSubthemeIdx);
+    const filtered = headings.filter(h => h.text.toLowerCase() !== (chapter?.title || '').toLowerCase().trim());
+    return filtered.length > 0;
+  })();
 
   const handleNextPage = () => {
     if (activeColumnIdx < totalColumns - 1) {
@@ -543,7 +559,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
       const pageHeadings = parseHeadings(page.text || '', pageIdx);
       allHeadings = allHeadings.concat(pageHeadings);
     });
-    return allHeadings;
+    return allHeadings.filter(h => h.text.toLowerCase() !== (ch.title || '').toLowerCase().trim());
   };
 
   const handleHeadingClick = (chIdx, pageIdx, text) => {
@@ -702,7 +718,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
                   })()}
                 </div>
                 <div style={{ fontSize: '0.9rem', color: themeColors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {!chapter.isVirtual && chapter.title} {subthemeObj?.subtheme && !chapter.isVirtual ? `- ${subthemeObj.subtheme}` : ''}
+                  {!chapter.isVirtual && chapter.title} {currentSubthemeName && !chapter.isVirtual ? ` - ${currentSubthemeName}` : ''}
                 </div>
               </>
             )}
@@ -894,7 +910,7 @@ export default function Reader({ db, bookId, currentUser, onUpdateData, onClose 
               >
                 {subthemeObj ? (
                   <div>
-                    {subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
+                    {!pageHasHeadings && subthemeObj.subtheme && !chapter.isVirtual && (activeSubthemeIdx === 0 || chapter?.pages?.[activeSubthemeIdx - 1]?.subtheme !== subthemeObj.subtheme) && (
                       <h2 style={{ 
                          textAlign: 'left', 
                          fontFamily: "'Playfair Display', serif", 
