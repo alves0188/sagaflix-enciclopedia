@@ -1893,7 +1893,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   const headings = getChapterHeadings(ch);
                   
                   return (
-                    <div key={ch.id} className="unified-env-item" style={{ borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent' }}>
+                    <div key={ch.id} className="unified-env-item" style={{ borderLeft: isActive ? '3.5px solid var(--accent-gold)' : '3.5px solid transparent', background: isActive ? 'rgba(255,255,255,0.02)' : 'transparent', marginBottom: '2px', borderBottom: 'none' }}>
                       <div 
                         className={`unified-env-item-header ${isActive ? 'active' : ''}`}
                         onClick={async () => {
@@ -1905,7 +1905,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             handleEdit(ch, ch.type || 'chapter');
                           }
                         }}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.6rem 0.8rem', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '0px' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '80%' }}>
                           <button 
@@ -2035,7 +2035,18 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                                     }
                                   }, 100);
                                 }}
-                                style={{ paddingLeft: indent }}
+                                style={{ 
+                                   paddingLeft: indent, 
+                                   paddingTop: '0.3rem', 
+                                   paddingBottom: '0.3rem', 
+                                   fontSize: '0.85rem', 
+                                   color: isHeadingActive ? 'var(--accent-gold)' : 'var(--text-muted)', 
+                                   fontWeight: isHeadingActive ? 'bold' : 'normal',
+                                   background: 'transparent',
+                                   cursor: 'pointer',
+                                   transition: 'color 0.2s',
+                                   border: 'none'
+                                 }}
                               >
                                 • {h.text}
                               </div>
@@ -2178,10 +2189,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
             {/* COLUMN 3: Right (Planejamento) */}
             <div className="desktop-only" style={{ width: '420px', borderLeft: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden', transition: 'background-color 0.3s ease' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', background: 'rgba(0,0,0,0.1)', padding: '0.3rem', borderRadius: '8px' }}>
-                <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'premissa' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal' }}>Resumo</button>
-                <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'escaletas' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal' }}>Escaletas</button>
-                <button onClick={() => setActiveSideTab('ideias')} style={{ flex: 1, padding: '0.5rem', border: 'none', background: activeSideTab === 'ideias' ? 'var(--accent-gold)' : 'transparent', color: activeSideTab === 'ideias' ? '#000' : 'var(--text-muted)', borderRadius: '6px', cursor: 'pointer', fontWeight: activeSideTab === 'ideias' ? 'bold' : 'normal' }}>Ideias</button>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem', width: '100%' }}>
+                <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'premissa' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Resumo</button>
+                <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'escaletas' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Escaletas</button>
+                <button onClick={() => setActiveSideTab('ideias')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'ideias' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'ideias' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'ideias' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Ideias</button>
               </div>
               {currentBook && (
                 <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
