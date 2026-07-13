@@ -83,19 +83,20 @@ export default function UniverseGraph({ bookId, universe, isAuthor }) {
     }
   };
 
-  const handleAddConnection = async (e) => {
-    e.preventDefault();
-    if (!sourceId || !targetId || !relationType) {
+  const handleAddConnection = async (e, overrideSourceId) => {
+    e?.preventDefault();
+    const finalSourceId = overrideSourceId || sourceId;
+    if (!finalSourceId || !targetId || !relationType) {
       toast.error('Preencha as entidades e o tipo de relação.');
       return;
     }
 
-    if (sourceId === targetId) {
+    if (finalSourceId === targetId) {
       toast.error('Não é possível conectar uma entidade a ela mesma.');
       return;
     }
 
-    const sourceEntity = entities.find(ent => ent.id === sourceId);
+    const sourceEntity = entities.find(ent => ent.id === finalSourceId);
     const targetEntity = entities.find(ent => ent.id === targetId);
 
     if (!sourceEntity || !targetEntity) {
@@ -116,7 +117,7 @@ export default function UniverseGraph({ bookId, universe, isAuthor }) {
         },
         body: JSON.stringify({
           book_id: bookId,
-          source_id: sourceId,
+          source_id: finalSourceId,
           source_type: sourceEntity.type,
           target_id: targetId,
           target_type: targetEntity.type,
@@ -188,6 +189,52 @@ export default function UniverseGraph({ bookId, universe, isAuthor }) {
   };
 
   const handleMouseUp = () => {
+    dragNodeRef.current = null;
+  };
+
+  const handleCreateQuickConnection = async (source, target) => {
+    if (!source || !target || source === target) return;
+    const sourceEntity = entities.find(ent => ent.id === source);
+    const targetEntity = entities.find(ent => ent.id === target);
+    if (!sourceEntity || !targetEntity) return;
+
+    setActionLoading(true);
+    try {
+      const baseUrl = window.API_BASE_URL || '';
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${baseUrl}/api/universe/connections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': session ? `Bearer ${session.access_token}` : '' },
+        body: JSON.stringify({
+          book_id: bookId,
+          source_id: source,
+          source_type: sourceEntity.type,
+          target_id: target,
+          target_type: targetEntity.type,
+          relation_type: 'Nova Conexão (Editar)',
+          description: ''
+        })
+      });
+      if (res.ok) {
+        toast.success('Conexão rápida criada!');
+        fetchConnections();
+      } else {
+        toast.error('Erro ao salvar conexão.');
+      }
+    } catch (err) {
+      toast.error('Erro ao conectar.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleNodeMouseUp = (targetId, e) => {
+    e.stopPropagation();
+    if (dragNodeRef.current && dragNodeRef.current !== targetId) {
+      if (isAuthor) {
+        handleCreateQuickConnection(dragNodeRef.current, targetId);
+      }
+    }
     dragNodeRef.current = null;
   };
 
@@ -313,6 +360,7 @@ export default function UniverseGraph({ bookId, universe, isAuthor }) {
               <div 
                 key={ent.id}
                 onMouseDown={(e) => handleMouseDown(ent.id, e)}
+                onMouseUp={(e) => handleNodeMouseUp(ent.id, e)}
                 onClick={() => setSelectedNode(ent)}
                 style={{ 
                   position: 'absolute',
@@ -403,8 +451,42 @@ export default function UniverseGraph({ bookId, universe, isAuthor }) {
               {selectedNode.description || selectedNode.bio || 'Nenhuma descrição detalhada.'}
             </p>
 
+            {/* Quick Connect inside Sidebar */}
+            {isAuthor && (
+              <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>CRIAR CONEXÃO A PARTIR DAQUI</h5>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <select 
+                    value={targetId} 
+                    onChange={(e) => setTargetId(e.target.value)}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: '#fff', padding: '0.4rem', borderRadius: '4px', fontSize: '0.85rem' }}
+                  >
+                    <option value="">-- Selecione o Destino --</option>
+                    {entities.filter(e => e.id !== selectedNode.id).map(e => (
+                      <option key={e.id} value={e.id}>{e.name} ({NODE_COLORS[e.type]?.label})</option>
+                    ))}
+                  </select>
+                  <input 
+                    type="text" 
+                    placeholder="Tipo de Relação (Ex: Irmão)"
+                    value={relationType}
+                    onChange={(e) => setRelationType(e.target.value)}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: '#fff', padding: '0.4rem', borderRadius: '4px', fontSize: '0.85rem' }}
+                  />
+                  <button 
+                    disabled={actionLoading || !targetId || !relationType}
+                    onClick={(e) => handleAddConnection(e, selectedNode.id)}
+                    className="btn-primary" 
+                    style={{ width: '100%', padding: '0.4rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}
+                  >
+                    {actionLoading ? 'Conectando...' : <><Link2 size={14} /> Conectar</>}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* List relations for this node */}
-            <div>
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               <h5 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>RELAÇÕES NESTE MAPA</h5>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {connections.filter(c => c.source_id === selectedNode.id || c.target_id === selectedNode.id).map(conn => {
