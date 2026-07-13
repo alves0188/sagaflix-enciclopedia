@@ -2087,6 +2087,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 return (
                   <>
                     <div className="editor-text-container" style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                      <style>{`
+                        .editor-text-container {
+                          width: 100%;
+                          max-width: 820px;
+                          margin: 0 auto;
+                          padding: 2.5rem 2rem;
+                          box-sizing: border-box;
+                        }
+                        @media (max-width: 768px) {
+                          .editor-text-container {
+                            padding: 1.2rem 1rem;
+                          }
+                        }
+                      `}</style>
                       <CustomEditor
                         value={activePage.text || ''}
                         onChange={(newContent) => {
