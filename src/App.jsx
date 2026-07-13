@@ -12,7 +12,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, uploadImage } from './lib/supabaseClient';
 import { toast } from 'react-hot-toast';
-import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store } from 'lucide-react';
+import { BookOpen, LogOut, Settings, Plus, User, Bell, X, Upload, Eye, EyeOff, CheckCircle, XCircle, Menu, Trash2, Store, Wallet } from 'lucide-react';
 import { useHashTabs } from './hooks/useHashTabs';
 import { useHashHistory } from './hooks/useHashHistory';
 import TutorialManager from './components/TutorialManager';
@@ -81,8 +81,8 @@ function AppContent() {
     localStorage.setItem('sagaflix_universeTab', tab);
   };
 
-  const [readerActiveTab, setReaderActiveTab] = useHashTabs('vitrine', ['vitrine', 'favoritos', 'lendo', 'lidos', 'dossie'], 'sagaflix_readerTab');
-  const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte'], 'sagaflix_authorTab');
+  const [readerActiveTab, setReaderActiveTab] = useHashTabs('vitrine', ['vitrine', 'favoritos', 'lendo', 'lidos', 'dossie', 'carteira'], 'sagaflix_readerTab');
+  const [authorActiveTab, setAuthorActiveTab] = useHashTabs('dashboard', ['dashboard', 'livros', 'ideias', 'solicitacoes_notas', 'suporte', 'carteira'], 'sagaflix_authorTab');
 
   const [showProfilePassword, setShowProfilePassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -673,6 +673,28 @@ function AppContent() {
           >
             <Store size={22} />
             {!isMobile && <span>Loja</span>}
+          </button>
+
+          <button 
+            onClick={() => {
+              if (currentUser.role === 'author') setAuthorActiveTab('carteira');
+              else setReaderActiveTab('carteira');
+            }}
+            title="Minha Carteira"
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--accent-gold)', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontWeight: 'bold',
+              fontSize: '0.9rem'
+            }}
+          >
+            <Wallet size={22} />
+            {!isMobile && <span>Carteira</span>}
           </button>
 
           <div style={{ position: 'relative' }}>

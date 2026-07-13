@@ -113,6 +113,57 @@ async function run() {
     else console.log('Gamification badges successfully migrated!');
   }
   
+  // 6. Migrate User Tastes and Wallets
+  if (db.users && db.users.length > 0) {
+    console.log(`Processing ${db.users.length} users for tastes and wallets...`);
+    const tastePayloads = [];
+    const walletPayloads = [];
+    
+    for (const u of db.users) {
+      if (isValidUUID(u.id)) {
+        // Initialize wallet
+        walletPayloads.push({
+          user_id: u.id,
+          balance: 0.00,
+          subscription_status: 'inactive',
+          updated_at: new Date().toISOString()
+        });
+        
+        // Add tastes
+        if (u.tastes && Array.isArray(u.tastes)) {
+          for (const genre of u.tastes) {
+            tastePayloads.push({
+              user_id: u.id,
+              genre: genre
+            });
+          }
+        }
+      } else {
+        console.log(`Skipping tastes/wallet migration for user "${u.name}" (ID: ${u.id} is not a valid UUID)`);
+      }
+    }
+    
+    if (walletPayloads.length > 0) {
+      console.log(`Upserting ${walletPayloads.length} wallets...`);
+      const { error: wErr } = await supabase.from('wallets').upsert(walletPayloads);
+      if (wErr) console.error('Error inserting wallets:', wErr);
+      else console.log('Wallets successfully migrated/initialized!');
+    }
+    
+    if (tastePayloads.length > 0) {
+      console.log(`Migrating ${tastePayloads.length} user tastes...`);
+      // Clear existing user tastes to avoid duplicates on migration retry
+      const userIds = [...new Set(tastePayloads.map(t => t.user_id))];
+      const { error: dErr } = await supabase.from('user_tastes').delete().in('user_id', userIds);
+      if (dErr) console.error('Error cleaning old user tastes:', dErr);
+      
+      const { error: tErr } = await supabase.from('user_tastes').insert(tastePayloads);
+      if (tErr) console.error('Error inserting user tastes:', tErr);
+      else console.log('User tastes successfully migrated!');
+    }
+  }
+  
   console.log('--- MIGRATION SCRIPT COMPLETED ---');
 }
 run();
+

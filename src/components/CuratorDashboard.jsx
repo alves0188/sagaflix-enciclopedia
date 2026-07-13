@@ -4546,8 +4546,162 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
     );
   }
 
+  const [withdrawalRequests, setWithdrawalRequests] = useState([]);
+  const [withdrawActionLoading, setWithdrawActionLoading] = useState({});
+  const [rejectReasons, setRejectReasons] = useState({});
+
+  useEffect(() => {
+    if (activeTab === 'financeiro') {
+      fetchWithdrawals();
+    }
+  }, [activeTab]);
+
+  const fetchWithdrawals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('withdrawal_requests')
+        .select('*, profiles(name, nickname, email)')
+        .order('created_at', { ascending: false });
+      if (!error) {
+        setWithdrawalRequests(data || []);
+      } else {
+        console.error("Error fetching withdrawal requests:", error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleWithdrawalAction = async (requestId, action, reason = '') => {
+    setWithdrawActionLoading(prev => ({ ...prev, [requestId]: true }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const baseUrl = window.API_BASE_URL || '';
+      const endpoint = `${baseUrl}/api/support/withdraw/${action}`;
+      
+      const payload = {
+        request_id: requestId,
+        ...(action === 'reject' ? { reason } : {})
+      };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        toast.success(action === 'approve' ? 'Saque aprovado com sucesso!' : 'Saque recusado.');
+        fetchWithdrawals();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Erro ao processar ação.');
+      }
+    } catch (err) {
+      toast.error('Erro de conexão ao processar ação.');
+    } finally {
+      setWithdrawActionLoading(prev => ({ ...prev, [requestId]: false }));
+    }
+  };
+
+  const renderFinanceiro = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--text-main)', margin: 0, fontSize: '2rem' }}>
+            Gestão Financeira & Saques
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '0.9rem' }}>
+            Gerencie as solicitações de saque de créditos dos autores da plataforma.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          {withdrawalRequests.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Nenhuma solicitação de saque registrada.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {withdrawalRequests.map(req => {
+                const authorName = req.profiles?.nickname || req.profiles?.name || 'Autor Desconhecido';
+                const authorEmail = req.profiles?.email || '';
+                
+                return (
+                  <div key={req.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', background: 'rgba(212,175,55,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        ID: {req.id.substring(0, 8)}
+                      </span>
+                      <h4 style={{ margin: '0.5rem 0 0.2rem 0', fontSize: '1.2rem' }}>{authorName}</h4>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>E-mail: {authorEmail}</p>
+                      <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                        Chave Bancária/PIX: <strong style={{ color: 'var(--accent-gold)' }}>{req.bank_token}</strong>
+                      </p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.5rem' }}>
+                        Solicitado em: {new Date(req.created_at).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.8rem' }}>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>
+                          R$ {parseFloat(req.amount).toFixed(2)}
+                        </p>
+                        <span style={{ 
+                          padding: '0.2rem 0.5rem', 
+                          borderRadius: '4px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: 'bold',
+                          background: req.status === 'pending' ? 'rgba(255,193,7,0.15)' : req.status === 'approved' ? 'rgba(76,175,80,0.15)' : 'rgba(244,67,54,0.15)',
+                          color: req.status === 'pending' ? '#FFC107' : req.status === 'approved' ? '#4CAF50' : '#F44336'
+                        }}>
+                          {req.status === 'pending' ? 'Pendente' : req.status === 'approved' ? 'Aprovado' : 'Rejeitado'}
+                        </span>
+                      </div>
+
+                      {req.status === 'pending' && (
+                        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Motivo de rejeição..."
+                            value={rejectReasons[req.id] || ''}
+                            onChange={e => setRejectReasons(prev => ({ ...prev, [req.id]: e.target.value }))}
+                            style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', color: '#fff', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', width: '160px' }}
+                          />
+                          <button 
+                            onClick={() => handleWithdrawalAction(req.id, 'reject', rejectReasons[req.id])}
+                            disabled={withdrawActionLoading[req.id]}
+                            className="btn-secondary" 
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', borderColor: '#F44336', color: '#F44336' }}
+                          >
+                            Recusar
+                          </button>
+                          <button 
+                            onClick={() => handleWithdrawalAction(req.id, 'approve')}
+                            disabled={withdrawActionLoading[req.id]}
+                            className="btn-primary" 
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: '#4CAF50', borderColor: '#4CAF50' }}
+                          >
+                            Aprovar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="curator-dashboard-container" style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
+
       
       {/* Sidebar de Curadoria */}
       <div className="curator-sidebar" style={{ width: '260px', background: '#1a1c20', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', padding: '2rem 0', flexShrink: 0, overflowY: 'auto' }}>
@@ -4568,8 +4722,8 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         {hasAccess('mensagens') && <button onClick={() => setActiveTab('mensagens')} style={navItemStyle(activeTab === 'mensagens')}><MessageSquare size={18}/> Mensagens</button>}
         {hasAccess('banners') && <button onClick={() => setActiveTab('banners')} style={navItemStyle(activeTab === 'banners')}><Image size={18}/> Banners</button>}
         {hasAccess('curadoria') && <button onClick={() => setActiveTab('gamificacao')} style={navItemStyle(activeTab === 'gamificacao')}><Star size={18}/> Gamificação</button>}
-        {hasAccess('equipe') && <button onClick={() => setActiveTab('equipe')} style={navItemStyle(activeTab === 'equipe')}><UserPlus size={18}/> Equipe</button>}
         {hasAccess('tutoriais') && <button onClick={() => setActiveTab('tutoriais')} style={navItemStyle(activeTab === 'tutoriais')}><Lightbulb size={18}/> Tutoriais</button>}
+        {hasAccess('curadoria') && <button onClick={() => setActiveTab('financeiro')} style={navItemStyle(activeTab === 'financeiro')}><DollarSign size={18}/> Financeiro</button>}
 
         <div style={{ flex: 1 }}></div>
         <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -4593,6 +4747,7 @@ export default function CuratorDashboard({ currentUser, focusAuthorId, setFocusA
         {activeTab === 'gamificacao' && hasAccess('curadoria') && renderGamificacao()}
         {activeTab === 'equipe' && hasAccess('equipe') && renderEquipe()}
         {activeTab === 'tutoriais' && hasAccess('tutoriais') && renderTutoriais()}
+        {activeTab === 'financeiro' && hasAccess('curadoria') && renderFinanceiro()}
       </div>
 
       {showUserForm && (

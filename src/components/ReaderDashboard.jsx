@@ -1,10 +1,12 @@
 import { toast } from 'react-hot-toast';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown, Award } from 'lucide-react';
+import { BookOpen, User, Star, Bookmark, CheckCircle, Search, Map, X, Play, Heart, Trash2, SlidersHorizontal, Activity, ChevronDown, Award, Wallet, Sparkles } from 'lucide-react';
 import { GENRES_LIST } from '../lib/genres';
 import { BADGES_DB, BADGE_CATEGORIES, TIER_INFO, calculateLevel } from '../utils/gamificationConfig';
 import { processGamificationEvent } from '../utils/gamificationEngine';
+import UserDashboard from './UserDashboard';
+import SearchSection from './SearchSection';
 
 const DEFAULT_BANNERS = [
   {
@@ -58,6 +60,7 @@ import { supabase } from '../lib/supabaseClient';
 export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBookUniverse, initialActiveTab, onTabChange }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [localData, setLocalData] = useState(null);
+  const [showIaSearch, setShowIaSearch] = useState(false);
 
   useEffect(() => {
     async function loadReaderData() {
@@ -973,6 +976,7 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
           <button onClick={() => { setActiveTab('lidos'); setSelectedBook(null); }} style={navItemStyle('lidos')}><CheckCircle size={18}/> Livros Lidos</button>
           <button onClick={() => { setActiveTab('conquistas'); setSelectedBook(null); }} style={navItemStyle('conquistas')}><Award size={18}/> Conquistas</button>
           <button onClick={() => { setActiveTab('dossie'); setSelectedBook(null); }} style={navItemStyle('dossie')}><User size={18}/> Meu Dossiê</button>
+          <button onClick={() => { setActiveTab('carteira'); setSelectedBook(null); }} style={navItemStyle('carteira')}><Wallet size={18}/> Minha Carteira</button>
         </div>
       )}
 
@@ -1052,6 +1056,16 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
           >
             <User size={20} />
             <span>Dossiê</span>
+          </button>
+          <button 
+            onClick={() => { setActiveTab('carteira'); setSelectedBook(null); }} 
+            style={{ 
+              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
+              color: activeTab === 'carteira' ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: activeTab === 'carteira' ? '600' : '400'
+            }}
+          >
+            <Wallet size={20} />
+            <span>Carteira</span>
           </button>
         </div>
       )}
@@ -1237,6 +1251,31 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
                   <span>{selectedGenre || 'Gêneros'}</span>
                   <ChevronDown size={16} style={{ transform: showGenresDropdown ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                 </button>
+
+                {/* Busca IA Toggle Button */}
+                <button 
+                  onClick={() => setShowIaSearch(!showIaSearch)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    background: 'transparent',
+                    border: '1px solid var(--accent-gold)',
+                    color: showIaSearch ? '#000' : 'var(--accent-gold)',
+                    backgroundColor: showIaSearch ? 'var(--accent-gold)' : 'transparent',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                  title="Busca Inteligente por IA"
+                >
+                  <Sparkles size={14} />
+                  <span>Busca por IA</span>
+                </button>
               </div>
             </div>
 
@@ -1322,8 +1361,14 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
           </div>
         )}
 
+        {activeTab === 'vitrine' && showIaSearch && (
+          <div style={{ padding: isMobile ? '0 1rem' : '0', marginBottom: '2rem' }}>
+            <SearchSection db={db} onSelectBook={onSelectBook} />
+          </div>
+        )}
+
         {/* Grid de Livros */}
-        {activeTab !== 'dossie' && activeTab !== 'conquistas' && (
+        {activeTab !== 'dossie' && activeTab !== 'conquistas' && activeTab !== 'carteira' && (
           filteredBooks.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', padding: isMobile && activeTab === 'vitrine' ? '0 1rem' : '0' }}>
               <BookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
@@ -1850,6 +1895,13 @@ export default function ReaderDashboard({ currentUser, onSelectBook, onSelectBoo
         {activeTab === 'conquistas' && (
           <div style={{ padding: 0 }}>
             {renderConquistas()}
+          </div>
+        )}
+
+        {/* Seção Carteira (T014) */}
+        {activeTab === 'carteira' && (
+          <div style={{ padding: isMobile ? '1rem' : '0 3rem 3rem 3rem' }}>
+            <UserDashboard currentUser={currentUser} />
           </div>
         )}
 

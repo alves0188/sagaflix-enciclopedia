@@ -120,6 +120,19 @@ export default function Register({ onNavigateLogin, onRegisterSuccess, portalRol
         return;
       }
 
+      // Save tastes if they exist (T009)
+      if (formData.tastes && formData.tastes.length > 0) {
+        const tastesPayload = formData.tastes.map(genre => ({
+          user_id: data.user.id,
+          genre: genre
+        }));
+        const { error: tastesError } = await supabase.from('user_tastes').insert(tastesPayload);
+        if (tastesError) {
+          console.error("Erro ao salvar gostos literários:", tastesError);
+        }
+      }
+
+
       if (portalRole === 'author') {
         try {
           const { error: reqError } = await supabase.from('author_requests').insert({

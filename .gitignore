@@ -35,3 +35,15 @@ recreate_users.mjs
 test_admin.mjs
 sagaflix_db_backup_full.json
 Textos_Sagaflix.doc
+
+# Environment secrets
+.env
+.gemini/
+.specify/
+
+# Testing and discovery scripts
+test_*.js
+test_*.mjs
+check_*.js
+discover_*.js
+dist_index.js

@@ -55,6 +55,24 @@ export function AuthProvider({ children }) {
         }
 
         if (profile) {
+          let tastes = [];
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              const res = await fetch((window.API_BASE_URL || '') + '/api/profile/tastes', {
+                headers: {
+                  'Authorization': `Bearer ${session.access_token}`
+                }
+              });
+              if (res.ok) {
+                const tastesData = await res.json();
+                tastes = tastesData.tastes || [];
+              }
+            }
+          } catch (tastesErr) {
+            console.error("Erro ao carregar gostos do perfil:", tastesErr);
+          }
+
           const userObj = {
             id: profile.id,
             role: profile.role || 'reader',
@@ -64,7 +82,8 @@ export function AuthProvider({ children }) {
             avatar: profile.avatar_url,
             favorites: profile.favorites || [],
             readingStatus: profile.reading_status || {},
-            completedTutorials: profile.completed_tutorials || []
+            completedTutorials: profile.completed_tutorials || [],
+            tastes: tastes
           };
           
           if (userObj.email === 'suporte@sagaflix.com.br') userObj.role = 'admin';
@@ -129,8 +148,36 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('sagaflix_user');
   };
 
+  const updateUserTastes = async (newTastes) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+
+      const res = await fetch((window.API_BASE_URL || '') + '/api/profile/tastes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ tastes: newTastes })
+      });
+
+      if (res.ok) {
+        setCurrentUser(prev => {
+          const updated = { ...prev, tastes: newTastes };
+          localStorage.setItem('sagaflix_user', JSON.stringify(updated));
+          return updated;
+        });
+        return true;
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar gostos:", err);
+    }
+    return false;
+  };
+
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, loading, setCurrentUser }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, loading, setCurrentUser, updateUserTastes }}>
       {children}
     </AuthContext.Provider>
   );

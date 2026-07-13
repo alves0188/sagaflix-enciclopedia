@@ -1,360 +1,153 @@
 {
   "books": [
     {
-      "id": "livro_jardim",
-      "cover": "/book_cover.png",
-      "title": "Jardim das Flores",
+      "id": "book_1782593203365",
+      "sku": null,
+      "ideas": [],
+      "title": "teste",
+      "trash": [],
+      "views": 0,
+      "genres": [],
       "status": "draft",
-      "authorId": "82490517",
-      "synopsis": "Um mistério profundo envolvendo a morte de Elias...",
+      "premise": null,
+      "ratings": [],
+      "chapters": [],
+      "escaleta": [],
+      "synopsis": "te",
       "universe": {
-        "book": {
-          "image": "/book_cover.png",
-          "title": "Jardim das Flores",
-          "author": "Wagner Rocha",
-          "category": "Aventura, Mistério, Drama",
-          "ageRating": "16+",
-          "description": "Uma cidadezinha aparentemente pacata esconde uma guerra civil silenciosa entre três grandes gangues. Quando o idoso mais querido da cidade morre e os líderes criminosos declaram paz absoluta no velório, um misterioso quebra-cabeças é revelado. Dois grupos de jovens rivais serão obrigados a se unir para descobrir a verdade por trás do simples jardineiro que botou a máfia de joelhos."
-        },
-        "posts": [],
-        "chapters": [
-          {
-            "id": "cap-1",
-            "type": "chapter",
-            "pages": [
-              {
-                "text": "<p>A chuva caía forte sobre a cidade de Jardim das Flores. O corpo de Elias, outrora o líder pacífico da juventude, jazia inerte no chão frio.</p><p>As facções locais, lideradas por Kael e Lúcia, observavam o cenário com desconfiança. O clima estava pesado, e todos sabiam que a paz não duraria muito tempo.</p>",
-                "image": "https://images.unsplash.com/photo-1518773553398-650c184e0bb3?q=80&w=600&auto=format&fit=crop",
-                "subtheme": "O Início"
-              },
-              {
-                "text": "<p>No dia seguinte, a investigação começou, mas os jovens revolucionários já haviam tirado suas próprias conclusões: a Tríade estava envolvida.</p>",
-                "subtheme": "A Investigação"
-              }
-            ],
-            "title": "Capítulo 1: A Morte de Elias"
-          },
-          {
-            "id": "cap-2",
-            "type": "chapter",
-            "pages": [
-              {
-                "text": "<p>O bar da esquina estava cheio. Todos os jovens se reuniram para discutir os próximos passos. A morte de Elias não passaria impune.</p>",
-                "image": "https://images.unsplash.com/photo-1543007630-9710e4a00a20?q=80&w=600&auto=format&fit=crop",
-                "subtheme": "Reunião no Bar"
-              }
-            ],
-            "title": "Capítulo 2: O Despertar da Revolução"
-          }
-        ],
-        "locations": [
-          {
-            "id": "local_neutro",
-            "name": "O Bistrô Neutro",
-            "type": "local",
-            "image": "/local_neutro.png",
-            "territory": "Zona Desmilitarizada",
-            "connections": [
-              {
-                "name": "Tomás",
-                "relation": "Toca jazz no local"
-              },
-              {
-                "name": "Os Grupos",
-                "relation": "Local do primeiro encontro"
-              }
-            ],
-            "curiosities": "É o lugar com as melhores bebidas da cidade e onde as tensões desaparecem magicamente pela porta.",
-            "description": "Um estabelecimento muito charmoso, como uma enoteca, onde nenhuma gangue opera criminalmente. É um território pacífico gerenciado secretamente pelas três gangues em conjunto.",
-            "motivations": "Servir de refúgio e ponto de encontro. O terreno é do Leste, a logística do Norte, e a operação do Sul."
-          }
-        ],
-        "characters": [
-          {
-            "id": "luan",
-            "age": 16,
-            "name": "Luan",
-            "role": "O Âncora",
-            "type": "personagem",
-            "image": "/luan.png",
-            "territory": "Território A",
-            "connections": [
-              {
-                "name": "Bia",
-                "relation": "Vizinha protetora, ela pensa que precisa proteger-lo, talvez por pena, talvez por senso de auto responsabilidade, isso é fofo, mas Luan se sente invadido, mas não sabe como dizfazer isso sem magoa sua amiga."
-              },
-              {
-                "name": "Cronos",
-                "relation": "Cão e fiel escudeiro"
-              },
-              {
-                "name": "Thiago",
-                "relation": "Aliado no Território A"
-              },
-              {
-                "name": "",
-                "relation": ""
-              }
-            ],
-            "curiosities": "Apesar da postura séria, ele tem um ponto fraco gigante: seu cachorro Cronos, que resgatou das ruas.",
-            "description": "O mais jovem do grupo, porém carrega a mente mais fria, calculista e sensata de todos. Um 'adulto prematuro' devido às responsabilidades que precisou assumir cedo.",
-            "motivations": "Manter o grupo focado e evitar que decisões impulsivas coloquem todos em risco."
-          },
-          {
-            "id": "bia",
-            "age": 18,
-            "name": "Beatriz 'Bia'",
-            "role": "A Observadora",
-            "type": "personagem",
-            "image": "/bia.png",
-            "gallery": [
-              "/uploads/1780680417988-513775958.jpg",
-              "/uploads/1780680418178-113238444.jpg"
-            ],
-            "territory": "Território A",
-            "connections": [
-              {
-                "name": "Luan",
-                "relation": "Vizinho (age como irmã mais velha)"
-              },
-              {
-                "name": "Thiago",
-                "relation": "Amigo no Território A"
-              }
-            ],
-            "curiosities": "Ela nunca sai de casa sem sua câmera e confia mais no que vê nas lentes do que nas palavras das pessoas.",
-            "description": "Fotógrafa e designer freelancer, extremamente detalhista e atenta a padrões visuais que passam despercebidos. Usa seus recém-completados 18 anos como escudo de autoridade.",
-            "motivations": "Proteger Luan a todo custo e desvendar o mistério visual por trás da morte de Elias."
-          },
-          {
-            "id": "thiago",
-            "age": 21,
-            "name": "Thiago",
-            "role": "O Técnico",
-            "type": "personagem",
-            "image": "/thiago.png",
-            "territory": "Território A",
-            "connections": [
-              {
-                "name": "Luan",
-                "relation": "Amigo"
-              },
-              {
-                "name": "Camila",
-                "relation": "Alvo do ódio secreto dela (ele não sabe)"
-              }
-            ],
-            "curiosities": "Ele sofreu amnésia aos 13 anos em um grave acidente de carro que tirou a vida de sua irmã Lia. Ele não lembra do acidente.",
-            "description": "Rapaz pragmático, calmo, lida com hardware e sistemas. É extremamente pacífico e evita conflitos diretos.",
-            "motivations": "Ajudar com a tecnologia na investigação, buscando justiça de forma silenciosa."
-          },
-          {
-            "id": "camila",
-            "age": 23,
-            "name": "Camila",
-            "role": "A Condutora do Conflito",
-            "type": "personagem",
-            "image": "/camila.png",
-            "territory": "Território B",
-            "connections": [
-              {
-                "name": "Tomás",
-                "relation": "Namorado"
-              },
-              {
-                "name": "Thiago",
-                "relation": "Alvo de sua fúria e ressentimento"
-              }
-            ],
-            "curiosities": "Ela canalizou todo o trauma do luto em raiva. O fato de Thiago não se lembrar do acidente a enfurece ainda mais.",
-            "description": "A mais velha do grupo B, focada em ação e impulsiva. Entra na investigação com segundas intenções e guarda um rancor mortal.",
-            "motivations": "Vingança. Ela quer destruir Thiago, que ela culpa pela morte de seu irmão Júnior em um acidente de carro há 8 anos."
-          },
-          {
-            "id": "tomas",
-            "age": 22,
-            "name": "Tomás",
-            "role": "A Mente Musical",
-            "type": "personagem",
-            "image": "/tomas.png",
-            "territory": "Território B",
-            "connections": [
-              {
-                "name": "Camila",
-                "relation": "Namorada"
-              }
-            ],
-            "curiosities": "Ele toca no Local Neutro e não faz a menor ideia do segredo sombrio de vingança que Camila esconde.",
-            "description": "Músico introspectivo e analítico. Toca baixo e teclado. Consegue perceber 'padrões' nos movimentos da cidade como se fossem ritmos.",
-            "motivations": "Encontrar a verdade através da intuição e dos padrões que ninguém mais vê."
-          },
-          {
-            "id": "elias",
-            "age": 72,
-            "name": "Senhor Elias",
-            "role": "O Jardineiro (Falecido)",
-            "type": "personagem",
-            "image": "/elias.png",
-            "territory": "Todos",
-            "connections": [
-              {
-                "name": "Líderes das Gangues",
-                "relation": "Respeito misterioso absoluto"
-              }
-            ],
-            "curiosities": "A morte dele foi o único dia em toda a história recente da cidade em que as gangues pararam de atirar.",
-            "description": "O idoso mais querido da cidade. Cuidava dos jardins e praças. Sua morte repentina forçou uma trégua inédita entre as três maiores gangues.",
-            "motivations": "Desconhecidas. Seu passado é um quebra-cabeça que uniu os jovens de territórios rivais."
-          }
-        ]
-      },
-      "ageRating": "16"
-    },
-    {
-      "id": "book_1780778689319",
-      "cover": "/uploads/1780778687298-243850455.png",
-      "title": "Saga Rengaw",
-      "status": "draft",
-      "authorId": "82490517",
-      "synopsis": "Na idade média um grupo de guerreiros encontra um elichir que pode mudar as suas vidas.\nUma mistura de honra, lealdade, poder, vingança e redenção",
-      "universe": {
+        "home": false,
+        "clues": false,
         "items": [],
         "events": [],
-        "chapters": [
-          {
-            "id": "1780804930927",
-            "type": "chapter",
-            "pages": [
-              {
-                "text": "<p>Segue o teste</p>",
-                "image": "",
-                "subtheme": "Aquele teste bom"
-              },
-              {
-                "text": "<p>será que vaidar bom?</p>",
-                "image": "",
-                "subtheme": "Novo Subtema 2"
-              }
-            ],
-            "title": "Sempre um novo teste"
-          }
-        ],
-        "locations": [
-          {
-            "id": "1780804895311",
-            "age": "",
-            "name": "Casa de chá",
-            "role": "",
-            "type": "local",
-            "image": "",
-            "gallery": [],
-            "territory": "",
-            "connections": [],
-            "curiosities": "",
-            "description": "",
-            "motivations": "",
-            "customFields": [],
-            "privateNotes": ""
-          }
-        ],
-        "characters": [
-          {
-            "id": "1780804858760",
-            "age": "",
-            "name": "Rengaw",
-            "role": "",
-            "type": "personagem",
-            "image": "",
-            "gallery": [],
-            "territory": "",
-            "connections": [],
-            "curiosities": "",
-            "description": "muito agressivo",
-            "motivations": "",
-            "customFields": [],
-            "privateNotes": ""
-          },
-          {
-            "id": "1780804880824",
-            "age": "",
-            "name": "Eline",
-            "role": "",
-            "type": "personagem",
-            "image": "",
-            "gallery": [],
-            "territory": "",
-            "connections": [],
-            "curiosities": "",
-            "description": "muito linda",
-            "motivations": "",
-            "customFields": [],
-            "privateNotes": ""
-          }
-        ],
-        "organizations": [
-          {
-            "id": "1780804908008",
-            "age": "",
-            "name": "lugar desconhecido",
-            "role": "",
-            "type": "organizacao",
-            "image": "",
-            "gallery": [],
-            "territory": "",
-            "connections": [],
-            "curiosities": "",
-            "description": "",
-            "motivations": "",
-            "customFields": [],
-            "privateNotes": ""
-          }
-        ]
-      }
+        "cluesData": [],
+        "locations": false,
+        "characters": false,
+        "locationsData": [],
+        "organizations": false,
+        "charactersData": [],
+        "organizationsData": []
+      },
+      "author_id": "6917efa6-a08b-4713-8b17-cce0e6f622de",
+      "book_type": "complete",
+      "cover_url": "",
+      "age_rating": null,
+      "banner_url": null,
+      "created_at": "2026-06-27T20:46:43.787751+00:00",
+      "lore_areas": [],
+      "updated_at": "2026-06-27T20:46:43.787751+00:00",
+      "idea_legends": {},
+      "co_author_ids": [],
+      "escaleta_mode": null,
+      "release_model": null,
+      "escaleta_groups": [],
+      "distribution_mode": "complete",
+      "universe_requests": [],
+      "typesetting_settings": {}
     },
     {
-      "id": "book_1780804538190",
-      "cover": "/uploads/1780804533337-880401652.jpeg",
-      "title": "O rei e o menino",
+      "id": "book_1782594175280",
+      "sku": "LIV-Z5PRYIPT",
+      "ideas": [],
+      "title": "teste",
+      "trash": [],
+      "genres": [],
       "status": "draft",
-      "authorId": "82490517",
-      "synopsis": "uma história muito boa de se ler",
+      "ratings": [],
+      "chapters": [],
+      "escaleta": [],
+      "synopsis": "te",
       "universe": {
+        "home": false,
+        "clues": false,
         "items": [],
         "events": [],
-        "chapters": [
-          {
-            "id": "1780804637064",
-            "type": "chapter",
-            "pages": [
-              {
-                "text": "<p>eeeeee teste&nbsp;</p>",
-                "image": "",
-                "subtheme": "Novo Subtema"
-              }
-            ],
-            "title": "teste",
-            "publishDate": "2026-06-07"
-          },
-          {
-            "id": "1780807462315",
-            "type": "chapter",
-            "pages": [
-              {
-                "text": "",
-                "image": "",
-                "subtheme": "Muito teste por enquanto"
-              }
-            ],
-            "title": "Testando log",
-            "publishDate": "2026-06-07"
-          }
-        ],
-        "locations": [],
-        "characters": []
+        "cluesData": [],
+        "locations": false,
+        "characters": false,
+        "locationsData": [],
+        "organizations": false,
+        "charactersData": [],
+        "organizationsData": []
       },
-      "releaseMode": "all",
-      "releaseWeekday": 1,
-      "releaseIntervalDays": 2
+      "author_id": "6917efa6-a08b-4713-8b17-cce0e6f622de",
+      "book_type": "complete",
+      "cover_url": "",
+      "lore_areas": [],
+      "co_author_ids": [],
+      "escaleta_groups": [],
+      "distribution_mode": "complete",
+      "universe_requests": [],
+      "typesetting_settings": {}
+    },
+    {
+      "id": "book_1782594175485",
+      "sku": "LIV-558PJYZM",
+      "ideas": [],
+      "title": "teste",
+      "trash": [],
+      "genres": [],
+      "status": "draft",
+      "ratings": [],
+      "chapters": [],
+      "escaleta": [],
+      "synopsis": "te",
+      "universe": {
+        "home": false,
+        "clues": false,
+        "items": [],
+        "events": [],
+        "cluesData": [],
+        "locations": false,
+        "characters": false,
+        "locationsData": [],
+        "organizations": false,
+        "charactersData": [],
+        "organizationsData": []
+      },
+      "author_id": "6917efa6-a08b-4713-8b17-cce0e6f622de",
+      "book_type": "complete",
+      "cover_url": "",
+      "lore_areas": [],
+      "co_author_ids": [],
+      "escaleta_groups": [],
+      "distribution_mode": "complete",
+      "universe_requests": [],
+      "typesetting_settings": {}
+    },
+    {
+      "id": "book_1782594193677",
+      "sku": "LIV-TO5M427C",
+      "ideas": [],
+      "title": "olha",
+      "trash": [],
+      "genres": [],
+      "status": "draft",
+      "ratings": [],
+      "chapters": [],
+      "escaleta": [],
+      "synopsis": "sss",
+      "universe": {
+        "home": false,
+        "clues": false,
+        "items": [],
+        "events": [],
+        "cluesData": [],
+        "locations": false,
+        "characters": false,
+        "locationsData": [],
+        "organizations": false,
+        "charactersData": [],
+        "organizationsData": []
+      },
+      "author_id": "6917efa6-a08b-4713-8b17-cce0e6f622de",
+      "book_type": "complete",
+      "cover_url": "",
+      "lore_areas": [],
+      "co_author_ids": [],
+      "escaleta_groups": [],
+      "distribution_mode": "complete",
+      "universe_requests": [],
+      "typesetting_settings": {}
     }
   ],
   "users": [
@@ -363,11 +156,14 @@
       "name": "Curadoria Sagaflix",
       "role": "curator",
       "email": "admin",
-      "password": "admin"
+      "password": "admin",
+      "isPermanent": true
     },
     {
       "id": "82490517",
+      "xp": 50,
       "age": 39,
+      "bio": "Gosto de viajar no imaginário, as histórias que possuem um bom cenário de evolução de personagem me cativa, acho que é por isso que gosto mas de redenção do que vingança.",
       "name": "Wagner (Autor)",
       "role": "author",
       "about": "Escritor apaixonado por construir mundos épicos. Especialista em misturar o realismo com a ficção científica, criando tramas de suspense e romance que prendem o leitor do início ao fim.",
@@ -375,7 +171,7 @@
       "ideas": [
         {
           "id": "idea_1780860490935385",
-          "text": "asdandk",
+          "text": "Começar o livro de ",
           "color": "#FFE082",
           "title": "idea de umn"
         },
@@ -428,6 +224,10 @@
           "title": ""
         }
       ],
+      "stats": {
+        "totalTime": 25,
+        "totalPages": 579
+      },
       "avatar": "/wagner.jpg",
       "status": "approved",
       "tastes": [
@@ -435,38 +235,108 @@
         "Romance",
         "Ficção Científica"
       ],
-      "password": "123"
+      "location": "Campinas",
+      "password": "123",
+      "isPermanent": true,
+      "writingStyle": "Ficcção",
+      "badgeProgress": {
+        "b_1_1": 1,
+        "b_5_3": 0,
+        "b_6_1": 1
+      },
+      "readingStatus": {
+        "livro_jardim": "reading",
+        "book_1780778689319": "reading",
+        "book_1781238962032": "reading"
+      },
+      "unlockedBadges": [
+        {
+          "id": "b_1_1",
+          "unlockedAt": "2026-06-23T04:03:21.618Z"
+        }
+      ],
+      "readingPositions": {
+        "livro_jardim": {
+          "columnIdx": 0,
+          "updatedAt": 1782354340996,
+          "chapterIdx": 0,
+          "subthemeIdx": 1
+        },
+        "book_1780778689319": {
+          "columnIdx": 0,
+          "updatedAt": 1781210798557,
+          "chapterIdx": 0,
+          "subthemeIdx": 0
+        },
+        "book_1781238962032": {
+          "columnIdx": 0,
+          "updatedAt": 1781277977110,
+          "chapterIdx": 4,
+          "subthemeIdx": 1
+        }
+      }
     },
     {
       "id": "41785923",
       "name": "Leitor Fiel",
       "role": "reader",
       "email": "leitor",
+      "stats": {
+        "totalTime": 12,
+        "totalPages": 145
+      },
+      "badges": [
+        {
+          "id": "bdg_1",
+          "icon": "⛵",
+          "name": "Primeira Viagem",
+          "rule": "Ler pelo menos 1 capítulo completo.",
+          "description": "Para quem concluiu a leitura do primeiro capítulo."
+        },
+        {
+          "id": "bdg_10",
+          "icon": "👑",
+          "name": "O Padrinho",
+          "rule": "Conta criada na primeira semana de lançamento da plataforma.",
+          "description": "Um dos primeiros leitores da plataforma."
+        }
+      ],
       "password": "leitor",
       "favorites": [
-        "book_1780778689319"
+        "book_1780778689319",
+        "livro_jardim"
+      ],
+      "pagesRead": 125,
+      "isPermanent": true,
+      "finishedBooks": [
+        "book1",
+        "book2"
       ],
       "readingStatus": {
-        "book_1780778689319": "read"
+        "livro_jardim": "reading",
+        "book_1780778689319": "read",
+        "book_1781411517414": "reading"
       },
       "readingPositions": {
+        "livro_jardim": {
+          "columnIdx": 0,
+          "updatedAt": 1781464077062,
+          "chapterIdx": 1,
+          "subthemeIdx": 1
+        },
         "book_1780778689319": {
           "columnIdx": 0,
-          "updatedAt": 1780858642834,
-          "chapterIdx": 3,
-          "subthemeIdx": 1
+          "updatedAt": 1781211070313,
+          "chapterIdx": 0,
+          "subthemeIdx": 0
+        },
+        "book_1781411517414": {
+          "columnIdx": 0,
+          "updatedAt": 1781411838867,
+          "chapterIdx": 0,
+          "subthemeIdx": 0
         }
       }
-    },
-    {
-      "id": "83920147",
-      "age": "15",
-      "name": "Angelina",
-      "role": "reader",
-      "email": "Angelina@sagaflix.com",
-      "status": "approved",
-      "tastes": "romance",
-      "password": "Angel"
     },
     {
       "id": "29381028",
@@ -479,6 +349,7 @@
       "location": "",
       "password": "123",
       "curatorRole": "revisor",
+      "isPermanent": true,
       "permissions": {
         "cms_edit": true,
         "cms_clues": false,
@@ -500,199 +371,1915 @@
       "writingStyle": ""
     },
     {
-      "id": "59135305",
-      "age": "15",
-      "name": "Angelina",
+      "id": "f6d14eba-b96d-4c42-a43c-d661f95c1711",
+      "age": "38",
+      "name": "Wagner Leitor",
       "role": "reader",
-      "email": "angel.pessoal07@gmail.com",
-      "status": "approved",
+      "about": "Um escritor",
+      "email": "alves0188@icloud.com",
+      "avatar": "https://guecsoghyqvssdvednnv.supabase.co/storage/v1/object/public/uploads/images/1781231399040-9jyfzd.jpg",
+      "status": "active",
       "tastes": [
-        "romance"
+        "Fantasia",
+        "Aventura"
       ],
-      "password": "Angelina*12"
+      "nickname": "WagnerLeitor",
+      "password": "!@#$W4gn3r",
+      "resetToken": "m6edq0fq0ve",
+      "isPermanent": true,
+      "verificationToken": "b17pg9ieifkdooq73frm"
+    },
+    {
+      "id": "89867389",
+      "age": "38",
+      "name": "Eline Melo da Rocha ",
+      "role": "author",
+      "about": "Sou apaixonada por escrever romance com aventura.",
+      "email": "elinemdr@gmail.com",
+      "avatar": "",
+      "status": "active",
+      "tastes": [
+        "Romance",
+        "Alta Fantasia",
+        "Fantasia",
+        "Ficção Científica"
+      ],
+      "nickname": "Eline ",
+      "password": "Bradesco*1",
+      "isPermanent": true,
+      "verificationToken": "nbqoq4jdzpm61cgkyd7pqx"
+    },
+    {
+      "id": "u_1781371876828",
+      "age": "15",
+      "name": "Angelina Melo",
+      "role": "author",
+      "about": "Autora apaixonada por romances e clichês diferentes ",
+      "email": "angel.pessoal07@gmail.com",
+      "stats": {
+        "totalTime": 0,
+        "totalPages": 6
+      },
+      "avatar": "",
+      "status": "active",
+      "tastes": [
+        "Drama",
+        "Graphic Novel",
+        "Fantasia",
+        "Ficção Científica",
+        "Mistério",
+        "Confortante",
+        "Comédia",
+        "Romance",
+        "Suspense"
+      ],
+      "crystals": 0,
+      "nickname": "Angel",
+      "password": "Angelina*12",
+      "isPremium": false,
+      "displayMode": "nickname",
+      "isPermanent": true,
+      "readingStatus": {
+        "livro_jardim": "reading"
+      },
+      "readingPositions": {
+        "livro_jardim": {
+          "columnIdx": 0,
+          "updatedAt": 1781655396781,
+          "chapterIdx": 0,
+          "subthemeIdx": 2
+        }
+      },
+      "verificationToken": "bheku731uoc70xbpdjsbca"
+    },
+    {
+      "id": "e6dc3b67-e0ff-4258-86f4-8e632cc63734",
+      "name": "Curador Suporte",
+      "role": "admin",
+      "email": "suporte@sagaflix.com.br",
+      "status": "active",
+      "nickname": "suporte"
+    },
+    {
+      "id": "6917efa6-a08b-4713-8b17-cce0e6f622de",
+      "name": "Wagner Alves (Autor)",
+      "role": "author",
+      "email": "alves0188@gmail.com",
+      "status": "active",
+      "nickname": "WagnerAutor"
+    },
+    {
+      "id": "1339b4d2-e774-4362-a24b-5c5917febc6f",
+      "name": "trintaframesfoto",
+      "role": "reader",
+      "email": "trintaframesfoto@gmail.com",
+      "status": "active",
+      "nickname": "leitor_bz65b"
+    }
+  ],
+  "badges": [
+    {
+      "id": "bdg_1",
+      "icon": "⛵",
+      "name": "Primeira Viagem",
+      "rule": "Ler pelo menos 1 capítulo completo.",
+      "description": "Para quem concluiu a leitura do primeiro capítulo."
+    },
+    {
+      "id": "bdg_2",
+      "icon": "📚",
+      "name": "Rato de Biblioteca",
+      "rule": "Ler e concluir 10 livros na plataforma.",
+      "description": "Um verdadeiro devorador de livros."
+    },
+    {
+      "id": "bdg_3",
+      "icon": "🏃",
+      "name": "Maratona",
+      "rule": "Tempo de sessão único superior a 120 minutos.",
+      "description": "Foco total! Leu sem parar por mais de 2 horas."
+    },
+    {
+      "id": "bdg_4",
+      "icon": "🐌",
+      "name": "O Inicializador",
+      "rule": "Iniciar 5 livros e não finalizar nenhum.",
+      "description": "Começa muitas aventuras, mas não termina."
+    },
+    {
+      "id": "bdg_5",
+      "icon": "🦉",
+      "name": "Coruja Noturna",
+      "rule": "Ler a maioria das páginas entre 00:00 e 04:00.",
+      "description": "A noite é uma criança para a leitura."
+    },
+    {
+      "id": "bdg_6",
+      "icon": "🧐",
+      "name": "Crítico de Arte",
+      "rule": "Avaliar 5 obras diferentes com estrelas.",
+      "description": "Sempre deixa sua opinião."
+    },
+    {
+      "id": "bdg_7",
+      "icon": "🛡️",
+      "name": "Fiel Escudeiro",
+      "rule": "Ler todos os livros publicados por um único autor (mín. 3).",
+      "description": "Lealdade máxima a um único autor."
+    },
+    {
+      "id": "bdg_8",
+      "icon": "🗺️",
+      "name": "Caçador de Lore",
+      "rule": "Abrir 20 perfis de personagens ou locais na enciclopédia.",
+      "description": "Não lê só a história, lê a enciclopédia inteira."
+    },
+    {
+      "id": "bdg_9",
+      "icon": "🍁",
+      "name": "Explorador Sazonal",
+      "rule": "Concedido pela curadoria durante eventos especiais.",
+      "description": "Lê de acordo com as estações e eventos."
+    },
+    {
+      "id": "bdg_10",
+      "icon": "👑",
+      "name": "O Padrinho",
+      "rule": "Conta criada na primeira semana de lançamento da plataforma.",
+      "description": "Um dos primeiros leitores da plataforma."
+    }
+  ],
+  "reports": [
+    {
+      "id": "report_1781368112347",
+      "bookId": "livro_jardim",
+      "reason": "teste 04",
+      "status": "resolved",
+      "userId": "41785923",
+      "comments": [
+        {
+          "id": "1781373614288",
+          "date": "2026-06-13T18:00:14.288Z",
+          "text": "entrei em contato com autor",
+          "authorName": "Curadoria Sagaflix"
+        },
+        {
+          "id": "1781374552952",
+          "date": "2026-06-13T18:15:52.952Z",
+          "text": "precisamos conversar",
+          "authorName": "Curadoria Sagaflix",
+          "isPublicToAuthor": true
+        },
+        {
+          "id": "1781376628044",
+          "date": "2026-06-13T18:50:28.044Z",
+          "text": "Teste 3",
+          "authorName": "Curadoria Sagaflix",
+          "isPublicToAuthor": false
+        },
+        {
+          "id": "1781377836271",
+          "date": "2026-06-13T19:10:36.271Z",
+          "text": "teste 04",
+          "authorName": "Curadoria Sagaflix",
+          "isPublicToAuthor": true
+        },
+        {
+          "id": "1781377851281",
+          "date": "2026-06-13T19:10:51.281Z",
+          "text": "chegou",
+          "authorName": "Autor (via Suporte)",
+          "isPublicToAuthor": true
+        }
+      ],
+      "userName": "Leitor Fiel",
+      "chapterId": "1781131871492",
+      "createdAt": "2026-06-13T16:28:32.347Z",
+      "resolvedAt": "2026-06-13T19:17:02.693Z",
+      "resolvedBy": "Curadoria Sagaflix",
+      "validation": "infundada",
+      "actionTaken": "none",
+      "curatorNote": "Tudo certo",
+      "linkedTicketId": "ticket_1781374552953",
+      "assignedCurator": {
+        "id": "admin",
+        "name": "Curadoria Sagaflix"
+      }
+    },
+    {
+      "id": "report_1781378977651",
+      "bookId": "livro_jardim",
+      "reason": "Testando nova denuncia",
+      "status": "resolved",
+      "userId": "41785923",
+      "category": "plagio",
+      "comments": [
+        {
+          "id": "1781379034652",
+          "date": "2026-06-13T19:30:34.652Z",
+          "text": "Analisando esse teste",
+          "authorName": "Curadoria Sagaflix",
+          "isPublicToAuthor": true
+        },
+        {
+          "id": "1781379057548",
+          "date": "2026-06-13T19:30:57.548Z",
+          "text": "Vi o teste na pagina do autor",
+          "authorName": "Autor (via Suporte)",
+          "isPublicToAuthor": true
+        }
+      ],
+      "userName": "Leitor Fiel",
+      "chapterId": "1781131871492",
+      "createdAt": "2026-06-13T19:29:37.651Z",
+      "resolvedAt": "2026-06-15T03:34:49.853Z",
+      "resolvedBy": "Curadoria Sagaflix",
+      "validation": "infundada",
+      "actionTaken": "none",
+      "curatorNote": "fim",
+      "linkedTicketId": "ticket_1781379034652",
+      "assignedCurator": {
+        "id": "admin",
+        "name": "Curadoria Sagaflix"
+      },
+      "assignedCurators": [
+        {
+          "id": "admin",
+          "name": "Curadoria Sagaflix"
+        },
+        {
+          "id": "29381028",
+          "name": "Eline"
+        }
+      ]
     }
   ],
   "auditLogs": [
     {
-      "id": "audit_1780854357117668",
-      "date": "07/06/2026, 14:45:57",
-      "action": "Criação de Curador",
-      "details": "Adicionou o curador \"Eline\" (eline@eline.com) à equipe",
+      "id": "audit_1781373567189649",
+      "date": "13/06/2026, 14:59:27",
+      "action": "Início de Investigação",
+      "details": "Assumiu a investigação da denúncia ID report_1781368112347",
       "curatorId": "admin",
       "curatorName": "Curadoria Sagaflix"
     },
     {
-      "id": "audit_1780855536177781",
-      "date": "07/06/2026, 15:05:36",
-      "action": "Edição de Curador",
-      "details": "Editou dados do curador \"Eline\" (eline@eline.com) - Perfil: revisor",
+      "id": "audit_1781378222693290",
+      "date": "13/06/2026, 16:17:02",
+      "action": "Análise de Denúncia",
+      "details": "Analisou denúncia do livro \"Jardim das Flores\". Resultado: infundada. Ação: none.",
       "curatorId": "admin",
       "curatorName": "Curadoria Sagaflix"
     },
     {
-      "id": "audit_1780855896280134",
-      "date": "07/06/2026, 15:11:36",
-      "action": "Configurações Pessoais",
-      "details": "Atualizou seus dados pessoais (Nome, E-mail, Avatar ou Bio)",
-      "curatorId": "29381028",
-      "curatorName": "Eline"
-    },
-    {
-      "id": "audit_1780856052984525",
-      "date": "07/06/2026, 15:14:12",
-      "action": "Edição de Curador",
-      "details": "Editou dados do curador \"Eline\" (eline@eline.com) - Perfil: revisor",
+      "id": "audit_1781378983324797",
+      "date": "13/06/2026, 16:29:43",
+      "action": "Início de Investigação",
+      "details": "Assumiu a investigação da denúncia ID report_1781378977651",
       "curatorId": "admin",
       "curatorName": "Curadoria Sagaflix"
     },
     {
-      "id": "audit_1780857205805573",
-      "date": "07/06/2026, 15:33:25",
+      "id": "audit_1781383315836736",
+      "date": "13/06/2026, 17:41:55",
       "action": "Aprovação de Livro",
-      "details": "Aprovou a publicação do livro \"Saga Rengaw\"",
+      "details": "Aprovou a publicação do livro \"Jardim das Flores\"",
       "curatorId": "admin",
       "curatorName": "Curadoria Sagaflix"
     },
     {
-      "id": "audit_1780861994691119",
-      "date": "07/06/2026, 16:53:14",
-      "action": "Aprovação de Livro",
-      "details": "Aprovou a publicação do livro \"O rei e o menino\"",
+      "id": "audit_1781494489853514",
+      "date": "15/06/2026, 00:34:49",
+      "action": "Análise de Denúncia",
+      "details": "Analisou denúncia do livro \"Jardim das Flores\". Resultado: infundada. Ação: none.",
       "curatorId": "admin",
       "curatorName": "Curadoria Sagaflix"
+    }
+  ],
+  "tutorials": [
+    {
+      "id": "tut_1781523553645",
+      "steps": [
+        {
+          "title": "",
+          "target": "tour-btn-new-book",
+          "content": "",
+          "placement": "center"
+        }
+      ],
+      "title": "Novo Tutorial",
+      "isActive": false,
+      "targetAudience": "author"
+    }
+  ],
+  "noteFeedback": [
+    {
+      "id": "fb_17823218987650.08779530570846128",
+      "type": "like",
+      "noteId": "1781103614456",
+      "userId": "82490517",
+      "timestamp": "2026-06-24T17:24:58.765Z"
     },
     {
-      "id": "audit_1780889524723551",
-      "date": "08/06/2026, 00:32:04",
-      "action": "Pedido Aceito",
-      "details": "Aceitou o pedido de revisão do autor \"Wagner (Autor)\" para o livro \"Saga Rengaw\" (Voltou para Rascunho)",
-      "curatorId": "admin",
-      "curatorName": "Curadoria Sagaflix"
+      "id": "fb_17823219018220.8602766034181071",
+      "type": "dislike",
+      "noteId": "1781107909556",
+      "userId": "82490517",
+      "timestamp": "2026-06-24T17:25:01.822Z"
+    }
+  ],
+  "noteRequests": [
+    {
+      "id": "1781103878459",
+      "bookId": "livro_jardim",
+      "itemId": "luan",
+      "noteId": "1781103614456",
+      "status": "approved",
+      "userId": "82490517",
+      "itemType": "personagem",
+      "userName": "Wagner (Autor)",
+      "bookTitle": "Jardim das Flores",
+      "createdAt": "2026-06-10T15:04:38.459Z"
     },
     {
-      "id": "audit_1780889536643191",
-      "date": "08/06/2026, 00:32:16",
-      "action": "Alteração de Status",
-      "details": "Reverteu o livro \"O rei e o menino\" para rascunho",
-      "curatorId": "admin",
-      "curatorName": "Curadoria Sagaflix"
+      "id": "1781106568059",
+      "bookId": "livro_jardim",
+      "itemId": "luan",
+      "noteId": "1781103614456",
+      "status": "pending",
+      "userId": "41785923",
+      "itemType": "personagem",
+      "userName": "Leitor Fiel",
+      "bookTitle": "Jardim das Flores",
+      "createdAt": "2026-06-10T16:10:35.250Z",
+      "retryCount": 1
     },
     {
-      "id": "audit_1780927266012869",
-      "date": "08/06/2026, 11:01:06",
-      "action": "Envio de Mensagem",
-      "details": "Enviou mensagem para \"Wagner (Autor)\": \"teste\"",
-      "curatorId": "admin",
-      "curatorName": "Curadoria Sagaflix"
-    },
-    {
-      "id": "audit_1780929149769697",
-      "date": "08/06/2026, 11:32:29",
-      "action": "Resposta de Chamado",
-      "details": "Respondeu ao chamado \"Grana\" de Wagner (Autor)",
-      "curatorId": "admin",
-      "curatorName": "Curadoria Sagaflix"
+      "id": "1781356083689",
+      "read": false,
+      "bookId": "livro_jardim",
+      "itemId": "luan",
+      "noteId": "1781108027726",
+      "status": "pending",
+      "userId": "82490517",
+      "itemType": "personagem",
+      "userName": "Wagner (Autor)",
+      "bookTitle": "Jardim das Flores",
+      "createdAt": "2026-06-13T13:08:03.689Z"
     }
   ],
   "notifications": [
     {
-      "id": "notif_178080675866010",
-      "date": "07/06/2026, 01:32:38",
-      "read": true,
-      "type": "request",
-      "action": "Pediu alteração",
-      "bookId": "book_1780804538190",
-      "details": "{\"what\":\"novo personagem\",\"why\":\"esqueci de acrescentar antes\",\"impact\":\"pequeno\"}",
-      "authorId": "82490517",
-      "bookTitle": "O rei e o menino",
-      "authorName": "Wagner (Autor)"
-    },
-    {
-      "id": "notif_1780807479676349",
-      "date": "07/06/2026, 01:44:39",
+      "id": "notif_1781101388181269",
+      "date": "10/06/2026, 11:23:08",
       "read": true,
       "type": "log",
-      "action": "Criou registro",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Beatriz 'Bia'",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781101391628309",
+      "date": "10/06/2026, 11:23:11",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Beatriz 'Bia'",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781103674288910",
+      "date": "10/06/2026, 12:01:14",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781103714772157",
+      "date": "10/06/2026, 12:01:54",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781103900773954",
+      "date": "10/06/2026, 12:05:00",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781103922642642",
+      "date": "10/06/2026, 12:05:22",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781108079360257",
+      "date": "10/06/2026, 13:14:39",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178111001078947",
+      "date": "10/06/2026, 13:46:50",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781110017393348",
+      "date": "10/06/2026, 13:46:57",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "livro_jardim",
+      "details": "Luan",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178111752608522",
+      "date": "10/06/2026, 15:52:06",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Capítulo 1: A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781126237314524",
+      "date": "10/06/2026, 18:17:17",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "O Despertar da Revolução",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781130788543364",
+      "date": "10/06/2026, 19:33:08",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Capítulo 1: A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781130824534176",
+      "date": "10/06/2026, 19:33:44",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "O Despertar da Revolução",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781131717877660",
+      "date": "10/06/2026, 19:48:37",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": " A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781131815925991",
+      "date": "10/06/2026, 19:50:15",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": " A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781131828388319",
+      "date": "10/06/2026, 19:50:28",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": " A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781131932493929",
+      "date": "10/06/2026, 19:52:12",
+      "read": true,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Outro dia",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781210834724109",
+      "date": "11/06/2026, 17:47:14",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "book_1780778689319",
+      "details": "Sempre um novo teste",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178121342522731",
+      "date": "11/06/2026, 18:30:25",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Outro dia",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178131430349685",
+      "date": "12/06/2026, 22:31:43",
+      "read": true,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": " A Morte de Elias",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781323329549373",
+      "date": "13/06/2026, 01:02:09",
+      "read": true,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1781238962032",
+      "details": "Livro: O livro teste",
+      "authorId": "82490517",
+      "bookTitle": "O livro teste",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781331773982289",
+      "date": "13/06/2026, 03:22:53",
+      "read": true,
+      "type": "log",
+      "action": "Editou personagem",
+      "bookId": "book_1780778689319",
+      "details": "Rengaw Sevla ",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "1781374552953",
+      "date": "2026-06-13T18:15:52.953Z",
+      "read": true,
+      "type": "warning",
+      "title": "Nova Mensagem da Curadoria",
+      "message": "A curadoria entrou em contato sobre a obra \"Jardim das Flores\". Verifique sua caixa de Suporte.",
+      "authorId": "82490517"
+    },
+    {
+      "id": "1781377836271",
+      "date": "2026-06-13T19:10:36.271Z",
+      "read": false,
+      "type": "message",
+      "action": "Nova Resposta da Curadoria",
+      "details": "Você recebeu uma nova mensagem no chamado sobre a obra \"Jardim das Flores\".",
+      "authorId": "82490517"
+    },
+    {
+      "id": "1781379034652",
+      "date": "2026-06-13T19:30:34.652Z",
+      "read": false,
+      "type": "message",
+      "action": "Nova Mensagem da Curadoria",
+      "details": "A curadoria entrou em contato sobre a obra \"Jardim das Flores\". Verifique sua caixa de Suporte.",
+      "authorId": "82490517"
+    },
+    {
+      "id": "notif_1781404998540719",
+      "date": "13/06/2026, 23:43:18",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "se",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405003003211",
+      "date": "13/06/2026, 23:43:23",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "sem",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405010252666",
+      "date": "13/06/2026, 23:43:30",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "sem",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405017155449",
+      "date": "13/06/2026, 23:43:37",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "sem",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405049346411",
+      "date": "13/06/2026, 23:44:09",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "sem",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405249891146",
+      "date": "13/06/2026, 23:47:29",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "book_1781238962032",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino - Ilustrado",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405525275719",
+      "date": "13/06/2026, 23:52:05",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "book_1781238962032",
+      "details": "rasc",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino - Ilustrado",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781405586970887",
+      "date": "13/06/2026, 23:53:06",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "test",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781484703054658",
+      "date": "14/06/2026, 21:51:43",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1781238962032",
+      "details": "Livro: O rei e o menino - Ilustrado",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino - Ilustrado",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781486744384133",
+      "date": "14/06/2026, 22:25:44",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
       "bookId": "book_1780804538190",
-      "details": "Testando log (chapter)",
+      "details": "Livro: O rei e o menino",
       "authorId": "82490517",
       "bookTitle": "O rei e o menino",
       "authorName": "Wagner (Autor)"
     },
     {
-      "id": "notif_178088947437121",
-      "date": "08/06/2026, 00:31:14",
-      "read": true,
-      "type": "request",
-      "action": "Pediu alteração",
-      "bookId": "book_1780778689319",
-      "details": "{\"what\":\"tudo\",\"why\":\"publiquei errado\",\"impact\":\"tudo\"}",
-      "authorId": "82490517",
-      "bookTitle": "Saga Rengaw",
-      "authorName": "Wagner (Autor)"
-    },
-    {
-      "id": "notif_1780889494643276",
-      "date": "08/06/2026, 00:31:34",
-      "read": true,
-      "type": "request",
-      "action": "Pediu alteração",
-      "bookId": "book_1780778689319",
-      "details": "{\"what\":\"tudo\",\"why\":\"tudo\",\"impact\":\"tudo\"}",
-      "authorId": "82490517",
-      "bookTitle": "Saga Rengaw",
-      "authorName": "Wagner (Autor)"
-    },
-    {
-      "id": "1780927266006",
-      "date": "08/06/2026, 11:01:06",
-      "read": true,
-      "type": "message",
-      "action": "Nova Mensagem da Curadoria",
-      "userId": "82490517",
-      "details": "teste"
-    },
-    {
-      "id": "notif_1780929149769306",
-      "date": "08/06/2026, 11:32:29",
+      "id": "notif_178148763471675",
+      "date": "14/06/2026, 22:40:34",
       "read": false,
-      "type": "message",
-      "action": "Resposta de Suporte",
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "book_1780804538190",
+      "details": "teste",
+      "authorId": "u_1781371876828",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Angel"
+    },
+    {
+      "id": "notif_1781487637475148",
+      "date": "14/06/2026, 22:40:37",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "book_1780804538190",
+      "details": "teste",
+      "authorId": "u_1781371876828",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Angel"
+    },
+    {
+      "id": "notif_1781488294147711",
+      "date": "14/06/2026, 22:51:34",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781488593684886",
+      "date": "14/06/2026, 22:56:33",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781488613081916",
+      "date": "14/06/2026, 22:56:53",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781488626313521",
+      "date": "14/06/2026, 22:57:06",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489093784508",
+      "date": "14/06/2026, 23:04:53",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489104303356",
+      "date": "14/06/2026, 23:05:04",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489108284831",
+      "date": "14/06/2026, 23:05:08",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489113850971",
+      "date": "14/06/2026, 23:05:13",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780804538190",
+      "details": "Livro: O rei e o menino",
+      "authorId": "82490517",
+      "bookTitle": "O rei e o menino",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489223876938",
+      "date": "14/06/2026, 23:07:03",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780778689319",
+      "details": "Livro: Saga Rengaw",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489227977192",
+      "date": "14/06/2026, 23:07:07",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780778689319",
+      "details": "Livro: Saga Rengaw",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489232459678",
+      "date": "14/06/2026, 23:07:12",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780778689319",
+      "details": "Livro: Saga Rengaw",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781489238627930",
+      "date": "14/06/2026, 23:07:18",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1780778689319",
+      "details": "Livro: Saga Rengaw",
+      "authorId": "82490517",
+      "bookTitle": "Saga Rengaw",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781576660005794",
+      "date": "15/06/2026, 23:24:20",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "test",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781576664501155",
+      "date": "15/06/2026, 23:24:24",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "O Despertar da Revolução",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178157666996519",
+      "date": "15/06/2026, 23:24:29",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "Outro dia",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781576673204757",
+      "date": "15/06/2026, 23:24:33",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "sem",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781579034166445",
+      "date": "16/06/2026, 00:03:54",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Um bom dia pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781582085707976",
+      "date": "16/06/2026, 00:54:45",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178158226343195",
+      "date": "16/06/2026, 00:57:43",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781746920305752",
+      "date": "17/06/2026, 22:42:00",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781746921257505",
+      "date": "17/06/2026, 22:42:01",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781746922036331",
+      "date": "17/06/2026, 22:42:02",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747065251943",
+      "date": "17/06/2026, 22:44:25",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747081509281",
+      "date": "17/06/2026, 22:44:41",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747119241956",
+      "date": "17/06/2026, 22:45:19",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747163756567",
+      "date": "17/06/2026, 22:46:03",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747164690544",
+      "date": "17/06/2026, 22:46:04",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747164887509",
+      "date": "17/06/2026, 22:46:04",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747179408769",
+      "date": "17/06/2026, 22:46:19",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747180148890",
+      "date": "17/06/2026, 22:46:20",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747188441736",
+      "date": "17/06/2026, 22:46:28",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747280454818",
+      "date": "17/06/2026, 22:48:00",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747281093844",
+      "date": "17/06/2026, 22:48:01",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781747308840437",
+      "date": "17/06/2026, 22:48:28",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781748701868412",
+      "date": "17/06/2026, 23:11:41",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "ID: cap-1",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781748707348121",
+      "date": "17/06/2026, 23:11:47",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1781748988969325",
+      "date": "17/06/2026, 23:16:28",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "ID: 1781748704730",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782185794392202",
+      "date": "23/06/2026, 00:36:34",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782185795484341",
+      "date": "23/06/2026, 00:36:35",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782187332662635",
+      "date": "23/06/2026, 01:02:12",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782187373154580",
+      "date": "23/06/2026, 01:02:53",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782187401618186",
+      "read": false,
+      "type": "gamification",
+      "title": "🏆 Conquista Desbloqueada!",
       "userId": "82490517",
-      "details": "O(A) curador(a) Curadoria Sagaflix respondeu ao chamado de suporte \"Grana\":\n\n\"resolvido\""
+      "message": "Você ganhou o selo \"Primeiras páginas\" e recebeu +50 XP!",
+      "createdAt": "2026-06-23T04:03:21.618Z"
+    },
+    {
+      "id": "notif_1782224931206363",
+      "date": "23/06/2026, 11:28:51",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782224934911863",
+      "date": "23/06/2026, 11:28:54",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782256485170989",
+      "date": "23/06/2026, 20:14:45",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782258167030901",
+      "date": "23/06/2026, 20:42:47",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782258180789663",
+      "date": "23/06/2026, 20:43:00",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782258223512372",
+      "date": "23/06/2026, 20:43:43",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782258223764205",
+      "date": "23/06/2026, 20:43:43",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra voce",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782322355779235",
+      "date": "24/06/2026, 14:32:35",
+      "read": false,
+      "type": "log",
+      "action": "Editou evento/tag",
+      "bookId": "livro_jardim",
+      "details": "TESTE DE TAG",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782322375755659",
+      "date": "24/06/2026, 14:32:55",
+      "read": false,
+      "type": "log",
+      "action": "Editou evento/tag",
+      "bookId": "livro_jardim",
+      "details": "TESTE DE TAG",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782322378075423",
+      "date": "24/06/2026, 14:32:58",
+      "read": false,
+      "type": "log",
+      "action": "Editou evento/tag",
+      "bookId": "livro_jardim",
+      "details": "TESTE DE TAG",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782322378283766",
+      "date": "24/06/2026, 14:32:58",
+      "read": false,
+      "type": "log",
+      "action": "Editou evento/tag",
+      "bookId": "livro_jardim",
+      "details": "TESTE DE TAG",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782323316778281",
+      "date": "24/06/2026, 14:48:36",
+      "read": false,
+      "type": "log",
+      "action": "Editou evento/tag",
+      "bookId": "livro_jardim",
+      "details": "TESTE DE TAG",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782334931681131",
+      "date": "24/06/2026, 18:02:11",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782337163437849",
+      "date": "24/06/2026, 18:39:23",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782337216517767",
+      "date": "24/06/2026, 18:40:16",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Uma boa tarde pra você",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782359566527759",
+      "date": "25/06/2026, 00:52:46",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) evento/tag",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782359628275626",
+      "date": "25/06/2026, 00:53:48",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) organização",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782359628589157",
+      "date": "25/06/2026, 00:53:48",
+      "read": false,
+      "type": "log",
+      "action": "Editou organização",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782359651405952",
+      "date": "25/06/2026, 00:54:11",
+      "read": false,
+      "type": "log",
+      "action": "Editou organização",
+      "bookId": "livro_jardim",
+      "details": "FamiLia",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782359652488365",
+      "date": "25/06/2026, 00:54:12",
+      "read": false,
+      "type": "log",
+      "action": "Editou organização",
+      "bookId": "livro_jardim",
+      "details": "FamiLia",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_178239255164978",
+      "date": "25/06/2026, 10:02:31",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782392568864986",
+      "date": "25/06/2026, 10:02:48",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782392594140300",
+      "date": "25/06/2026, 10:03:14",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "ID: 1782334926553",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782392597019144",
+      "date": "25/06/2026, 10:03:17",
+      "read": false,
+      "type": "log",
+      "action": "Excluiu capítulo",
+      "bookId": "livro_jardim",
+      "details": "ID: 1782392566613",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782392603228525",
+      "date": "25/06/2026, 10:03:23",
+      "read": false,
+      "type": "log",
+      "action": "Criou novo(a) capítulo",
+      "bookId": "livro_jardim",
+      "details": "Sem título",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782405103251911",
+      "date": "25/06/2026, 13:31:43",
+      "read": false,
+      "type": "log",
+      "action": "Editou capítulo",
+      "bookId": "livro_jardim",
+      "details": "mais um capitulo",
+      "authorId": "82490517",
+      "bookTitle": "Jardim das Flores",
+      "authorName": "Wagner (Autor)"
+    },
+    {
+      "id": "notif_1782444272665120",
+      "date": "26/06/2026, 00:24:32",
+      "read": false,
+      "type": "log",
+      "action": "Editou a Sinopse",
+      "bookId": "book_1782437228609",
+      "details": "Livro: O Club das Seis ne Terra dos Irmãos",
+      "authorId": "82490517",
+      "bookTitle": "O Club das Seis ne Terra dos Irmãos",
+      "authorName": "Wagner (Autor)"
     }
   ],
-  "authorRequests": [],
-  "supportTickets": [
+  "authorRequests": [
     {
-      "id": "ticket_1780928782644108",
-      "status": "open",
-      "message": "teste de envio de autor para curadoria",
-      "replies": [],
-      "subject": "livro",
-      "authorId": "82490517",
-      "category": "curator",
-      "createdAt": "08/06/2026, 11:26:22",
-      "authorName": "Wagner (Autor)"
+      "id": "req_1781224729673",
+      "phone": "19995970707",
+      "status": "pending_email",
+      "userId": "94289652",
+      "synopsis": "é a fase 1",
+      "bookTitle": "Fase um",
+      "createdAt": "2026-06-12T00:38:49.673Z",
+      "sampleText": "https://guecsoghyqvssdvednnv.supabase.co/storage/v1/object/public/uploads/images/1781224725124-tgr6rw.pdf"
     },
     {
-      "id": "ticket_1780928803851190",
+      "id": "req_1781230063862",
+      "phone": "19995970707",
+      "status": "pending_email",
+      "userId": "59923950",
+      "synopsis": "teste",
+      "bookTitle": "teste",
+      "createdAt": "2026-06-12T02:07:43.862Z",
+      "sampleText": ""
+    },
+    {
+      "id": "req_1781231504113",
+      "phone": "19995970707",
+      "status": "active",
+      "userId": "86679625",
+      "synopsis": "teste de novo",
+      "bookTitle": "teste",
+      "createdAt": "2026-06-12T02:31:44.113Z",
+      "sampleText": "https://guecsoghyqvssdvednnv.supabase.co/storage/v1/object/public/uploads/images/1781231501163-n5i6qq.pdf"
+    },
+    {
+      "id": "req_1781276031379",
+      "phone": "19974085813",
+      "status": "active",
+      "userId": "89867389",
+      "synopsis": "4 pilares da segurança psicóloga.",
+      "bookTitle": "Segurança psicológica",
+      "createdAt": "2026-06-12T14:53:51.379Z",
+      "sampleText": "https://guecsoghyqvssdvednnv.supabase.co/storage/v1/object/public/uploads/images/1781275944158-eglhfl.pdf"
+    },
+    {
+      "id": "req_1781371876829",
+      "phone": "19995770582",
+      "status": "active",
+      "userId": "u_1781371876828",
+      "synopsis": "História ",
+      "bookTitle": "Elemental Eye",
+      "createdAt": "2026-06-13T17:31:16.829Z",
+      "sampleText": ""
+    }
+  ],
+  "supportTickets": [
+    {
+      "id": "ticket_1781374552953",
       "status": "open",
-      "message": "teste de autor para financeiro",
       "replies": [
         {
-          "id": "reply_1780929149768930",
-          "message": "resolvido",
+          "id": "reply_1781377836271",
+          "message": "teste 04",
           "senderId": "admin",
-          "createdAt": "08/06/2026, 11:32:29",
+          "createdAt": "2026-06-13T19:10:36.271Z",
+          "senderName": "Curadoria Sagaflix"
+        },
+        {
+          "id": "reply_1781377851279706",
+          "message": "chegou",
+          "senderId": "82490517",
+          "createdAt": "13/06/2026, 16:10:51",
+          "senderName": "Wagner (Autor)"
+        }
+      ],
+      "subject": "Notificação de Curadoria - Denúncia: Jardim das Flores",
+      "authorId": "82490517",
+      "category": "curator",
+      "messages": [
+        {
+          "id": "msg_1781374552953",
+          "message": "precisamos conversar",
+          "senderId": "admin",
+          "createdAt": "2026-06-13T18:15:52.953Z",
           "senderName": "Curadoria Sagaflix"
         }
       ],
-      "subject": "Grana",
+      "createdAt": "2026-06-13T18:15:52.953Z",
+      "linkedReportId": "report_1781368112347",
+      "hasUnreadCuratorMessage": false
+    },
+    {
+      "id": "ticket_1781379034652",
+      "status": "open",
+      "message": "Analisando esse teste",
+      "replies": [
+        {
+          "id": "reply_1781379057548461",
+          "message": "Vi o teste na pagina do autor",
+          "senderId": "82490517",
+          "createdAt": "13/06/2026, 16:30:57",
+          "senderName": "Wagner (Autor)"
+        }
+      ],
+      "subject": "Notificação de Curadoria - Denúncia: Jardim das Flores",
       "authorId": "82490517",
-      "category": "financial",
-      "createdAt": "08/06/2026, 11:26:43",
-      "authorName": "Wagner (Autor)"
+      "category": "curator",
+      "createdAt": "2026-06-13T19:30:34.652Z",
+      "linkedReportId": "report_1781378977651",
+      "hasUnreadCuratorMessage": false
+    }
+  ],
+  "gamificationBadges": [
+    {
+      "id": "bdg_1",
+      "icon": "⛵",
+      "name": "Primeira Viagem",
+      "rule": "Ler pelo menos 1 capítulo completo.",
+      "description": "Para quem concluiu a leitura do primeiro capítulo."
+    },
+    {
+      "id": "bdg_2",
+      "icon": "📚",
+      "name": "Rato de Biblioteca",
+      "rule": "Ler e concluir 10 livros na plataforma.",
+      "description": "Um verdadeiro devorador de livros."
+    },
+    {
+      "id": "bdg_3",
+      "icon": "🏃",
+      "name": "Maratona",
+      "rule": "Tempo de sessão único superior a 120 minutos.",
+      "description": "Foco total! Leu sem parar por mais de 2 horas."
+    },
+    {
+      "id": "bdg_4",
+      "icon": "🐌",
+      "name": "O Inicializador",
+      "rule": "Iniciar 5 livros e não finalizar nenhum.",
+      "description": "Começa muitas aventuras, mas não termina."
+    },
+    {
+      "id": "bdg_5",
+      "icon": "🦉",
+      "name": "Coruja Noturna",
+      "rule": "Ler a maioria das páginas entre 00:00 e 04:00.",
+      "description": "A noite é uma criança para a leitura."
+    },
+    {
+      "id": "bdg_6",
+      "icon": "🧐",
+      "name": "Crítico de Arte",
+      "rule": "Avaliar 5 obras diferentes com estrelas.",
+      "description": "Sempre deixa sua opinião."
+    },
+    {
+      "id": "bdg_7",
+      "icon": "🛡️",
+      "name": "Fiel Escudeiro",
+      "rule": "Ler todos os livros publicados por um único autor (mín. 3).",
+      "description": "Lealdade máxima a um único autor."
+    },
+    {
+      "id": "bdg_8",
+      "icon": "🗺️",
+      "name": "Caçador de Lore",
+      "rule": "Abrir 20 perfis de personagens ou locais na enciclopédia.",
+      "description": "Não lê só a história, lê a enciclopédia inteira."
+    },
+    {
+      "id": "bdg_9",
+      "icon": "🍁",
+      "name": "Explorador Sazonal",
+      "rule": "Concedido pela curadoria durante eventos especiais.",
+      "description": "Lê de acordo com as estações e eventos."
+    },
+    {
+      "id": "bdg_10",
+      "icon": "👑",
+      "name": "O Padrinho",
+      "rule": "Conta criada na primeira semana de lançamento da plataforma.",
+      "description": "Um dos primeiros leitores da plataforma."
+    },
+    {
+      "id": "bdg_1781078906105",
+      "icon": "🏆",
+      "name": "teste",
+      "rule": "fazer testes",
+      "description": "teste 2"
+    },
+    {
+      "id": "badge-10-livros",
+      "name": "Viajante Frequente (10 Livros)",
+      "iconUrl": "",
+      "description": "Concluiu a leitura de mais de 10 livros. Parabéns!",
+      "conditionValue": 10,
+      "conditionTarget": "booksRead",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "badge-20-livros",
+      "name": "Explorador Experiente (20 Livros)",
+      "iconUrl": "",
+      "description": "Concluiu a leitura de mais de 20 livros.",
+      "conditionValue": 20,
+      "conditionTarget": "booksRead",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "badge-50-livros",
+      "name": "Veterano dos Mundos (50 Livros)",
+      "iconUrl": "",
+      "description": "Concluiu a leitura de mais de 50 livros.",
+      "conditionValue": 50,
+      "conditionTarget": "booksRead",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "badge-80-livros",
+      "name": "Lenda Literária (80 Livros)",
+      "iconUrl": "",
+      "description": "Concluiu a leitura de mais de 80 livros.",
+      "conditionValue": 80,
+      "conditionTarget": "booksRead",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "badge-100-livros",
+      "name": "Guardião dos Jardins (100 Livros)",
+      "iconUrl": "",
+      "description": "Alcançou a marca impressionante de 100 livros lidos!",
+      "conditionValue": 100,
+      "conditionTarget": "booksRead",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "badge-leitor-dossie",
+      "name": "Leitor de Dossiê",
+      "iconUrl": "",
+      "description": "Lê mais de 50% dos dossiês das obras iniciadas (mín. 10 iniciados, 5 concluídos).",
+      "conditionValue": 50,
+      "conditionTarget": "dossiersReadComplex",
+      "conditionOperator": ">="
+    },
+    {
+      "id": "bdg_detetive_ano",
+      "icon": "🕵️‍♂️",
+      "name": "Detetive do ano",
+      "color": "#FFCC80",
+      "description": "Mestre da investigação: solicitou e teve acesso aprovado a mais de 100 notas secretas de autores.",
+      "conditionValue": 100,
+      "conditionTarget": "secretNotesApproved",
+      "conditionOperator": ">="
     }
   ]
 }

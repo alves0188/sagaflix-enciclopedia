@@ -1,13 +1,14 @@
 import { toast } from 'react-hot-toast';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect, useRef } from 'react';
-import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download } from 'lucide-react';
+import { User, BookOpen, Plus, Search, Trash2, Palette, BarChart2, Users, Activity, TrendingUp, ChevronDown, ChevronUp, Star, X, MessageSquare, Send, Mail, MailOpen, Inbox, CheckCircle, XCircle, Key, RefreshCw, ThumbsUp, ThumbsDown, Menu, UploadCloud, FileText, Image, Download, Wallet } from 'lucide-react';
 import BookIdeasBoard from './BookIdeasBoard';
 import BookEscaletaBoard from './BookEscaletaBoard';
 import BookPremissaBoard from './BookPremissaBoard';
 import mammoth from 'mammoth/mammoth.browser.js';
 import HQModal from './HQModal';
 import { supabase } from '../lib/supabaseClient';
+import UserDashboard from './UserDashboard';
 
 const COLORS = [
   { hex: '#FFE082', name: 'Amarelo' },
@@ -1932,6 +1933,8 @@ const renderSuporte = () => {
             </div>
              Suporte e Inbox
           </button>
+          
+          <button onClick={() => { setActiveTab('carteira'); setIsSidebarOpen(false); }} style={navItemStyle(activeTab === 'carteira')}><Wallet size={18}/> Minha Carteira</button>
         
         <div style={{ flex: 1 }}></div>
         <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -1948,6 +1951,11 @@ const renderSuporte = () => {
         
         {activeTab === 'pedidos_fas' && renderUniverseRequests()}
         {activeTab === 'suporte' && renderSuporte()}
+        {activeTab === 'carteira' && (
+          <div style={{ padding: '2rem' }}>
+            <UserDashboard currentUser={currentUser} />
+          </div>
+        )}
       </div>
 
       {/* Modais de Importao */}
