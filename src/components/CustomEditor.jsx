@@ -102,28 +102,16 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
 
   const toolbarStyle = {
     display: 'flex',
-    gap: '0.5rem',
-    padding: '0.5rem 0',
-    background: 'transparent',
-    borderBottom: '1px solid rgba(0,0,0,0.05)',
+    gap: '0.4rem',
+    padding: '0.4rem 0.6rem',
+    background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+    border: `1px solid ${tc.border}`,
+    borderRadius: '8px',
+    margin: '0.5rem 0 1rem 0',
     flexWrap: 'wrap',
     opacity: disabled ? 0.6 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
-    transition: 'background 0.3s ease'
-  };
-
-  const btnStyle = {
-    background: 'none',
-    border: 'none',
-    color: tc.text,
-    cursor: 'pointer',
-    padding: '0.4rem',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'color 0.3s ease',
-    opacity: 0.6
+    transition: 'all 0.3s ease'
   };
 
   return (
@@ -131,27 +119,27 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
       <div className="sticky-editor-header" style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: tc.bg, transition: 'background-color 0.3s ease' }}>
         {headerContent}
         <div style={toolbarStyle}>
-          <button type="button" onClick={() => execCommand('bold')} style={btnStyle} title="Negrito"><Bold size={16} /></button>
-          <button type="button" onClick={() => execCommand('italic')} style={btnStyle} title="Itálico"><Italic size={16} /></button>
-          <button type="button" onClick={() => execCommand('underline')} style={btnStyle} title="Sublinhado"><Underline size={16} /></button>
+          <button type="button" onClick={() => execCommand('bold')} className="editor-toolbar-btn" title="Negrito"><Bold size={16} /></button>
+          <button type="button" onClick={() => execCommand('italic')} className="editor-toolbar-btn" title="Itálico"><Italic size={16} /></button>
+          <button type="button" onClick={() => execCommand('underline')} className="editor-toolbar-btn" title="Sublinhado"><Underline size={16} /></button>
           
-          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.4rem' }}></div>
 
-          <button type="button" onClick={() => execCommand('formatBlock', '<h1>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H1">H1</button>
-          <button type="button" onClick={() => execCommand('formatBlock', '<h2>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H2">H2</button>
-          <button type="button" onClick={() => execCommand('formatBlock', '<h3>')} style={{ ...btnStyle, fontWeight: 'bold', fontSize: '13px' }} title="Título H3">H3</button>
-          <button type="button" onClick={() => execCommand('formatBlock', '<p>')} style={{ ...btnStyle, fontSize: '13px' }} title="Texto Normal">P</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<h1>')} className="editor-toolbar-btn" style={{ fontWeight: 'bold', fontSize: '13px' }} title="Título H1">H1</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<h2>')} className="editor-toolbar-btn" style={{ fontWeight: 'bold', fontSize: '13px' }} title="Título H2">H2</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<h3>')} className="editor-toolbar-btn" style={{ fontWeight: 'bold', fontSize: '13px' }} title="Título H3">H3</button>
+          <button type="button" onClick={() => execCommand('formatBlock', '<p>')} className="editor-toolbar-btn" style={{ fontSize: '13px' }} title="Texto Normal">P</button>
 
-          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.4rem' }}></div>
           
-          <button type="button" onClick={() => execCommand('justifyLeft')} style={btnStyle} title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
-          <button type="button" onClick={() => execCommand('justifyCenter')} style={btnStyle} title="Centralizar"><AlignCenter size={16} /></button>
-          <button type="button" onClick={() => execCommand('justifyRight')} style={btnStyle} title="Alinhar à Direita"><AlignRight size={16} /></button>
+          <button type="button" onClick={() => execCommand('justifyLeft')} className="editor-toolbar-btn" title="Alinhar à Esquerda"><AlignLeft size={16} /></button>
+          <button type="button" onClick={() => execCommand('justifyCenter')} className="editor-toolbar-btn" title="Centralizar"><AlignCenter size={16} /></button>
+          <button type="button" onClick={() => execCommand('justifyRight')} className="editor-toolbar-btn" title="Alinhar à Direita"><AlignRight size={16} /></button>
 
-          <div style={{ width: '1px', background: tc.border, margin: '0 0.5rem' }}></div>
+          <div style={{ width: '1px', background: tc.border, margin: '0 0.4rem' }}></div>
 
-          <button type="button" onClick={() => execCommand('insertUnorderedList')} style={btnStyle} title="Lista"><List size={16} /></button>
-          <button type="button" onClick={handleImageInsert} style={btnStyle} title="Inserir Imagem"><ImageIcon size={16} /></button>
+          <button type="button" onClick={() => execCommand('insertUnorderedList')} className="editor-toolbar-btn" title="Lista"><List size={16} /></button>
+          <button type="button" onClick={handleImageInsert} className="editor-toolbar-btn" title="Inserir Imagem"><ImageIcon size={16} /></button>
         </div>
       </div>
       
@@ -191,13 +179,31 @@ export default function CustomEditor({ value, onChange, disabled, placeholder, t
         data-placeholder={placeholder}
       />
       
-      {/* Basic placeholder styling using css */}
+      {/* Basic placeholder styling and hover effects using css */}
       <style>{`
         div[contenteditable]:empty:before {
           content: attr(data-placeholder);
           color: ${isLight ? '#999' : 'var(--text-muted)'};
           pointer-events: none;
           display: block; /* For Firefox */
+        }
+        .editor-toolbar-btn {
+          background: none;
+          border: none;
+          color: ${tc.text};
+          cursor: pointer;
+          padding: 0.4rem 0.6rem;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          opacity: 0.65;
+        }
+        .editor-toolbar-btn:hover {
+          opacity: 1;
+          background: ${isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'};
+          color: ${tc.gold || 'var(--accent-gold)'};
         }
       `}</style>
     </div>

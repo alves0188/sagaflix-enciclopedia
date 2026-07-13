@@ -71,6 +71,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
   const [activeList, setActiveList] = useState('chapters'); // Default to chapters
   const [notesFilter, setNotesFilter] = useState('notes'); // 'notes' or 'requests'
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const handleCloseEdit = useHashHistory(!!editingItem, 'editando', () => setEditingItem(null));
   const [formData, setFormData] = useState({});
@@ -1757,9 +1759,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               <button className="mobile-only" onClick={() => setShowMobileSidebar(true)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Menu size={24} />
               </button>
+              {/* Zen Left Toggle */}
+              <button className="desktop-only" onClick={() => setIsLeftSidebarCollapsed(!isLeftSidebarCollapsed)} style={{ background: 'none', border: `1px solid ${ec.border}`, color: ec.text, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', opacity: isLeftSidebarCollapsed ? 0.5 : 1 }} title={isLeftSidebarCollapsed ? "Mostrar Navegação" : "Recolher Navegação"}>
+                <Layout size={16} />
+              </button>
             </div>
             
             <div className="editor-header-buttons" style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+              {/* Zen Right Toggle */}
+              <button className="desktop-only" onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)} style={{ background: 'none', border: `1px solid ${ec.border}`, color: ec.text, padding: '0.5rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', opacity: isRightSidebarCollapsed ? 0.5 : 1 }} title={isRightSidebarCollapsed ? "Mostrar Planejamento" : "Recolher Planejamento"}>
+                <Layers size={16} />
+              </button>
               <button className="btn-secondary" onClick={() => setEditingItem(null)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.8rem', borderRadius: '6px' }} title="Voltar">
                 <ArrowLeft size={16} /> <span className="desktop-only">Voltar</span>
               </button>
@@ -1793,7 +1803,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             
             {/* COLUMN 1: Left (Navegação Geral e Subtemas) */}
-            <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`} style={{ width: '280px', borderRight: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflowY: 'auto' }}>
+            <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`} style={{ width: isLeftSidebarCollapsed ? '0px' : '280px', padding: isLeftSidebarCollapsed ? '0' : '1rem', overflowX: 'hidden', borderRight: isLeftSidebarCollapsed ? 'none' : `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', overflowY: 'auto', transition: 'all 0.3s ease' }}>
               
               {/* Overlay for mobile sidebar */}
               {showMobileSidebar && (
@@ -2188,7 +2198,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             </div>
 
             {/* COLUMN 3: Right (Planejamento) */}
-            <div className="desktop-only" style={{ width: '420px', borderLeft: `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', padding: '1rem', overflow: 'hidden', transition: 'background-color 0.3s ease' }}>
+            <div className="desktop-only" style={{ width: isRightSidebarCollapsed ? '0px' : '420px', padding: isRightSidebarCollapsed ? '0' : '1rem', overflowX: 'hidden', borderLeft: isRightSidebarCollapsed ? 'none' : `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', overflowY: 'auto', transition: 'all 0.3s ease' }}>
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem', width: '100%' }}>
                 <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'premissa' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Resumo</button>
                 <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'escaletas' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Escaletas</button>
