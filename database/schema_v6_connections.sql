@@ -1,5 +1,8 @@
 -- CREATE UNIVERSE CONNECTIONS TABLE
-CREATE TABLE IF NOT EXISTS public.universe_connections (
+DROP TABLE IF EXISTS public.universe_connections CASCADE;
+
+CREATE TABLE public.universe_connections (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     book_id TEXT NOT NULL, -- references books.id (stored as TEXT in books)
     source_id TEXT NOT NULL,
