@@ -1804,6 +1804,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             
             {/* COLUMN 1: Left (Navegação Geral e Subtemas) */}
             <div className={`editor-mobile-sidebar ${showMobileSidebar ? 'open' : ''}`} style={{ width: isLeftSidebarCollapsed ? '0px' : '280px', padding: isLeftSidebarCollapsed ? '0' : '1rem', overflowX: 'hidden', borderRight: isLeftSidebarCollapsed ? 'none' : `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', overflowY: 'auto', transition: 'all 0.3s ease' }}>
+              <style>{`
+                .unified-env-item-actions {
+                  display: flex;
+                  gap: 0.4rem;
+                  opacity: 0;
+                  transition: opacity 0.2s ease;
+                }
+                .unified-env-item:hover .unified-env-item-actions {
+                  opacity: 1;
+                }
+              `}</style>
               
               {/* Overlay for mobile sidebar */}
               {showMobileSidebar && (
@@ -1815,10 +1826,13 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               )}
 
               {/* Header com Nome do Livro e Botão + */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: `1px solid ${ec.border}`, paddingBottom: '1rem', position: 'relative' }}>
-                <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', color: 'var(--accent-gold)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }} title={currentBook?.title}>
-                  {currentBook?.title || 'Nome do Livro'}
-                </h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: `1px solid ${ec.border}`, paddingBottom: '0.8rem', position: 'relative' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.8px' }}>Estrutura de</span>
+                  <h3 style={{ margin: '0.1rem 0 0 0', fontFamily: "'Playfair Display', serif", fontSize: '1.05rem', color: 'var(--accent-gold)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }} title={currentBook?.title}>
+                    {currentBook?.title || 'Nome do Livro'}
+                  </h3>
+                </div>
                 <div style={{ position: 'relative' }}>
                   <button 
                     onClick={() => setShowAddEnvMenu(!showAddEnvMenu)}
@@ -1933,7 +1947,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                           </span>
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '0.2rem' }}>
+                        <div className="unified-env-item-actions">
                           {!isReadOnly && (
                             <button
                               onClick={async (e) => {
@@ -2213,6 +2227,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
 
             {/* COLUMN 3: Right (Planejamento) */}
             <div className="desktop-only" style={{ width: isRightSidebarCollapsed ? '0px' : '420px', padding: isRightSidebarCollapsed ? '0' : '1rem', overflowX: 'hidden', borderLeft: isRightSidebarCollapsed ? 'none' : `1px solid ${ec.border}`, backgroundColor: ec.panelBg, display: 'flex', flexDirection: 'column', overflowY: 'auto', transition: 'all 0.3s ease' }}>
+              <style>{`
+                .flat-board-container > div {
+                  padding: 0.5rem 0 !important;
+                  background: transparent !important;
+                  border: none !important;
+                  border-radius: 0px !important;
+                }
+              `}</style>
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem', width: '100%' }}>
                 <button onClick={() => setActiveSideTab('premissa')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'premissa' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'premissa' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'premissa' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Resumo</button>
                 <button onClick={() => setActiveSideTab('escaletas')} style={{ flex: 1, padding: '0.8rem 0', border: 'none', background: 'transparent', color: activeSideTab === 'escaletas' ? 'var(--accent-gold)' : 'var(--text-muted)', borderBottom: activeSideTab === 'escaletas' ? '2.5px solid var(--accent-gold)' : '2.5px solid transparent', cursor: 'pointer', fontWeight: activeSideTab === 'escaletas' ? 'bold' : 'normal', transition: 'all 0.2s', fontSize: '0.9rem' }}>Escaletas</button>
@@ -2221,11 +2243,11 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               {currentBook && (
                 <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
                   {activeSideTab === 'premissa' ? (
-                    <BookPremissaBoard book={currentBook} onUpdateBook={onUpdateBook} />
+                    <div className="flat-board-container"><BookPremissaBoard book={currentBook} onUpdateBook={onUpdateBook} /></div>
                   ) : activeSideTab === 'escaletas' ? (
-                    <BookEscaletaBoard book={currentBook} onUpdateBook={onUpdateBook} />
+                    <div className="flat-board-container"><BookEscaletaBoard book={currentBook} onUpdateBook={onUpdateBook} /></div>
                   ) : (
-                    <BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} />
+                    <div className="flat-board-container"><BookIdeasBoard book={currentBook} onUpdateBook={onUpdateBook} /></div>
                   )}
                 </div>
               )}
