@@ -1,6 +1,6 @@
 import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe, Feather, Bookmark, BookOpen } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe, Feather, Bookmark, BookOpen, Link2 } from 'lucide-react';
 import TypesettingDashboard from './TypesettingDashboard';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
@@ -10,7 +10,8 @@ import SynopsisConfig from './SynopsisConfig';
 import BookIdeasBoard from './BookIdeasBoard';
 import BookEscaletaBoard from './BookEscaletaBoard';
 import BookPremissaBoard from './BookPremissaBoard';
-import { uploadImage } from '../lib/supabaseClient';
+import UniverseGraph from './UniverseGraph';
+import { supabase, uploadImage } from '../lib/supabaseClient';
 import { api } from '../lib/api';
 import { useHashHistory } from '../hooks/useHashHistory';
 
@@ -39,6 +40,24 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   
   const [universeItems, setUniverseItems] = useState(null);
   const [loadingUniverse, setLoadingUniverse] = useState(true);
+  const [connections, setConnections] = useState([]);
+
+  const fetchConnections = async () => {
+    if (!bookId) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const baseUrl = window.API_BASE_URL || '';
+      const res = await fetch(`${baseUrl}/api/universe/connections/${bookId}`, {
+        headers: { 'Authorization': session ? `Bearer ${session.access_token}` : '' }
+      });
+      if (res.ok) {
+        const connData = await res.json();
+        setConnections(connData || []);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar conexões:', err);
+    }
+  };
 
   useEffect(() => {
     async function loadUniverse() {
@@ -62,6 +81,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       }
     }
     loadUniverse();
+    fetchConnections();
   }, [bookId]);
 
   const getList = (listKey) => {
@@ -1572,6 +1592,114 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             {/* Unified Cards Grid for both Mobile and Desktop */}
             {activeList === 'chapters' ? (
               renderChaptersSummary()
+            ) : activeList === 'events' ? (
+              /* =================== EVENTS TAB = OBSIDIAN GRAPH + LIST =================== */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {/* Graph Section */}
+                <div style={{
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '12px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <Link2 size={16} style={{ color: 'var(--accent-gold)' }} />
+                      <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-main)' }}>Mapa de Conexões do Universo</span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {connections.length} relações • {[...(getList('characters')), ...(getList('locations')), ...(getList('organizations')), ...(getList('clues'))].length} entidades
+                    </span>
+                  </div>
+                  <UniverseGraph
+                    bookId={bookId}
+                    universe={{
+                      characters: getList('characters'),
+                      locations: getList('locations'),
+                      organizations: getList('organizations'),
+                      clues: getList('clues'),
+                      events: getList('events')
+                    }}
+                    isAuthor={isAuthor || isCurator}
+                    onRefresh={fetchConnections}
+                  />
+                </div>
+
+                {/* Events List Section */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text-muted)', fontWeight: '500' }}>
+                      Ocorrências / Tags cadastradas
+                    </h2>
+                    {canCreateNew && !isReadOnly && (
+                      <button className="btn-primary admin-btn-new" onClick={handleNew} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Plus size={14} /> Nova Ocorrência
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {(getList('events') || []).length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', border: '1px dashed rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '0.9rem' }}>
+                        Nenhuma ocorrência cadastrada. Crie uma nova para vinculá-la ao mapa.
+                      </div>
+                    ) : (
+                      (getList('events') || []).map((item) => {
+                        const connCount = connections.filter(c => c.source_id === item.id || c.target_id === item.id).length;
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => handleEdit(item, 'evento')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '1rem',
+                              padding: '0.75rem 1rem',
+                              background: 'rgba(255,255,255,0.02)',
+                              border: '1px solid rgba(255,255,255,0.04)',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(212,175,55,0.15)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+                          >
+                            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(244, 67, 54, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Tag size={16} style={{ color: '#F44336' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.95rem', fontWeight: '500', color: 'var(--text-main)' }}>{item.name || item.title || 'Sem nome'}</div>
+                              {item.tags && (
+                                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.3rem' }}>
+                                  {item.tags.split(',').map(t => t.trim()).filter(Boolean).map((tag, i) => (
+                                    <span key={i} style={{ background: 'rgba(212,175,55,0.12)', color: 'var(--accent-gold)', padding: '1px 6px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: '600' }}>
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {connCount > 0 && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--text-muted)', fontSize: '0.8rem', flexShrink: 0 }}>
+                                <Link2 size={12} /> {connCount}
+                              </div>
+                            )}
+                            {!isReadOnly && (
+                              <button
+                                onClick={e => { e.stopPropagation(); if (window.confirm('Excluir?')) handleDelete(item.id, 'evento'); }}
+                                style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.5)', cursor: 'pointer', padding: '0.2rem', display: 'flex', flexShrink: 0 }}
+                                onMouseEnter={e => e.currentTarget.style.color = '#ff4d4d'}
+                                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,100,100,0.5)'}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="admin-cards-grid">
                 {(data[activeList] || []).length === 0 ? (
@@ -1623,6 +1751,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
           </div>
         )}
       </div>
+
 
       {/* Right Area: Edit Panel (Standard or Dossier) */}
       {editingItem && !isChapterLike && (
@@ -1737,8 +1866,18 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               handleFileUpload={handleFileUpload} 
               isReadOnly={isReadOnly}
               bookTitle={currentBook?.title}
-              universe={currentBook?.universe || {}}
+              universe={{
+                characters: getList('characters'),
+                locations: getList('locations'),
+                organizations: getList('organizations'),
+                clues: getList('clues'),
+              }}
               events={getList('events')}
+              connections={connections}
+              onOpenDossier={(entity) => {
+                const typeMap = { character: 'personagem', location: 'local', organization: 'organizacao', clue: 'pista' };
+                handleEdit(entity, typeMap[entity._type] || entity.type || 'personagem');
+              }}
             />
           </div>
         )

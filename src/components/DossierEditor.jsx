@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Save, Upload, Trash2, X, Plus } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Trash2, X, Plus, Link2, ExternalLink } from 'lucide-react';
 import TagBadge from './TagBadge';
 
 const getStatusOptions = (type) => {
@@ -64,7 +64,7 @@ const getDefaultLabels = (type) => {
   return { role: 'CATEGORIA', territory: 'PORTADOR/ORIGEM' };
 };
 
-export default function DossierEditor({ formData, setFormData, onSave, onCancel, uploading, handleFileUpload, isReadOnly = false, bookTitle, universe, events = [] }) {
+export default function DossierEditor({ formData, setFormData, onSave, onCancel, uploading, handleFileUpload, isReadOnly = false, bookTitle, universe, events = [], connections = [], onOpenDossier = null }) {
   const isClue = formData.type === 'pista';
   const defaults = getDefaultLabels(formData.type);
   const currentRoleLabel = formData.roleLabel || defaults.role;
@@ -72,6 +72,17 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
   const [hasChanges, setHasChanges] = useState(false);
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
   const [isNoteLifted, setIsNoteLifted] = useState(false);
+
+  // Build flat entity list from all universe categories for dropdowns
+  const allEntities = [
+    ...(universe?.characters || []).map(e => ({ ...e, _category: 'Personagem', _type: 'character' })),
+    ...(universe?.locations || []).map(e => ({ ...e, _category: 'Local', _type: 'location' })),
+    ...(universe?.organizations || []).map(e => ({ ...e, _category: 'Organização', _type: 'organization' })),
+    ...(universe?.clues || []).map(e => ({ ...e, _category: 'Complemento', _type: 'clue' })),
+  ].filter(e => e.id !== formData.id); // exclude self
+
+  // Incoming backlinks: connections where this dossier is the TARGET
+  const incomingLinks = (connections || []).filter(c => c.target_id === formData.id || c.source_id === formData.id);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -185,7 +196,7 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
     setHasChanges(true);
     setFormData({ 
       ...formData, 
-      connections: [...(formData.connections || []), { name: '', relation: '' }] 
+      connections: [...(formData.connections || []), { name: '', relation: '', targetId: '' }] 
     });
   };
 
@@ -193,7 +204,13 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
     if (isReadOnly) return;
     setHasChanges(true);
     const newConns = [...(formData.connections || [])];
-    newConns[index][key] = val;
+    // If changing the name via entity picker, also store targetId
+    if (key === 'targetId') {
+      const entity = allEntities.find(e => e.id === val);
+      newConns[index] = { ...newConns[index], targetId: val, name: entity ? (entity.name || entity.title || '') : newConns[index].name };
+    } else {
+      newConns[index][key] = val;
+    }
     setFormData({ ...formData, connections: newConns });
   };
 
@@ -637,12 +654,83 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
                   <ul className="dossier-list" style={{ listStyle: 'none', paddingLeft: 0 }}>
                     {(formData.connections || []).map((conn, idx) => (
                       <li key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-                        <input value={conn.name} onChange={e => updateConnection(idx, 'name', e.target.value)} disabled={isReadOnly} placeholder="Nome" style={{ ...inputStyle, width: '30%', fontWeight: 'bold', opacity: isReadOnly ? 0.8 : 1 }} />
-                        <input value={conn.relation} onChange={e => updateConnection(idx, 'relation', e.target.value)} disabled={isReadOnly} placeholder="Relação" style={{ ...inputStyle, width: '60%', opacity: isReadOnly ? 0.8 : 1 }} />
-                        {!isReadOnly && <button onClick={() => removeConnection(idx)} style={{ background: 'none', border: 'none', color: '#aa0000', cursor: 'pointer', padding: '0.2rem' }}><Trash2 size={16} /></button>}
+                        {isReadOnly ? (
+                          // Read mode: show name as clickable link if we have a targetId
+                          <>
+                            <strong style={{ minWidth: '30%', fontSize: '0.9rem', color: '#333' }}>{conn.name}</strong>
+                            <span style={{ flex: 1, color: '#555', fontSize: '0.88rem' }}>{conn.relation}</span>
+                            {conn.targetId && onOpenDossier && (
+                              <button
+                                onClick={() => {
+                                  const entity = allEntities.find(e => e.id === conn.targetId);
+                                  if (entity) onOpenDossier(entity);
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#7c5a00', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', padding: '0.1rem 0.3rem', borderRadius: '4px', textDecoration: 'underline' }}
+                                title="Abrir Dossiê"
+                              >
+                                <ExternalLink size={12} /> Ver dossiê
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          // Edit mode: show entity dropdown + relation input
+                          <>
+                            {allEntities.length > 0 ? (
+                              <select
+                                value={conn.targetId || ''}
+                                onChange={e => updateConnection(idx, 'targetId', e.target.value)}
+                                style={{ width: '35%', background: 'rgba(255,255,255,0.4)', border: '1px dashed #999', padding: '0.2rem 0.4rem', borderRadius: '3px', fontSize: '0.85rem', fontWeight: 'bold', color: '#111' }}
+                              >
+                                <option value="">-- Escolher entidade --</option>
+                                {['Personagem', 'Local', 'Organização', 'Complemento'].map(cat => {
+                                  const group = allEntities.filter(e => e._category === cat);
+                                  if (group.length === 0) return null;
+                                  return (
+                                    <optgroup key={cat} label={cat}>
+                                      {group.map(e => (
+                                        <option key={e.id} value={e.id}>{e.name || e.title}</option>
+                                      ))}
+                                    </optgroup>
+                                  );
+                                })}
+                              </select>
+                            ) : (
+                              <input value={conn.name} onChange={e => updateConnection(idx, 'name', e.target.value)} disabled={isReadOnly} placeholder="Nome" style={{ width: '30%', background: 'rgba(255,255,255,0.4)', border: '1px dashed #999', padding: '0.2rem 0.5rem', borderRadius: '2px', fontWeight: 'bold', color: '#111', opacity: isReadOnly ? 0.8 : 1 }} />
+                            )}
+                            <input value={conn.relation} onChange={e => updateConnection(idx, 'relation', e.target.value)} disabled={isReadOnly} placeholder="Relação (Ex: Irmã de, Aliado de)" style={{ flex: 1, background: 'rgba(255,255,255,0.4)', border: '1px dashed #999', padding: '0.2rem 0.5rem', borderRadius: '2px', color: '#111', opacity: isReadOnly ? 0.8 : 1 }} />
+                            <button onClick={() => removeConnection(idx)} style={{ background: 'none', border: 'none', color: '#aa0000', cursor: 'pointer', padding: '0.2rem' }}><Trash2 size={16} /></button>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
+
+                  {/* Backlinks: connections from other dossiers pointing here */}
+                  {incomingLinks.length > 0 && (
+                    <div style={{ marginTop: '1rem', padding: '0.8rem 1rem', background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 'bold', color: '#8a6a00', letterSpacing: '0.05em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <Link2 size={11} /> CONEXÕES DO UNIVERSO (BACKLINKS)
+                      </div>
+                      {incomingLinks.map((link, idx) => {
+                        const peerId = link.source_id === formData.id ? link.target_id : link.source_id;
+                        const peer = allEntities.find(e => e.id === peerId);
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', fontSize: '0.85rem', color: '#555' }}>
+                            <span style={{ fontWeight: 'bold', color: '#333' }}>{peer ? (peer.name || peer.title) : peerId}</span>
+                            <span style={{ color: '#888', fontSize: '0.78rem' }}>– {link.relation_type}</span>
+                            {peer && onOpenDossier && (
+                              <button
+                                onClick={() => onOpenDossier(peer)}
+                                style={{ background: 'none', border: 'none', color: '#7c5a00', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '0.72rem', padding: '0.1rem 0.2rem', textDecoration: 'underline' }}
+                              >
+                                <ExternalLink size={11} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </>
               )}
 
