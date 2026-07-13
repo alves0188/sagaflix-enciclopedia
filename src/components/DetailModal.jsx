@@ -10,6 +10,51 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
   const isClue = item.type === 'pista';
 
+  const [isPremium, setIsPremium] = useState(false);
+  const [verifyingPremium, setVerifyingPremium] = useState(true);
+
+  useEffect(() => {
+    async function checkSubscription() {
+      if (!currentUser) {
+        setVerifyingPremium(false);
+        return;
+      }
+      
+      // Authors and curators bypass this check
+      const isAuthorOrCurator = currentUser.role === 'curator' || (db?.books?.some(b => b.title === bookTitle && b.author_id === currentUser.id));
+      if (isAuthorOrCurator) {
+        setIsPremium(true);
+        setVerifyingPremium(false);
+        return;
+      }
+
+      try {
+        const baseUrl = window.API_BASE_URL || '';
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(`${baseUrl}/api/wallet/balance`, {
+          headers: {
+            'Authorization': session ? `Bearer ${session.access_token}` : ''
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsPremium(data.subscription_status === 'active');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setVerifyingPremium(false);
+      }
+    }
+
+    if (item.access_level === 'paid') {
+      checkSubscription();
+    } else {
+      setIsPremium(true);
+      setVerifyingPremium(false);
+    }
+  }, [item, currentUser, db, bookTitle]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -70,8 +115,39 @@ export default function DetailModal({ item, events, onClose, bookTitle, onReques
   // Extract universe
   const universe = db?.books?.find(b => b.title === bookTitle)?.universe || {};
 
+  if (item.access_level === 'paid' && !isPremium) {
+    if (verifyingPremium) {
+      return (
+        <div className="dossier-modal-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px', color: 'var(--accent-gold)' }}>
+          <p>Verificando credenciais premium...</p>
+        </div>
+      );
+    }
+    return (
+      <div className="dossier-modal-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '450px', background: 'radial-gradient(circle, #1a150e 0%, #0d0905 100%)' }}>
+        <div style={{ textAlign: 'center', maxWidth: '380px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.2rem', alignItems: 'center' }}>
+          <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(212,175,55,0.1)', border: '2px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-gold)' }}>
+            <Lock size={32} />
+          </div>
+          <h2 style={{ margin: 0, fontFamily: "'Playfair Display', serif", color: 'var(--accent-gold)', fontSize: '1.5rem' }}>Dossiê Exclusivo Premium</h2>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+            Esta área do universo foi reservada pelo autor como conteúdo exclusivo para apoiadores da plataforma.
+          </p>
+          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.8rem', borderRadius: '6px', border: '1px solid rgba(212,175,55,0.2)', width: '100%', fontSize: '0.85rem', color: '#fff' }}>
+            Apoie o autor assinando o Sagaflix Premium por apenas <strong>R$ 14,90/mês</strong>!
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', width: '100%', marginTop: '0.5rem' }}>
+            <button onClick={onClose} className="btn-secondary" style={{ flex: 1, padding: '0.7rem' }}>Voltar</button>
+            <a href="#carteira" onClick={() => { onClose(); window.location.hash = '#carteira'; }} className="btn-primary" style={{ flex: 1, padding: '0.7rem', textDecoration: 'none', textAlign: 'center', fontWeight: 'bold', display: 'inline-block' }}>Ir para Carteira</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dossier-modal-container">
+
       
       {/* Coluna Esquerda: Notas do Autor */}
       <div onClick={e => e.stopPropagation()} className="dossier-left-panel">

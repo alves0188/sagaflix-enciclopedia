@@ -1,12 +1,13 @@
 import { toast } from 'react-hot-toast';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { useState, useEffect } from 'react';
-import { Home, Users, Map, Search, BookOpen, Settings, Key, Building, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Home, Users, Map, Search, BookOpen, Settings, Key, Building, Image as ImageIcon, ArrowLeft, Link2 } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 import DetailModal from './DetailModal';
 import AdminPanel from './AdminPanel';
 import Reader from './Reader';
 import AuthorModal from './AuthorModal';
+import UniverseGraph from './UniverseGraph';
 import { useHashHistory } from '../hooks/useHashHistory';
 import { supabase } from '../lib/supabaseClient';
 
@@ -185,7 +186,12 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
   const visibility = currentBook?.universeVisibility || {};
  
   const isAuthorOrCurator = currentUser?.role === 'curator' || currentBook?.authorId === currentUser?.id;
-  const filterDrafts = (arr) => arr.filter(item => isAuthorOrCurator || item.status !== 'draft');
+  const filterDrafts = (arr) => arr.filter(item => {
+    if (isAuthorOrCurator) return true;
+    if (item.status === 'draft') return false;
+    if (item.access_level === 'private') return false;
+    return true;
+  });
  
   // Determinar se existem itens publicados nas abas do Universo
   const hasPublishedCharacters = filterDrafts(universe.characters || []).length > 0;
@@ -577,6 +583,10 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
               <Key size={24} />
             </div>
           )}
+          {/* Mapa do Universo Link */}
+          <div className={`nav-item ${activeTab === 'mapa' ? 'active' : ''}`} onClick={() => setActiveTab('mapa')} title="Mapa Constelação">
+            <Link2 size={24} />
+          </div>
           {currentUser && (currentUser.role === 'author' || currentUser.role === 'curator') && (
             <div className={`nav-item admin-nav-item ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')} title="Painel CMS">
               <Settings size={24} />
@@ -586,7 +596,7 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
       </aside>
 
       {/* Main Content */}
-      <main className={`main-content ${(activeTab === 'reader' || activeTab === 'admin') ? 'no-padding' : ''}`}>
+      <main className={`main-content ${(activeTab === 'reader' || activeTab === 'admin' || activeTab === 'mapa') ? 'no-padding' : ''}`}>
         {activeTab === 'reader' ? (
           <Reader 
             db={db} 
@@ -595,6 +605,14 @@ export default function UniverseView({ bookId, currentUser, initialTab, onLeave 
             onUpdateData={onUpdateData} 
             onClose={handleCloseReader} 
           />
+        ) : activeTab === 'mapa' ? (
+          <div style={{ padding: isMobile ? '1rem' : '2.5rem', height: '100%', minHeight: '620px', color: '#fff' }}>
+            <UniverseGraph 
+              bookId={bookId} 
+              universe={universe} 
+              isAuthor={isAuthorOrCurator} 
+            />
+          </div>
         ) : activeTab === 'admin' && (currentUser.role === 'author' || currentUser.role === 'curator') ? (
           <AdminPanel 
             data={universe} 

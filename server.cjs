@@ -912,7 +912,85 @@ app.post('/api/search/semantic', async (req, res) => {
   }
 });
 
+// 11. Universe Connections API (T002)
+app.get('/api/universe/connections/:bookId', async (req, res) => {
+  const supabaseClient = getSupabaseClient(req);
+  const { bookId } = req.params;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('universe_connections')
+      .select('*')
+      .eq('book_id', bookId);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/universe/connections', async (req, res) => {
+  const supabaseClient = getSupabaseClient(req);
+  const { book_id, source_id, source_type, target_id, target_type, relation_type, description } = req.body;
+
+  if (!book_id || !source_id || !source_type || !target_id || !target_type || !relation_type) {
+    return res.status(400).json({ error: 'Missing required connection fields' });
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('universe_connections')
+      .insert({
+        book_id,
+        source_id,
+        source_type,
+        target_id,
+        target_type,
+        relation_type,
+        description
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/universe/connections/:id', async (req, res) => {
+  const supabaseClient = getSupabaseClient(req);
+  const { id } = req.params;
+
+  try {
+    const { error } = await supabaseClient
+      .from('universe_connections')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.listen(PORT, () => {
+
   console.log(`CMS Server rodando na porta ${PORT}`);
   
   // Trigger background embeddings generation on startup (T023)

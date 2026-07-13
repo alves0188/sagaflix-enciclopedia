@@ -495,6 +495,26 @@ export default function DossierEditor({ formData, setFormData, onSave, onCancel,
               
               <div className="dossier-personal-data">
                 <div style={{ marginBottom: '0.5rem' }}><strong>NOME COMPLETO:</strong> <input name="name" value={formData.name || ''} onChange={handleChange} disabled={isReadOnly} style={{ ...inputStyle, opacity: isReadOnly ? 0.8 : 1 }} /></div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong>NÍVEL DE ACESSO DO LEITOR:</strong> 
+                  {isReadOnly ? (
+                    <span style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', marginLeft: '0.5rem', fontWeight: 'bold' }}>
+                      {formData.access_level === 'paid' ? '🔒 Exclusivo Premium' : formData.access_level === 'private' ? '👁️ Privado (Apenas Autor)' : '🔓 Gratuito (Livre)'}
+                    </span>
+                  ) : (
+                    <select 
+                      name="access_level" 
+                      value={formData.access_level || 'free'} 
+                      onChange={handleChange} 
+                      style={{ ...inputStyle, width: '100%', background: '#fff', color: '#000', padding: '0.3rem', fontSize: '0.85rem', border: '1px solid #ccc', borderRadius: '4px' }}
+                    >
+                      <option value="free">🔓 Gratuito (Livre para todos)</option>
+                      <option value="paid">🔒 Exclusivo Premium (Exige Assinatura)</option>
+                      <option value="private">👁️ Privado (Rascunho - Apenas Autor)</option>
+                    </select>
+                  )}
+                </div>
+
                 <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   {isReadOnly ? (
                     <strong>{currentRoleLabel.toUpperCase()}:</strong>
