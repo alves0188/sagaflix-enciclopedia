@@ -64,13 +64,17 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       if (!bookId) return;
       try {
         const items = await api.getUniverseItems(bookId);
+        const restoreTags = (item) => {
+          const tagsField = (item.custom_fields || []).find(f => f.label === '__tags__');
+          return tagsField ? { ...item, tags: tagsField.value } : item;
+        };
         const mapped = {
           characters: items.filter(i => i.type === 'personagem').map(i => ({...i})),
           locations: items.filter(i => i.type === 'local').map(i => ({...i})),
           organizations: items.filter(i => i.type === 'organizacao').map(i => ({...i})),
           items: items.filter(i => i.type === 'item').map(i => ({...i})),
           clues: items.filter(i => i.type === 'pista').map(i => ({...i})),
-          events: items.filter(i => i.type === 'evento').map(i => ({...i})),
+          events: items.filter(i => i.type === 'evento').map(restoreTags),
           posts: items.filter(i => i.type === 'post').map(i => ({...i}))
         };
         setUniverseItems(mapped);
@@ -253,7 +257,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
       } else {
         try {
           const typeMapping = { 'characters': 'personagem', 'locations': 'local', 'organizations': 'organizacao', 'items': 'item', 'clues': 'pista', 'events': 'evento', 'posts': 'post' };
-          const uItem = { id: formData.id, book_id: bookId, type: typeMapping[listKey] || 'personagem', name: formData.name || formData.title || 'Sem Nome', role: formData.role || '', age: formData.age || null, territory: formData.territory || '', image: formData.image || '', description: formData.description || formData.content || '', motivations: formData.motivations || '', curiosities: formData.curiosities || '', status: formData.status || 'draft', gallery: formData.gallery || [], custom_fields: formData.customFields || [], private_notes: formData.privateNotes || '' };
+          let autoCustomFields = formData.customFields || [];
+          if (listKey === 'events' && formData.tags !== undefined) {
+            autoCustomFields = [
+              ...autoCustomFields.filter(f => f.label !== '__tags__'),
+              { label: '__tags__', value: formData.tags || '' }
+            ];
+          }
+          const uItem = { id: formData.id, book_id: bookId, type: typeMapping[listKey] || 'personagem', name: formData.name || formData.title || 'Sem Nome', role: formData.role || '', age: formData.age || null, territory: formData.territory || '', image: formData.image || '', description: formData.description || formData.content || '', motivations: formData.motivations || '', curiosities: formData.curiosities || '', status: formData.status || 'draft', gallery: formData.gallery || [], custom_fields: autoCustomFields, private_notes: formData.privateNotes || '' };
           await api.saveUniverseItem(uItem);
           setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
         } catch (err) {
@@ -428,6 +439,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     if (['chapters', 'notes'].includes(listKey)) {
       onUpdate({ ...data, [listKey]: updatedList });
     } else {
+      // Optimistic update: mostra imediatamente na lista antes do Supabase responder
+      setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
       try {
         const typeMapping = {
             'characters': 'personagem',
@@ -438,6 +451,14 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
             'events': 'evento',
             'posts': 'post'
         };
+        // Para eventos: serializar tags dentro de custom_fields para persistencia
+        let customFieldsToSave = formData.customFields || [];
+        if (listKey === 'events' && formData.tags !== undefined) {
+          customFieldsToSave = [
+            ...customFieldsToSave.filter(f => f.label !== '__tags__'),
+            { label: '__tags__', value: formData.tags || '' }
+          ];
+        }
         const uItem = {
            id: formData.id,
            book_id: bookId,
@@ -452,15 +473,22 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
            curiosities: formData.curiosities || '',
            status: formData.status || 'draft',
            gallery: formData.gallery || [],
-           custom_fields: formData.customFields || [],
+           custom_fields: customFieldsToSave,
            private_notes: formData.privateNotes || ''
         };
         await api.saveUniverseItem(uItem);
-        setUniverseItems(prev => ({ ...prev, [listKey]: updatedList }));
         toast.success("Salvo com sucesso!");
       } catch (err) {
         console.error("Erro ao salvar item do universo", err);
-        toast.error("Erro ao salvar.");
+        toast.error("Erro ao salvar: " + (err?.message || 'Verifique o console'));
+        // Reverter o optimistic update em caso de erro
+        setUniverseItems(prev => {
+          const prevList = prev[listKey] || [];
+          const reverted = editingItem === 'new'
+            ? prevList.filter(i => i.id !== formData.id)
+            : prevList.map(i => i.id === formData.id ? (getList(listKey).find(o => o.id === formData.id) || i) : i);
+          return { ...prev, [listKey]: reverted };
+        });
       }
     }
   };
@@ -1702,10 +1730,10 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
               </div>
             ) : (
               <div className="admin-cards-grid">
-                {(data[activeList] || []).length === 0 ? (
+                {(getList(activeList) || []).length === 0 ? (
                   <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum registro encontrado.</div>
                 ) : (
-                  (data[activeList] || []).map((item, idx) => (
+                  (getList(activeList) || []).map((item, idx) => (
                     <div 
                       key={item.id} 
                       className="admin-list-card" 
