@@ -1075,19 +1075,22 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
   };
 
   const navItemStyle = (isActive) => ({
-    background: isActive ? 'var(--accent-gold)' : 'transparent',
-    color: isActive ? '#000' : 'var(--text-muted)',
-    border: isActive ? 'none' : '1px solid var(--border-color)',
-    padding: '1rem 1.5rem',
+    background: isActive ? 'rgba(212, 175, 55, 0.08)' : 'transparent',
+    color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)',
+    border: 'none',
+    borderLeft: isActive ? '3.5px solid var(--accent-gold)' : '3.5px solid transparent',
+    padding: '0.9rem 1.5rem',
     textAlign: 'left',
-    borderRadius: '8px',
+    borderRadius: '0px',
     cursor: 'pointer',
     fontWeight: isActive ? '600' : '400',
-    transition: 'all 0.3s',
-    margin: '0 1.5rem 0.5rem 1.5rem',
+    transition: 'all 0.2s',
+    margin: '0 0 0.2rem 0',
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem'
+    gap: '0.75rem',
+    width: '100%',
+    outline: 'none'
   });
 
   const formFieldStyle = { display: 'flex', flexDirection: 'column', gap: '0.5rem' };
@@ -1194,19 +1197,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
     const chapters = data.chapters || [];
     
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: 'var(--accent-gold)', margin: 0 }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>Configurações do Livro</span>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2.2rem', color: '#fff', margin: '0.2rem 0 0 0' }}>
             {currentBook?.title || 'Nome do Livro'}
           </h2>
         </div>
         
         {chapters.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            Nenhum conteúdo criado para este livro. Clique em "Editar História" para começar.
+          <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-color)', borderRadius: '12px' }}>
+            Nenhum conteúdo criado para este livro. Clique em "Editar História" para começar a criar.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', background: '#1c1e22', padding: '2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginTop: '0.5rem' }}>
             {chapters.map((ch, idx) => {
               const headings = getChapterHeadings(ch);
               
@@ -1221,29 +1225,73 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                 const chapNum = chapters.slice(0, idx).filter(c => (!c.type || c.type === 'chapter')).length + 1;
                 label = `Capítulo ${String(chapNum).padStart(2, '0')}`;
               }
+
+              const isDraft = ch.status === 'draft';
               
               return (
-                <div key={ch.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '0.8rem' }}>
-                  <div 
-                    onClick={() => handleEdit(ch, ch.type || 'chapter')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontSize: '1.1rem', cursor: 'pointer', transition: 'color 0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--text-main)'}
-                  >
-                    <span style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>{label.toUpperCase()}</span>
-                    {ch.title && <span>- {ch.title}</span>}
-                    {ch.status === 'draft' && (
-                      <span style={{ color: '#f44336', fontSize: '0.7rem', fontWeight: 'bold', background: 'rgba(244,67,54,0.1)', padding: '1px 5px', borderRadius: '4px', marginLeft: '0.5rem' }}>
-                        RASCUNHO
-                      </span>
-                    )}
+                <div 
+                  key={ch.id} 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '1rem', 
+                    background: 'rgba(255, 255, 255, 0.02)', 
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px', 
+                    padding: '1.5rem',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                    transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.borderColor = isDraft ? 'rgba(244,67,54,0.3)' : 'rgba(212,175,55,0.3)';
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.35)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
+                      {label.toUpperCase()}
+                    </span>
+                    <span style={{ 
+                      color: isDraft ? '#f44336' : '#4CAF50', 
+                      fontSize: '0.7rem', 
+                      fontWeight: 'bold', 
+                      background: isDraft ? 'rgba(244,67,54,0.1)' : 'rgba(76,175,80,0.1)', 
+                      padding: '2px 8px', 
+                      borderRadius: '12px',
+                      border: `1.5px solid ${isDraft ? 'rgba(244,67,54,0.2)' : 'rgba(76,175,80,0.2)'}`
+                    }}>
+                      {isDraft ? 'RASCUNHO' : 'PUBLICADO'}
+                    </span>
                   </div>
+
+                  <h3 
+                    onClick={() => handleEdit(ch, ch.type || 'chapter')}
+                    style={{ 
+                      margin: 0, 
+                      fontSize: '1.2rem', 
+                      fontFamily: "'Playfair Display', serif", 
+                      color: '#fff', 
+                      cursor: 'pointer', 
+                      transition: 'color 0.2s' 
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#fff'}
+                  >
+                    {ch.title || 'Sem título'}
+                  </h3>
                   
                   {/* List headings */}
-                  {headings.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.2rem' }}>
+                  {headings.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem', marginTop: '0.2rem' }}>
                       {headings.map((h, hIdx) => {
-                        const indent = h.level === 1 ? '1.5rem' : h.level === 2 ? '2.5rem' : '3.5rem';
+                        const indent = h.level === 1 ? '0rem' : h.level === 2 ? '0.8rem' : '1.5rem';
                         const bulletColor = h.level === 1 ? 'var(--accent-gold)' : 'var(--text-muted)';
                         
                         return (
@@ -1251,7 +1299,7 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             key={h.id || hIdx} 
                             onClick={() => {
                               handleEdit(ch, ch.type || 'chapter');
-                              // After loading, scroll to heading
+                              // Scroll logic
                               setTimeout(() => {
                                 setActivePageIdx(h.pageIdx);
                                 setTimeout(() => {
@@ -1270,22 +1318,27 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                             }}
                             style={{
                               paddingLeft: indent,
-                              fontSize: h.level === 1 ? '0.9rem' : '0.82rem',
-                              color: h.level === 1 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)',
+                              fontSize: h.level === 1 ? '0.85rem' : '0.8rem',
+                              color: 'var(--text-muted)',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.4rem',
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              transition: 'color 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent-gold)'}
-                            onMouseLeave={e => e.currentTarget.style.color = h.level === 1 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)'}
+                            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                           >
                             <span style={{ color: bulletColor }}>•</span>
-                            <span>{h.text}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.text}</span>
                           </div>
                         );
                       })}
                     </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem' }}>
+                      Nenhuma página criada neste capítulo.
+                    </p>
                   )}
                 </div>
               );
