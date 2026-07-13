@@ -367,15 +367,31 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
                       <div 
                         key={scene.id}
                         onDragOver={(e) => handleDragOverScene(e, groupIdx, sceneIdx)}
+                        onMouseEnter={e => {
+                          if (editingSceneId !== scene.id) {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.2)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.25)';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          if (editingSceneId !== scene.id) {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.04)';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.15)';
+                          }
+                        }}
                         style={{
-                          background: editingSceneId === scene.id ? 'var(--bg-secondary)' : 'var(--bg-color)',
-                          border: editingSceneId === scene.id ? '1px solid var(--accent-gold)' : '1px solid var(--border-color)',
-                          borderRadius: '8px',
+                          background: editingSceneId === scene.id ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.01)',
+                          backdropFilter: 'blur(5px)',
+                          border: editingSceneId === scene.id ? '1.5px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.04)',
+                          borderRadius: '10px',
                           padding: '1rem',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '1rem',
-                          transition: 'all 0.2s',
+                          gap: '0.8rem',
+                          boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+                          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                           opacity: isDragging ? 0.3 : 1
                         }}
                       >
@@ -421,18 +437,26 @@ export default function BookEscaletaBoard({ book, onUpdateBook, onOpenMenu, head
                               <GripVertical size={20} />
                             </div>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <input 
                                   type="checkbox" 
                                   checked={!!scene.completed}
                                   onChange={() => handleToggleCompleted(groupIdx, scene.id)}
-                                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent-gold)' }}
+                                  style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent-gold)' }}
                                   title="Marcar como Concluído"
                                 />
-                                <span style={{ background: 'rgba(212, 175, 55, 0.1)', color: 'var(--accent-gold)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                  #{sceneIdx + 1}
+                                <span style={{ 
+                                  width: '8px', 
+                                  height: '8px', 
+                                  borderRadius: '50%', 
+                                  background: scene.completed ? '#4CAF50' : '#FFC107', 
+                                  boxShadow: `0 0 8px ${scene.completed ? '#4CAF50' : '#FFC107'}`,
+                                  display: 'inline-block' 
+                                }} title={scene.completed ? 'Concluída' : 'Pendente/Rascunho'} />
+                                <span style={{ background: 'rgba(212, 175, 55, 0.08)', color: 'var(--accent-gold)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                  CENA {sceneIdx + 1}
                                 </span>
-                                <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)', textDecoration: scene.completed ? 'line-through' : 'none' }}>{scene.title || 'Sem título'}</h4>
+                                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: 'var(--text-main)', textDecoration: scene.completed ? 'line-through' : 'none' }}>{scene.title || 'Sem título'}</h4>
                               </div>
                               {scene.description ? (
                                 <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.95rem', whiteSpace: 'pre-wrap', lineHeight: '1.5', textDecoration: scene.completed ? 'line-through' : 'none' }}>

@@ -1,6 +1,6 @@
 import { toast } from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe } from 'lucide-react';
+import { User, LogOut, Search, Plus, Trash2, Edit2, ShieldAlert, ArrowLeft, ArrowUp, ArrowDown, Save, FileText, Image, ChevronRight, ChevronDown, Bold, Layout, Layers, Tag, Eye, Lightbulb, Star, Book, Upload, X, MessageSquare, Heart, Menu, Info, Settings, Bell, Sun, GripVertical, Moon, RotateCcw, Globe, Feather, Bookmark, BookOpen } from 'lucide-react';
 import TypesettingDashboard from './TypesettingDashboard';
 import CustomEditor from './CustomEditor';
 import JoditEditor from 'jodit-react';
@@ -1915,6 +1915,24 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                   }
                   
                   const headings = getChapterHeadings(ch);
+
+                  const getChapterIcon = (type) => {
+                    const iconStyle = { color: 'rgba(255,255,255,0.35)', flexShrink: 0 };
+                    switch (type) {
+                      case 'prologue':
+                      case 'preface':
+                        return <Feather size={13} style={iconStyle} />;
+                      case 'dedication':
+                        return <Heart size={13} style={{ ...iconStyle, color: 'rgba(244, 67, 54, 0.7)' }} />;
+                      case 'acknowledgements':
+                        return <Star size={13} style={{ ...iconStyle, color: 'rgba(255, 193, 7, 0.7)' }} />;
+                      case 'epilogue':
+                      case 'index':
+                        return <Bookmark size={13} style={iconStyle} />;
+                      default:
+                        return <BookOpen size={13} style={{ ...iconStyle, color: 'rgba(212, 175, 55, 0.7)' }} />;
+                    }
+                  };
                   
                   return (
                     <div key={ch.id} className="unified-env-item" style={{ borderLeft: isActive ? '3.5px solid var(--accent-gold)' : '3.5px solid transparent', background: isActive ? 'rgba(255,255,255,0.02)' : 'transparent', marginBottom: '2px', borderBottom: 'none' }}>
@@ -1937,13 +1955,21 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                               e.stopPropagation();
                               setCollapsedChapters({ ...collapsedChapters, [ch.id]: !isCollapsed });
                             }}
-                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '0.2rem' }}
                           >
-                            {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                            {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                           </button>
                           
-                          <span style={{ fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {/* Chapter Type Icon */}
+                          {getChapterIcon(ch.type)}
+
+                          <span style={{ fontSize: '0.88rem', fontWeight: isActive ? '600' : '400', color: isActive ? 'var(--accent-gold)' : 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginLeft: '0.2rem' }}>
                             {label} {ch.title ? `- ${ch.title}` : ''}
+                          </span>
+
+                          {/* Sessions Count Badge */}
+                          <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', padding: '1px 5px', borderRadius: '10px', marginLeft: '0.4rem', border: '1px solid rgba(255,255,255,0.03)', fontWeight: 'bold' }}>
+                            {ch.pages?.length || 1}s
                           </span>
                         </div>
                         
@@ -2030,9 +2056,8 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                       </div>
                       
                       {!isCollapsed && headings.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', padding: '0.2rem 0' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', padding: '0.2rem 0', borderLeft: '1px dashed rgba(255,255,255,0.08)', marginLeft: '1.75rem', marginBottom: '0.4rem' }}>
                           {headings.map((h, hIdx) => {
-                            const indent = h.level === 1 ? '1.5rem' : h.level === 2 ? '2.2rem' : '2.9rem';
                             const isHeadingActive = isActive && activePageIdx === h.pageIdx;
                             
                             return (
@@ -2060,19 +2085,20 @@ export default function AdminPanel({ data, onUpdate, bookId, currentBook, onUpda
                                   }, 100);
                                 }}
                                 style={{ 
-                                   paddingLeft: indent, 
-                                   paddingTop: '0.3rem', 
-                                   paddingBottom: '0.3rem', 
-                                   fontSize: '0.85rem', 
+                                   paddingLeft: '1rem', 
+                                   paddingTop: '0.25rem', 
+                                   paddingBottom: '0.25rem', 
+                                   fontSize: '0.82rem', 
                                    color: isHeadingActive ? 'var(--accent-gold)' : 'var(--text-muted)', 
                                    fontWeight: isHeadingActive ? 'bold' : 'normal',
                                    background: 'transparent',
                                    cursor: 'pointer',
                                    transition: 'color 0.2s',
-                                   border: 'none'
+                                   border: 'none',
+                                   position: 'relative'
                                  }}
                               >
-                                • {h.text}
+                                {h.text}
                               </div>
                             );
                           })}
